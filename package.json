@@ -3,18 +3,20 @@
   "version": "2.0.0",
   "main": "expo-router/entry",
   "scripts": {
-    "start":      "expo start",
-    "android":    "expo start --android",
-    "ios":        "expo start --ios",
-    "web":        "expo start --web",
-    "build":      "npx expo export -p web",
-    "test":       "jest --watchAll=false",
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build": "npx expo export -p web",
+    "test": "jest --watchAll=false",
     "test:watch": "jest",
-    "lint":       "eslint . --ext .js,.jsx"
+    "lint": "eslint . --ext .js,.jsx"
   },
   "jest": {
     "preset": "jest-expo",
-    "setupFilesAfterFramework": ["@testing-library/jest-native/extend-expect"],
+    "setupFilesAfterFramework": [
+      "@testing-library/jest-native/extend-expect"
+    ],
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
     ]
@@ -23,7 +25,9 @@
     "@expo/metro-runtime": "^55.0.6",
     "@expo/vector-icons": "^15.0.0",
     "@react-native-async-storage/async-storage": "2.1.2",
+    "@sentry/react-native": "^8.3.0",
     "@supabase/supabase-js": "^2.49.0",
+    "@tanstack/react-query": "^5.90.21",
     "expo": "~54.0.0",
     "expo-haptics": "~15.0.0",
     "expo-linking": "~8.0.11",
@@ -41,10 +45,10 @@
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
-    "jest-expo": "~54.0.0",
-    "@testing-library/react-native": "^12.4.0",
     "@testing-library/jest-native": "^5.4.2",
+    "@testing-library/react-native": "^12.4.0",
     "eslint": "^8.57.0",
-    "eslint-plugin-react-hooks": "^4.6.0"
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "jest-expo": "~54.0.0"
   }
 }

@@ -1,9 +1,12 @@
 import { useEffect } from 'react';
 import { Tabs, useRouter, useSegments } from 'expo-router';
 import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { C } from '../constants';
+
+const queryClient = new QueryClient();
 
 const isWeb = Platform.OS === 'web';
 
@@ -66,9 +69,11 @@ function Nav() {
 export default function RootLayout() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <Nav />
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Nav />
+        </AuthProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }
