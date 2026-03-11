@@ -40,20 +40,26 @@ function Nav() {
   }
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown:       false,
-        tabBarStyle:       s.tabBar,
-        tabBarShowLabel:   false,
-        tabBarHideOnKeyboard: true,
-      }}
-    >
-      <Tabs.Screen name="index"     options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" label="INICIO"    focused={focused} /> }} />
-      <Tabs.Screen name="pedidos"   options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📋" label="PEDIDOS"   focused={focused} /> }} />
-      <Tabs.Screen name="prestador" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🛠️" label="PRESTADOR" focused={focused} /> }} />
-      <Tabs.Screen name="perfil"    options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="PERFIL"    focused={focused} /> }} />
-      <Tabs.Screen name="(auth)"    options={{ href: null }} />
-    </Tabs>
+    <View style={{ flex: 1 }}>
+      {/* Global Header / Logo */}
+      <View style={s.globalHeader}>
+        <Text style={s.globalLogo} accessibilityRole="header">changa.</Text>
+      </View>
+      <Tabs
+        screenOptions={{
+          headerShown:       false,
+          tabBarStyle:       s.tabBar,
+          tabBarShowLabel:   false,
+          tabBarHideOnKeyboard: true,
+        }}
+      >
+        <Tabs.Screen name="index"     options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" label="INICIO"    focused={focused} /> }} />
+        <Tabs.Screen name="pedidos"   options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📋" label="PEDIDOS"   focused={focused} /> }} />
+        <Tabs.Screen name="prestador" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🛠️" label="PRESTADOR" focused={focused} /> }} />
+        <Tabs.Screen name="perfil"    options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="PERFIL"    focused={focused} /> }} />
+        <Tabs.Screen name="(auth)"    options={{ href: null }} />
+      </Tabs>
+    </View>
   );
 }
 
@@ -67,10 +73,26 @@ export default function RootLayout() {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   splash:     { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', gap: 24 },
   splashLogo: { fontSize: 42, fontWeight: '800', color: C.accent, letterSpacing: -2 },
+
+  globalHeader: {
+    backgroundColor: C.bg,
+    paddingTop: Platform.OS === 'ios' ? 48 : 16, // Top padding for safe area
+    paddingBottom: 12,
+    paddingHorizontal: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  globalLogo: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: C.accent,
+    letterSpacing: -1,
+  },
 
   tabItem:         { alignItems: 'center', justifyContent: 'center', gap: 3, paddingTop: 4 },
   tabEmoji:        { fontSize: 20, opacity: 0.45 },

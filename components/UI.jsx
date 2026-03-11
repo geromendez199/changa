@@ -18,6 +18,7 @@ export function Btn({ label, onPress, loading, ghost, danger, small, style }) {
         variant === 'danger' && st.btnDanger,
         small   && st.btnSmall,
         loading && st.btnDisabled,
+        isWeb   && { outlineStyle: 'none' },
         style,
       ]}
       onPress={onPress}
@@ -26,6 +27,7 @@ export function Btn({ label, onPress, loading, ghost, danger, small, style }) {
       accessibilityRole="button"
       accessibilityLabel={typeof label === 'string' ? label : undefined}
       accessibilityState={{ disabled: !!loading, busy: !!loading }}
+      tabIndex={0}
     >
       {loading
         ? <ActivityIndicator color={variant === 'accent' ? '#000' : C.muted} size="small" />

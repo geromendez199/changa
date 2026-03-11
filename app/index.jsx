@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity,
   StyleSheet, SafeAreaView, Modal, Alert, ActivityIndicator,
-  RefreshControl, Platform,
+  RefreshControl, Platform, FlatList
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useServices } from '../hooks/useServices';
 import { Btn, Field, Avatar, Badge, SectionTitle, EmptyState } from '../components/UI';
 import { C, CATEGORIES } from '../constants';
 
@@ -21,13 +22,18 @@ const ServiceCard = memo(function ServiceCard({ sv, onBook }) {
 
   return (
     <TouchableOpacity
-      style={[s.card, open && s.cardOpen]}
+      style={[
+        s.card, 
+        open && s.cardOpen,
+        isWeb && { outlineStyle: 'none' }
+      ]}
       onPress={() => setOpen(o => !o)}
       activeOpacity={0.88}
       accessibilityRole="button"
       accessibilityLabel={`${sv.title} por ${name}, $${sv.price} por hora`}
       accessibilityHint={open ? 'Toca para cerrar' : 'Toca para ver detalle y contratar'}
       accessibilityState={{ expanded: open }}
+      tabIndex={0}
     >
       <View style={[s.cardStrip, { backgroundColor: color }]} />
       <View style={s.cardInner}>
@@ -120,55 +126,32 @@ function BookingModal({ sv, visible, onClose, onDone }) {
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 export default function HomeScreen() {
-  const [allServices, setAllServices] = useState([]);   // full loaded set
-  const [loading,     setLoading]     = useState(true);
-  const [refreshing,  setRefreshing]  = useState(false);
   const [activeCat,   setActiveCat]   = useState(null);
   const [search,      setSearch]      = useState('');
-  const [page,        setPage]        = useState(0);
-  const [hasMore,     setHasMore]     = useState(true);
   const [booking,     setBooking]     = useState(null);
   const [showModal,   setShowModal]   = useState(false);
   const [toast,       setToast]       = useState(false);
 
-  // ── Load a page from Supabase (initial + pagination) ──────────────────────
-  const load = useCallback(async (pageNum = 0, replace = false) => {
-    try {
-      const from = pageNum * PAGE_SIZE;
-      const to   = from + PAGE_SIZE - 1;
+  const {
+    data,
+    isLoading: loading,
+    isRefetching: refreshing,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage: hasMore,
+    refetch,
+  } = useServices();
 
-      const { data, error } = await supabase
-        .from('services')
-        .select('*, profiles(full_name)')
-        .eq('active', true)
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      if (error) throw error;
-
-      setAllServices(prev => replace ? (data || []) : [...prev, ...(data || [])]);
-      setHasMore((data || []).length === PAGE_SIZE);
-    } catch (e) {
-      Alert.alert('Error al cargar servicios', e.message);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
-  useEffect(() => { load(0, true); }, [load]);
+  const allServices = useMemo(() => {
+    return data?.pages.flatMap(page => page.data) || [];
+  }, [data]);
 
   const loadMore = () => {
-    if (!hasMore || loading) return;
-    const next = page + 1;
-    setPage(next);
-    load(next);
+    if (hasMore && !isFetchingNextPage) fetchNextPage();
   };
 
   const onRefresh = () => {
-    setRefreshing(true);
-    setPage(0);
-    load(0, true);
+    refetch();
   };
 
   // ── Local filtering (no extra Supabase round-trips) ───────────────────────
@@ -197,139 +180,146 @@ export default function HomeScreen() {
         </View>
       )}
 
-      <ScrollView
+      <FlatList
         style={s.scroll}
+        contentContainerStyle={s.page}
+        data={filtered}
+        keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
-        onMomentumScrollEnd={({ nativeEvent: e }) => {
-          // Trigger load-more when user reaches ~90% of the scroll
-          const near = e.layoutMeasurement.height + e.contentOffset.y >= e.contentSize.height * 0.9;
-          if (near) loadMore();
-        }}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.accent} />
         }
-      >
-        <View style={s.page}>
+        numColumns={isWeb ? 3 : 1}
+        key={isWeb ? 'web-grid' : 'mobile-list'}
+        columnWrapperStyle={isWeb ? { gap: 16, paddingHorizontal: 24 } : undefined}
+        renderItem={({ item }) => (
+          <View style={[s.gridItem, !isWeb && { paddingHorizontal: 24 }]}>
+            <ServiceCard sv={item} onBook={sv => { setBooking(sv); setShowModal(true); }} />
+          </View>
+        )}
+        ListHeaderComponent={(
+          <>
+            {/* ── Hero ─────────────────────────────────────────────────────── */}
+            <View style={s.hero}>
+              {!isWeb && (
+                <View style={s.heroTop}>
+                  <Text style={s.logo}>changa.</Text>
+                  <Text style={s.logoSub}>RAFAELA · SANTA FE</Text>
+                </View>
+              )}
+              <View style={s.pill}>
+                <View style={s.pillDot} />
+                <Text style={s.pillText}>📍 Rafaela, Santa Fe</Text>
+              </View>
+              <Text style={s.heroTitle}>
+                ¿Qué necesitás{'\n'}
+                <Text style={s.heroAccent}>resolver hoy?</Text>
+              </Text>
+              <Text style={s.heroSub}>
+                Conectate con {loading ? '...' : allServices.length}+ prestadores locales verificados
+              </Text>
+            </View>
 
-          {/* ── Hero ─────────────────────────────────────────────────────── */}
-          <View style={s.hero}>
-            {!isWeb && (
-              <View style={s.heroTop}>
-                <Text style={s.logo}>changa.</Text>
-                <Text style={s.logoSub}>RAFAELA · SANTA FE</Text>
+            {/* ── Search ───────────────────────────────────────────────────── */}
+            <View style={s.searchWrap}>
+              <View style={s.searchBar}>
+                <Text style={{ fontSize: 17 }}>🔍</Text>
+                <TextInput
+                  style={s.searchInput}
+                  placeholder="Plomero, pintor, limpieza..."
+                  placeholderTextColor={C.muted}
+                  value={search}
+                  onChangeText={setSearch}
+                  accessibilityLabel="Buscar servicios"
+                  accessibilityHint="Escribí el tipo de servicio o nombre del prestador"
+                />
+                {search !== '' && (
+                  <TouchableOpacity
+                    onPress={() => setSearch('')}
+                    style={[s.clearBtn, isWeb && { outlineStyle: 'none' }]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Limpiar búsqueda"
+                    tabIndex={0}
+                  >
+                    <Text style={{ color: C.muted, fontSize: 15 }}>✕</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            {/* ── Category chips ───────────────────────────────────────────── */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={s.catsScroll}
+              contentContainerStyle={s.catsContainer}
+              accessibilityRole="radiogroup"
+              accessibilityLabel="Filtrar por categoría"
+            >
+              <TouchableOpacity
+                style={[s.catChip, !activeCat && s.catChipAll, isWeb && { outlineStyle: 'none' }]}
+                onPress={() => setActiveCat(null)}
+                activeOpacity={0.8}
+                accessibilityRole="radio"
+                accessibilityLabel="Todos los servicios"
+                accessibilityState={{ selected: !activeCat }}
+                tabIndex={0}
+              >
+                <Text style={[s.catText, !activeCat && s.catTextAll]}>Todos</Text>
+              </TouchableOpacity>
+
+              {CATEGORIES.map(cat => {
+                const active = activeCat === cat.id;
+                return (
+                  <TouchableOpacity
+                    key={cat.id}
+                    activeOpacity={0.8}
+                    style={[
+                      s.catChip, 
+                      active && { backgroundColor: cat.color + '20', borderColor: cat.color },
+                      isWeb && { outlineStyle: 'none' }
+                    ]}
+                    onPress={() => setActiveCat(active ? null : cat.id)}
+                    accessibilityRole="radio"
+                    accessibilityLabel={cat.label}
+                    accessibilityState={{ selected: active }}
+                    tabIndex={0}
+                  >
+                    <Text style={{ fontSize: 14 }}>{cat.icon}</Text>
+                    <Text style={[s.catText, active && { color: cat.color }]}>{cat.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {/* ── Results header ───────────────────────────────────────────── */}
+            <View style={s.resultsHeader}>
+              <SectionTitle>
+                {filtered.length} servicio{filtered.length !== 1 ? 's' : ''}
+                {activeCat ? ` · ${CATEGORIES.find(c => c.id === activeCat)?.label}` : ''}
+              </SectionTitle>
+            </View>
+            
+            {loading && allServices.length === 0 ? (
+              <ActivityIndicator color={C.accent} style={{ marginTop: 48 }} />
+            ) : filtered.length === 0 ? (
+              <EmptyState emoji="🔍" title="Sin servicios" sub="Probá con otra categoría o búsqueda." />
+            ) : null}
+          </>
+        )}
+        ListFooterComponent={(
+          <>
+            {hasMore && !loading && filtered.length > 0 && (
+              <View style={s.loadMoreWrap}>
+                <Btn label={isFetchingNextPage ? "Cargando..." : "Cargar más →"} onPress={loadMore} ghost small style={{ width: 180 }} loading={isFetchingNextPage} />
               </View>
             )}
-            <View style={s.pill}>
-              <View style={s.pillDot} />
-              <Text style={s.pillText}>📍 Rafaela, Santa Fe</Text>
-            </View>
-            <Text style={s.heroTitle}>
-              ¿Qué necesitás{'\n'}
-              <Text style={s.heroAccent}>resolver hoy?</Text>
-            </Text>
-            <Text style={s.heroSub}>
-              Conectate con {loading ? '...' : allServices.length}+ prestadores locales verificados
-            </Text>
-          </View>
-
-          {/* ── Search ───────────────────────────────────────────────────── */}
-          <View style={s.searchWrap}>
-            <View style={s.searchBar}>
-              <Text style={{ fontSize: 17 }}>🔍</Text>
-              <TextInput
-                style={s.searchInput}
-                placeholder="Plomero, pintor, limpieza..."
-                placeholderTextColor={C.muted}
-                value={search}
-                onChangeText={setSearch}
-                accessibilityLabel="Buscar servicios"
-                accessibilityHint="Escribí el tipo de servicio o nombre del prestador"
-              />
-              {search !== '' && (
-                <TouchableOpacity
-                  onPress={() => setSearch('')}
-                  style={s.clearBtn}
-                  accessibilityRole="button"
-                  accessibilityLabel="Limpiar búsqueda"
-                >
-                  <Text style={{ color: C.muted, fontSize: 15 }}>✕</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-
-          {/* ── Category chips ───────────────────────────────────────────── */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={s.catsScroll}
-            contentContainerStyle={s.catsContainer}
-            accessibilityRole="radiogroup"
-            accessibilityLabel="Filtrar por categoría"
-          >
-            <TouchableOpacity
-              style={[s.catChip, !activeCat && s.catChipAll]}
-              onPress={() => setActiveCat(null)}
-              activeOpacity={0.8}
-              accessibilityRole="radio"
-              accessibilityLabel="Todos los servicios"
-              accessibilityState={{ selected: !activeCat }}
-            >
-              <Text style={[s.catText, !activeCat && s.catTextAll]}>Todos</Text>
-            </TouchableOpacity>
-
-            {CATEGORIES.map(cat => {
-              const active = activeCat === cat.id;
-              return (
-                <TouchableOpacity
-                  key={cat.id}
-                  activeOpacity={0.8}
-                  style={[s.catChip, active && { backgroundColor: cat.color + '20', borderColor: cat.color }]}
-                  onPress={() => setActiveCat(active ? null : cat.id)}
-                  accessibilityRole="radio"
-                  accessibilityLabel={cat.label}
-                  accessibilityState={{ selected: active }}
-                >
-                  <Text style={{ fontSize: 14 }}>{cat.icon}</Text>
-                  <Text style={[s.catText, active && { color: cat.color }]}>{cat.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-
-          {/* ── Results header ───────────────────────────────────────────── */}
-          <View style={s.resultsHeader}>
-            <SectionTitle>
-              {filtered.length} servicio{filtered.length !== 1 ? 's' : ''}
-              {activeCat ? ` · ${CATEGORIES.find(c => c.id === activeCat)?.label}` : ''}
-            </SectionTitle>
-          </View>
-
-          {/* ── Card grid (responsive: 1 col mobile, 2 col tablet, 3 col desktop) */}
-          {loading && allServices.length === 0 ? (
-            <ActivityIndicator color={C.accent} style={{ marginTop: 48 }} />
-          ) : filtered.length === 0 ? (
-            <EmptyState emoji="🔍" title="Sin servicios" sub="Probá con otra categoría o búsqueda." />
-          ) : (
-            <View style={s.grid}>
-              {filtered.map(sv => (
-                <View key={sv.id} style={s.gridItem}>
-                  <ServiceCard sv={sv} onBook={sv => { setBooking(sv); setShowModal(true); }} />
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* ── Load more ────────────────────────────────────────────────── */}
-          {hasMore && !loading && filtered.length > 0 && (
-            <View style={s.loadMoreWrap}>
-              <Btn label="Cargar más →" onPress={loadMore} ghost small style={{ width: 180 }} />
-            </View>
-          )}
-
-          <View style={{ height: 40 }} />
-        </View>
-      </ScrollView>
+            <View style={{ height: 40 }} />
+          </>
+        )}
+      />
 
       <BookingModal
         sv={booking}
@@ -403,31 +393,18 @@ const s = StyleSheet.create({
   // Results header
   resultsHeader: { paddingHorizontal: 24, marginBottom: 8 },
 
-  // ── RESPONSIVE GRID ────────────────────────────────────────────────────────
   // Mobile:  1 column (full width, natural card stacking)
-  // Tablet:  2 columns (≥ 600px)
-  // Desktop: 3 columns (uses flexWrap + percentage width)
+  // Desktop: 3 columns (uses FlatList numColumns)
   grid: {
     paddingHorizontal: 24,
-    ...(isWeb && {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 16,
-    }),
   },
-  // Each card item: full width on native, ~33% on web (minus gap)
-  // Uses calc()-equivalent via percentage: (100% / N) - gap
   gridItem: {
-    width: '100%',
+    flex: 1,
+    marginBottom: isWeb ? 0 : 10,
     ...(isWeb && {
-      // Responsive breakpoints are approximated via minWidth on the container:
-      // If there's enough space for 3 columns: ~32%, 2 columns: ~48%, 1: 100%
-      flexBasis: '31%',
-      flexGrow: 1,
       minWidth: 280,
       maxWidth: 500,
     }),
-    marginBottom: isWeb ? 0 : 10,
   },
 
   // Service card
