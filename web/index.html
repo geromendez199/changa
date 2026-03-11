@@ -3,15 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <!-- 
-      viewport-fit=cover is critical for iOS Safari so the content
-      extends behind the safe-area (notch / home bar) 
-    -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
     <!-- SEO -->
     <title>changa. — Rafaela, Santa Fe</title>
-    <meta name="description" content="Encontrá servicios locales en Rafaela. Plomeros, electricistas, limpieza y más. Conectate con prestadores de tu ciudad." />
+    <meta name="description" content="Encontrá servicios locales en Rafaela. Plomeros, electricistas, limpieza y más." />
     <meta name="theme-color" content="#0D0D0D" />
 
     <!-- PWA / iOS -->
@@ -22,98 +18,61 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
     <style>
-      /* ── Reset ──────────────────────────────────────────────────────────── */
       *, *::before, *::after {
         box-sizing: border-box;
-        margin: 0; padding: 0;
+        -webkit-tap-highlight-color: transparent;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
 
-      /* 
-        CRITICAL FIX 1 — 100dvh
-        Use dynamic viewport height (dvh) instead of vh so iOS Safari's
-        collapsing address bar is factored in. Without this, the bottom
-        tab bar gets hidden under the Safari UI.
+      /*
+        Use dvh (dynamic viewport height) so iOS Safari's collapsing
+        address bar doesn't overlap the bottom nav.
       */
       html {
         height: 100%;
-        height: 100dvh;
         background: #080808;
-        /* Prevent elastic/bounce scroll at the page level (iOS) */
         overscroll-behavior: none;
+        -webkit-text-size-adjust: 100%;
       }
 
       body {
         height: 100%;
-        height: 100dvh;
+        margin: 0;
+        padding: 0;
         background: #080808;
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         overscroll-behavior: none;
-        /* Prevent text size adjustment on orientation change (iOS) */
-        -webkit-text-size-adjust: 100%;
-        text-size-adjust: 100%;
       }
 
-      /* 
-        The React Native web root must also respect dvh
-        and must NOT scroll itself — the inner scrollable
-        views handle scrolling.
-      */
+      /* Let React Native Web manage the root — don't override display or position */
       #root {
         height: 100%;
-        height: 100dvh;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
-        position: fixed;
-        inset: 0;
       }
 
-      /* ── CRITICAL FIX 2 — Hide all scrollbars globally ─────────────────── */
-      /* Standard (Firefox) */
+      /* Hide all scrollbars for a clean native-like feel */
       * { scrollbar-width: none; }
-      /* WebKit (Chrome, Safari, Edge) */
       *::-webkit-scrollbar { display: none; }
 
-      /* ── Typography ───────────────────────────────────────────────────────── */
-      div, span, p, label, input, textarea, button, a, select {
+      /* Font inheritance */
+      div, span, p, label, input, textarea, button, a {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
       }
 
-      /* ── Inputs ──────────────────────────────────────────────────────────── */
-      input, textarea {
-        outline: none;
-        background: transparent;
-        border: none;
-        color: #F2F2F2;
-        /* Prevents iOS zoom on focus (requires font-size >= 16px handled in RN) */
-        font-size: max(16px, 1em);
+      /* Prevent iOS auto-zoom on input focus (needs font-size >= 16px) */
+      input, textarea, select {
+        font-size: 16px;
       }
 
-      /* ── Text selection ──────────────────────────────────────────────────── */
+      /* Text selection color */
       ::selection {
         background: rgba(200, 255, 0, 0.2);
         color: #F2F2F2;
-      }
-
-      /* ── Buttons ─────────────────────────────────────────────────────────── */
-      button, [role="button"] {
-        cursor: pointer;
-        touch-action: manipulation;
-      }
-
-      /* ── Smooth transitions for interactive elements ─────────────────────── */
-      button, a {
-        transition: opacity 0.15s ease;
-      }
-
-      /* ── Disable tap highlight on mobile ─────────────────────────────────── */
-      * {
-        -webkit-tap-highlight-color: transparent;
       }
     </style>
   </head>
