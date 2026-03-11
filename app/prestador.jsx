@@ -283,42 +283,27 @@ export default function PrestadorScreen() {
 const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: C.bg },
   scroll: { flex: 1 },
-  page: {
-    paddingTop: isWeb ? 40 : 0,
-    maxWidth: isWeb ? 900 : undefined,
-    width: '100%',
-    alignSelf: isWeb ? 'center' : undefined,
-    paddingHorizontal: isWeb ? 40 : 0,
-  },
+  page:   { paddingBottom: 24 },
 
   mobileHeader: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
   logo:         { fontSize: 22, fontWeight: '800', color: C.accent, letterSpacing: -1 },
 
-  header:      { paddingHorizontal: isWeb ? 0 : 20, paddingTop: isWeb ? 0 : 12, marginBottom: 24 },
+  header:      { paddingHorizontal: 20, paddingTop: 12, marginBottom: 20 },
   headerPill:  {
     alignSelf: 'flex-start',
     backgroundColor: C.accentDim, borderWidth: 1, borderColor: C.accentBorder,
     borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, marginBottom: 12,
   },
   headerPillText: { fontSize: 11, color: C.accent, fontWeight: '700', letterSpacing: 0.5 },
-  pageTitle: { fontSize: isWeb ? 36 : 28, fontWeight: '800', color: C.text, letterSpacing: -1, marginBottom: 4 },
+  pageTitle: { fontSize: 28, fontWeight: '800', color: C.text, letterSpacing: -1, marginBottom: 4 },
   pageSub:   { fontSize: 14, color: C.muted },
 
-  statsRow: {
-    flexDirection: 'row', gap: 10,
-    paddingHorizontal: isWeb ? 0 : 20,
-    marginBottom: 20,
-  },
+  statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 20, marginBottom: 20 },
+  ctaWrap:  { paddingHorizontal: 20, marginBottom: 24 },
+  errorBox: { marginHorizontal: 20, padding: 16, backgroundColor: C.red + '15', borderWidth: 1, borderColor: C.red + '40', borderRadius: 16 },
+  errorText:{ fontSize: 14, color: C.red },
 
-  ctaWrap: { paddingHorizontal: isWeb ? 0 : 20, marginBottom: 24 },
-
-  errorBox: { marginHorizontal: isWeb ? 0 : 20, padding: 16, backgroundColor: C.red + '15', borderWidth: 1, borderColor: C.red + '40', borderRadius: 16 },
-  errorText: { fontSize: 14, color: C.red },
-
-  grid: {
-    paddingHorizontal: isWeb ? 0 : 20,
-    ...(isWeb && { flexDirection: 'row', flexWrap: 'wrap', gap: 14 }),
-  },
+  grid: { paddingHorizontal: 20 },
 
   card: {
     backgroundColor: C.card, borderWidth: 1.5, borderColor: C.border,

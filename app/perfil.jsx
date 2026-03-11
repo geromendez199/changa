@@ -134,13 +134,7 @@ export default function PerfilScreen() {
 const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: C.bg },
   scroll: { flex: 1 },
-  page: {
-    paddingTop: isWeb ? 40 : 0,
-    maxWidth: isWeb ? 640 : undefined,
-    width: '100%',
-    alignSelf: isWeb ? 'center' : undefined,
-    paddingHorizontal: isWeb ? 40 : 0,
-  },
+  page:   { paddingBottom: 40 },
 
   // Top bar (mobile)
   topBar: {
@@ -178,10 +172,10 @@ const s = StyleSheet.create({
   // Info card
   card: {
     backgroundColor: C.card, borderWidth: 1.5, borderColor: C.border,
-    borderRadius: 22, padding: 22, marginHorizontal: isWeb ? 0 : 20, marginBottom: 16,
+    borderRadius: 22, padding: 22, marginHorizontal: 20, marginBottom: 16,
   },
   cardTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  cardTitle:    { fontSize: 10, color: C.muted, letterSpacing: 2.5, fontWeight: '800', marginBottom: isWeb ? 0 : 18 },
+  cardTitle:    { fontSize: 10, color: C.muted, letterSpacing: 2.5, fontWeight: '800' },
   editChip: {
     backgroundColor: C.dim, borderRadius: 10,
     paddingVertical: 7, paddingHorizontal: 12,
@@ -197,7 +191,7 @@ const s = StyleSheet.create({
   // Account card
   accountCard: {
     backgroundColor: C.card, borderWidth: 1.5, borderColor: C.border,
-    borderRadius: 22, padding: 22, marginHorizontal: isWeb ? 0 : 20,
+    borderRadius: 22, padding: 22, marginHorizontal: 20,
   },
   accountTitle: { fontSize: 10, color: C.muted, letterSpacing: 2.5, fontWeight: '800', marginBottom: 16 },
   accountRow:   { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },

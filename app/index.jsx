@@ -160,12 +160,10 @@ export default function HomeScreen() {
 
           {/* Hero */}
           <View style={s.hero}>
-            {!isWeb && (
-              <View style={s.heroTop}>
-                <Text style={s.logo}>changa.</Text>
-                <Text style={s.logoSub}>RAFAELA · SANTA FE</Text>
-              </View>
-            )}
+            <View style={s.heroTop}>
+              <Text style={s.logo}>changa.</Text>
+              <Text style={s.logoSub}>RAFAELA · SANTA FE</Text>
+            </View>
 
             <View style={s.pill}>
               <View style={s.pillDot} />
@@ -268,11 +266,7 @@ const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: C.bg },
   scroll: { flex: 1 },
   page: {
-    paddingTop: isWeb ? 40 : 0,
     paddingBottom: 24,
-    maxWidth: isWeb ? 900 : undefined,
-    width: '100%',
-    alignSelf: isWeb ? 'center' : undefined,
   },
 
   // Hero
@@ -327,8 +321,8 @@ const s = StyleSheet.create({
   // Results
   resultsHeader: { paddingHorizontal: 24, marginBottom: 4 },
   cardGrid:    { paddingHorizontal: 24 },
-  cardGridWeb: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  cardWebWrap: { width: 'calc(50% - 6px)' },
+  cardGridWeb: { },
+  cardWebWrap: { width: '100%' },
 
   // Card
   card: {

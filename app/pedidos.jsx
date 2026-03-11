@@ -189,23 +189,17 @@ export default function PedidosScreen() {
 const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: C.bg },
   scroll: { flex: 1 },
-  page: {
-    paddingTop: isWeb ? 40 : 0,
-    maxWidth: isWeb ? 760 : undefined,
-    width: '100%',
-    alignSelf: isWeb ? 'center' : undefined,
-    paddingHorizontal: isWeb ? 40 : 0,
-  },
+  page:   { paddingBottom: 24 },
 
   mobileHeader: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
   logo:         { fontSize: 22, fontWeight: '800', color: C.accent, letterSpacing: -1 },
 
-  header:   { paddingHorizontal: isWeb ? 0 : 20, marginBottom: 24, paddingTop: isWeb ? 0 : 12 },
-  pageTitle:{ fontSize: isWeb ? 36 : 28, fontWeight: '800', color: C.text, letterSpacing: -1, marginBottom: 4 },
-  pageSub:  { fontSize: 14, color: C.muted },
+  header:    { paddingHorizontal: 20, marginBottom: 24, paddingTop: 12 },
+  pageTitle: { fontSize: 28, fontWeight: '800', color: C.text, letterSpacing: -1, marginBottom: 4 },
+  pageSub:   { fontSize: 14, color: C.muted },
 
   tabs: {
-    flexDirection: 'row', marginHorizontal: isWeb ? 0 : 20, marginBottom: 20,
+    flexDirection: 'row', marginHorizontal: 20, marginBottom: 20,
     backgroundColor: C.card, borderRadius: 14,
     borderWidth: 1, borderColor: C.border, padding: 4,
   },
@@ -217,7 +211,7 @@ const s = StyleSheet.create({
   errorBox: { margin: 20, padding: 20, backgroundColor: C.red + '15', borderWidth: 1, borderColor: C.red + '40', borderRadius: 16 },
   errorText:{ fontSize: 14, color: C.red, textAlign: 'center' },
 
-  list: { paddingHorizontal: isWeb ? 0 : 20 },
+  list: { paddingHorizontal: 20 },
 
   card: {
     backgroundColor: C.card, borderWidth: 1.5, borderColor: C.border,
