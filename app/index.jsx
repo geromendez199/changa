@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity,
-  StyleSheet, SafeAreaView, Modal, Alert, ActivityIndicator, RefreshControl,
+  StyleSheet, SafeAreaView, Modal, Alert, ActivityIndicator, RefreshControl, Platform,
 } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { Btn, Field, Avatar, Badge, SectionTitle, EmptyState } from '../components/UI';
@@ -129,6 +131,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.accent} />}
       >
+        <View style={s.webCenter}>
         {/* Header */}
         <View style={s.header}>
           <Text style={s.logo}>changa.</Text>
@@ -178,6 +181,7 @@ export default function HomeScreen() {
                 ))
           }
         </View>
+        </View>
       </ScrollView>
 
       <BookingModal sv={booking} visible={showModal} onClose={() => setShowModal(false)} onDone={onDone} />
@@ -188,7 +192,10 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
   scroll: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4 },
+  webCenter: {
+    ...(isWeb && { maxWidth: 680, width: '100%', alignSelf: 'center' }),
+  },
+  header: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 4 },
   logo: { fontSize: 26, fontWeight: '700', color: C.accent, letterSpacing: -1 },
   logoSub: { fontSize: 10, color: C.muted, letterSpacing: 3 },
   body: { padding: 20 },

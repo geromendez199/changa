@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, SafeAreaView, ActivityIndicator, RefreshControl, Alert,
+  StyleSheet, SafeAreaView, ActivityIndicator, RefreshControl, Alert, Platform,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { Btn, SectionTitle, EmptyState } from '../components/UI';
 import { C } from '../constants';
+
+const isWeb = Platform.OS === 'web';
 
 const STATUS = {
   pending:   { label: '⏳ Pendiente',   color: '#F0B27A' },
@@ -68,6 +70,7 @@ export default function PedidosScreen() {
 
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.accent} />}>
+        <View style={s.webCenter}>
         <View style={s.body}>
           {loading
             ? <ActivityIndicator color={C.accent} style={{ marginTop: 40 }} />
@@ -105,6 +108,7 @@ export default function PedidosScreen() {
                 })
           }
         </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -113,7 +117,10 @@ export default function PedidosScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
   scroll: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
+  webCenter: {
+    ...(isWeb && { maxWidth: 680, width: '100%', alignSelf: 'center' }),
+  },
+  header: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 },
   logo: { fontSize: 20, fontWeight: '700', color: C.accent, letterSpacing: -0.5 },
   title: { fontSize: 28, fontWeight: '700', color: C.text, letterSpacing: -0.5, marginTop: 4 },
   tabs: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 8, backgroundColor: C.card, borderRadius: 12, borderWidth: 1, borderColor: C.border, padding: 4 },

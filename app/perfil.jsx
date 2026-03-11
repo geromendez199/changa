@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, SafeAreaView, Alert, ActivityIndicator,
+  StyleSheet, SafeAreaView, Alert, ActivityIndicator, Platform,
 } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
 import { Btn, Field, Avatar } from '../components/UI';
 import { C } from '../constants';
+
+const isWeb = Platform.OS === 'web';
 
 export default function PerfilScreen() {
   const { user, profile, signOut, updateProfile } = useAuth();
@@ -42,7 +44,7 @@ export default function PerfilScreen() {
           <TouchableOpacity onPress={logout}><Text style={s.logoutText}>Salir →</Text></TouchableOpacity>
         </View>
 
-        <View style={s.body}>
+        <View style={s.webCenter}>
           {/* Avatar */}
           <View style={s.avatarWrap}>
             <Avatar name={profile?.full_name} size={80} color={C.accent} />
@@ -95,7 +97,10 @@ export default function PerfilScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
   scroll: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingTop: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  webCenter: {
+    ...(isWeb && { maxWidth: 640, width: '100%', alignSelf: 'center', paddingHorizontal: 0 }),
+  },
+  header: { paddingHorizontal: 20, paddingTop: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   logo: { fontSize: 20, fontWeight: '700', color: C.accent, letterSpacing: -0.5 },
   logoutText: { color: C.red, fontSize: 14, fontWeight: '600' },
   body: { padding: 20 },

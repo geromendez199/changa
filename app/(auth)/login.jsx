@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView,
-  KeyboardAvoidingView, ScrollView, Platform, Alert, TouchableOpacity,
+  KeyboardAvoidingView, ScrollView, Platform, Alert, TouchableOpacity, Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { Btn, Field } from '../../components/UI';
 import { C } from '../../constants';
+
+const W = Dimensions.get('window').width;
 
 export default function Login() {
   const router = useRouter();
@@ -26,27 +28,46 @@ export default function Login() {
   return (
     <SafeAreaView style={s.safe}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-          <View style={s.hero}>
-            <Text style={s.logo}>changa.</Text>
-            <Text style={s.logoSub}>RAFAELA · SANTA FE</Text>
-          </View>
+          {/* Background glow blobs */}
+          <View style={s.blob1} pointerEvents="none" />
+          <View style={s.blob2} pointerEvents="none" />
 
-          <View style={s.card}>
-            <Text style={s.title}>Bienvenido 👋</Text>
-            <Text style={s.sub}>Ingresá para continuar</Text>
+          {/* Center wrapper */}
+          <View style={s.center}>
 
-            <Field label="Email"      value={email}    onChangeText={setEmail}    placeholder="tu@email.com"  keyboard="email-address" />
-            <Field label="Contraseña" value={password} onChangeText={setPassword} placeholder="••••••••" secure />
-
-            <Btn label="Ingresar →" onPress={handleLogin} loading={loading} />
-
-            <View style={s.divider}>
-              <View style={s.line} /><Text style={s.or}>o</Text><View style={s.line} />
+            {/* Logo section */}
+            <View style={s.hero}>
+              <View style={s.logoPill}>
+                <Text style={s.logoEmoji}>⚡</Text>
+              </View>
+              <Text style={s.logo}>changa.</Text>
+              <Text style={s.logoSub}>RAFAELA · SANTA FE</Text>
             </View>
 
-            <Btn label="Crear cuenta nueva" onPress={() => router.push('/(auth)/register')} ghost />
+            {/* Card */}
+            <View style={s.card}>
+              {/* Card glow top border */}
+              <View style={s.cardAccentBar} />
+
+              <Text style={s.title}>Bienvenido 👋</Text>
+              <Text style={s.sub}>Ingresá para continuar</Text>
+
+              <Field label="Email"      value={email}    onChangeText={setEmail}    placeholder="tu@email.com"  keyboard="email-address" />
+              <Field label="Contraseña" value={password} onChangeText={setPassword} placeholder="••••••••" secure />
+
+              <Btn label="Ingresar →" onPress={handleLogin} loading={loading} />
+
+              <View style={s.divider}>
+                <View style={s.line} /><Text style={s.or}>o</Text><View style={s.line} />
+              </View>
+
+              <Btn label="Crear cuenta nueva" onPress={() => router.push('/(auth)/register')} ghost />
+            </View>
+
+            {/* Footer */}
+            <Text style={s.footer}>Hecho en Rafaela con ❤️</Text>
           </View>
 
         </ScrollView>
@@ -55,16 +76,84 @@ export default function Login() {
   );
 }
 
+const isWeb = Platform.OS === 'web';
+
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
-  scroll: { flexGrow: 1, padding: 24, justifyContent: 'center' },
-  hero: { alignItems: 'center', marginBottom: 40 },
-  logo: { fontSize: 48, fontWeight: '700', color: C.accent, letterSpacing: -2 },
-  logoSub: { fontSize: 11, color: C.muted, letterSpacing: 4, marginTop: -6 },
-  card: { backgroundColor: C.card, borderRadius: 20, padding: 24, borderWidth: 1, borderColor: C.border },
-  title: { fontSize: 24, fontWeight: '700', color: C.text, marginBottom: 4 },
-  sub: { fontSize: 13, color: C.muted, marginBottom: 24 },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 24,
+    ...(isWeb && { minHeight: '100vh' }),
+  },
+
+  // Background decorative blobs
+  blob1: {
+    position: 'absolute', top: -80, right: -80,
+    width: 300, height: 300, borderRadius: 150,
+    backgroundColor: C.accent + '0D',
+    ...(isWeb && { filter: 'blur(80px)' }),
+  },
+  blob2: {
+    position: 'absolute', bottom: -60, left: -100,
+    width: 260, height: 260, borderRadius: 130,
+    backgroundColor: '#4a90e2' + '0D',
+    ...(isWeb && { filter: 'blur(80px)' }),
+  },
+
+  // Centering wrapper for web
+  center: {
+    ...(isWeb && {
+      maxWidth: 420,
+      width: '100%',
+      alignSelf: 'center',
+    }),
+  },
+
+  // Logo
+  hero: { alignItems: 'center', marginBottom: 36 },
+  logoPill: {
+    width: 64, height: 64, borderRadius: 20,
+    backgroundColor: C.accent + '15',
+    borderWidth: 1, borderColor: C.accent + '40',
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 16,
+  },
+  logoEmoji: { fontSize: 28 },
+  logo: {
+    fontSize: 52, fontWeight: '800', color: C.accent,
+    letterSpacing: -3,
+    ...(isWeb && { fontFamily: 'system-ui, -apple-system, sans-serif' }),
+  },
+  logoSub: { fontSize: 11, color: C.muted, letterSpacing: 5, marginTop: 2 },
+
+  // Card
+  card: {
+    backgroundColor: C.card,
+    borderRadius: 24,
+    padding: 28,
+    borderWidth: 1,
+    borderColor: C.border,
+    overflow: 'hidden',
+    ...(isWeb && {
+      boxShadow: '0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(200,255,0,0.08)',
+      backdropFilter: 'blur(20px)',
+    }),
+  },
+  cardAccentBar: {
+    position: 'absolute', top: 0, left: 0, right: 0,
+    height: 2,
+    backgroundColor: C.accent,
+    opacity: 0.8,
+  },
+  title: { fontSize: 26, fontWeight: '800', color: C.text, marginBottom: 6, letterSpacing: -0.5 },
+  sub: { fontSize: 14, color: C.muted, marginBottom: 28 },
+
+  // Divider
   divider: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 16 },
   line: { flex: 1, height: 1, backgroundColor: C.border },
-  or: { color: C.muted, fontSize: 12 },
+  or: { color: C.dim, fontSize: 12 },
+
+  // Footer
+  footer: { textAlign: 'center', color: C.dim, fontSize: 12, marginTop: 24 },
 });

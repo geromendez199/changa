@@ -31,26 +31,39 @@ export default function Register() {
   return (
     <SafeAreaView style={s.safe}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-          <TouchableOpacity onPress={() => router.back()} style={s.back}>
-            <Text style={s.backText}>← Volver</Text>
-          </TouchableOpacity>
+          {/* Background glow blobs */}
+          <View style={s.blob1} pointerEvents="none" />
+          <View style={s.blob2} pointerEvents="none" />
 
-          <View style={s.hero}>
-            <Text style={s.logo}>changa.</Text>
-            <Text style={s.logoSub}>CREAR CUENTA</Text>
-          </View>
+          <View style={s.center}>
 
-          <View style={s.card}>
-            <Text style={s.title}>Registrate</Text>
-            <Text style={s.sub}>Gratis · 30 segundos</Text>
+            <TouchableOpacity onPress={() => router.back()} style={s.back}>
+              <Text style={s.backText}>← Volver</Text>
+            </TouchableOpacity>
 
-            <Field label="Nombre completo" value={name}     onChangeText={setName}     placeholder="María García"   autoCapitalize="words" />
-            <Field label="Email"           value={email}    onChangeText={setEmail}    placeholder="tu@email.com"   keyboard="email-address" />
-            <Field label="Contraseña"      value={password} onChangeText={setPassword} placeholder="mínimo 6 caracteres" secure />
+            <View style={s.hero}>
+              <View style={s.logoPill}>
+                <Text style={s.logoEmoji}>✨</Text>
+              </View>
+              <Text style={s.logo}>changa.</Text>
+              <Text style={s.logoSub}>CREAR CUENTA GRATIS</Text>
+            </View>
 
-            <Btn label="Crear cuenta →" onPress={handleRegister} loading={loading} />
+            <View style={s.card}>
+              <View style={s.cardAccentBar} />
+              <Text style={s.title}>Registrate</Text>
+              <Text style={s.sub}>Gratis · 30 segundos</Text>
+
+              <Field label="Nombre completo" value={name}     onChangeText={setName}     placeholder="María García"       autoCapitalize="words" />
+              <Field label="Email"           value={email}    onChangeText={setEmail}    placeholder="tu@email.com"       keyboard="email-address" />
+              <Field label="Contraseña"      value={password} onChangeText={setPassword} placeholder="mínimo 6 caracteres" secure />
+
+              <Btn label="Crear cuenta →" onPress={handleRegister} loading={loading} />
+            </View>
+
+            <Text style={s.footer}>Hecho en Rafaela con ❤️</Text>
           </View>
 
         </ScrollView>
@@ -59,15 +72,63 @@ export default function Register() {
   );
 }
 
+const isWeb = Platform.OS === 'web';
+
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
-  scroll: { flexGrow: 1, padding: 24 },
-  back: { marginBottom: 16 },
-  backText: { color: C.muted, fontSize: 14 },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 24,
+    ...(isWeb && { minHeight: '100vh' }),
+  },
+  blob1: {
+    position: 'absolute', top: -100, left: -80,
+    width: 320, height: 320, borderRadius: 160,
+    backgroundColor: C.accent + '0A',
+    ...(isWeb && { filter: 'blur(80px)' }),
+  },
+  blob2: {
+    position: 'absolute', bottom: -80, right: -100,
+    width: 260, height: 260, borderRadius: 130,
+    backgroundColor: '#a855f7' + '0D',
+    ...(isWeb && { filter: 'blur(80px)' }),
+  },
+  center: {
+    ...(isWeb && { maxWidth: 420, width: '100%', alignSelf: 'center' }),
+  },
+  back: { marginBottom: 20 },
+  backText: { color: C.muted, fontSize: 14, fontWeight: '600' },
   hero: { alignItems: 'center', marginBottom: 32 },
-  logo: { fontSize: 42, fontWeight: '700', color: C.accent, letterSpacing: -2 },
-  logoSub: { fontSize: 11, color: C.muted, letterSpacing: 4, marginTop: -4 },
-  card: { backgroundColor: C.card, borderRadius: 20, padding: 24, borderWidth: 1, borderColor: C.border },
-  title: { fontSize: 24, fontWeight: '700', color: C.text, marginBottom: 4 },
-  sub: { fontSize: 13, color: C.muted, marginBottom: 24 },
+  logoPill: {
+    width: 64, height: 64, borderRadius: 20,
+    backgroundColor: C.accent + '15',
+    borderWidth: 1, borderColor: C.accent + '40',
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 16,
+  },
+  logoEmoji: { fontSize: 28 },
+  logo: {
+    fontSize: 48, fontWeight: '800', color: C.accent, letterSpacing: -3,
+    ...(isWeb && { fontFamily: 'system-ui, -apple-system, sans-serif' }),
+  },
+  logoSub: { fontSize: 11, color: C.muted, letterSpacing: 4, marginTop: 2 },
+  card: {
+    backgroundColor: C.card,
+    borderRadius: 24,
+    padding: 28,
+    borderWidth: 1,
+    borderColor: C.border,
+    overflow: 'hidden',
+    ...(isWeb && {
+      boxShadow: '0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(200,255,0,0.08)',
+    }),
+  },
+  cardAccentBar: {
+    position: 'absolute', top: 0, left: 0, right: 0,
+    height: 2, backgroundColor: C.accent, opacity: 0.8,
+  },
+  title: { fontSize: 26, fontWeight: '800', color: C.text, marginBottom: 6, letterSpacing: -0.5 },
+  sub: { fontSize: 14, color: C.muted, marginBottom: 28 },
+  footer: { textAlign: 'center', color: C.dim, fontSize: 12, marginTop: 24 },
 });

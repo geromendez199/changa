@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, SafeAreaView, Modal, Alert, ActivityIndicator, RefreshControl, Switch,
+  StyleSheet, SafeAreaView, Modal, Alert, ActivityIndicator, RefreshControl, Switch, Platform,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { Btn, Field, EmptyState } from '../components/UI';
 import { C, CATEGORIES } from '../constants';
+
+const isWeb = Platform.OS === 'web';
 
 // ─── Service Form Modal ───────────────────────────────────────
 function ServiceForm({ initial, onSave, onClose }) {
@@ -118,7 +120,7 @@ export default function PrestadorScreen() {
     <SafeAreaView style={s.safe}>
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.accent} />}>
-
+        <View style={s.webCenter}>
         <View style={s.header}>
           <Text style={s.logo}>changa.</Text>
           <View style={s.pill}><Text style={s.pillText}>⚡ Prestador</Text></View>
@@ -162,6 +164,7 @@ export default function PrestadorScreen() {
                 })
           }
         </View>
+        </View>
       </ScrollView>
 
       {showForm && (
@@ -174,7 +177,10 @@ export default function PrestadorScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
   scroll: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingTop: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  webCenter: {
+    ...(isWeb && { maxWidth: 680, width: '100%', alignSelf: 'center' }),
+  },
+  header: { paddingHorizontal: 20, paddingTop: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   logo: { fontSize: 20, fontWeight: '700', color: C.accent, letterSpacing: -0.5 },
   pill: { backgroundColor: '#C8FF0015', borderWidth: 1, borderColor: '#C8FF0033', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
   pillText: { fontSize: 11, color: C.accent, letterSpacing: 1 },
