@@ -1,12 +1,20 @@
 export const C = {
   bg:      '#0D0D0D',
-  card:    '#161616',
-  border:  '#252525',
+  card:    '#141414',
+  cardHover: '#1A1A1A',
+  border:  '#222222',
+  borderLight: '#2A2A2A',
   accent:  '#C8FF00',
-  text:    '#F0F0F0',
-  muted:   '#888888',
-  dim:     '#333333',
+  accentDim: '#C8FF0015',
+  accentBorder: '#C8FF0030',
+  text:    '#F2F2F2',
+  textSec: '#AAAAAA',
+  muted:   '#666666',
+  dim:     '#2A2A2A',
   red:     '#FF4D4D',
+  green:   '#22C55E',
+  blue:    '#3B82F6',
+  overlay: 'rgba(0,0,0,0.75)',
 };
 
 export const CATEGORIES = [
