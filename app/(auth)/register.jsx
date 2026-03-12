@@ -23,7 +23,7 @@ export default function Register() {
     const { error } = await signUp(email.trim(), password, name.trim());
     setLoading(false);
     if (error) return Alert.alert('Error', error.message);
-    Alert.alert('¡Cuenta creada! 🎉', 'Revisá tu email para confirmar la cuenta y luego ingresá.', [
+    Alert.alert('Cuenta creada', 'Revisá tu email para confirmar la cuenta y luego ingresá.', [
       { text: 'Ir al login', onPress: () => router.replace('/login') },
     ]);
   };
@@ -44,9 +44,6 @@ export default function Register() {
             </TouchableOpacity>
 
             <View style={s.hero}>
-              <View style={s.logoPill}>
-                <Text style={s.logoEmoji}>✨</Text>
-              </View>
               <Text style={s.logo}>changa.</Text>
               <Text style={s.logoSub}>CREAR CUENTA GRATIS</Text>
             </View>
@@ -63,7 +60,7 @@ export default function Register() {
               <Btn label="Crear cuenta →" onPress={handleRegister} loading={loading} />
             </View>
 
-            <Text style={s.footer}>Hecho en Rafaela con ❤️ · Experiencia rápida, simple y segura</Text>
+            <Text style={s.footer}>Hecho en Rafaela · Experiencia rápida, simple y segura</Text>
           </View>
 
         </ScrollView>
@@ -100,14 +97,6 @@ const s = StyleSheet.create({
   back: { marginBottom: 20 },
   backText: { color: C.muted, fontSize: 14, fontWeight: '600' },
   hero: { alignItems: 'center', marginBottom: 32 },
-  logoPill: {
-    width: 64, height: 64, borderRadius: 20,
-    backgroundColor: C.accent + '15',
-    borderWidth: 1, borderColor: C.accent + '40',
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 16,
-  },
-  logoEmoji: { fontSize: 28 },
   logo: {
     fontSize: 48, fontWeight: '800', color: C.accent, letterSpacing: -3,
     ...(isWeb && { fontFamily: 'system-ui, -apple-system, sans-serif' }),

@@ -23,7 +23,6 @@ export default function Login() {
     const { error } = await signIn(email.trim(), password);
     setLoading(false);
     if (error) return Alert.alert('No se pudo ingresar', error.message);
-    router.replace('/');
   };
 
   return (
@@ -44,9 +43,6 @@ export default function Login() {
 
             {/* Logo section */}
             <View style={[s.hero, isNarrow && s.heroNarrow]}>
-              <View style={s.logoPill}>
-                <Text style={s.logoEmoji}>⚡</Text>
-              </View>
               <Text style={[s.logo, isNarrow && s.logoNarrow]}>changa.</Text>
               <Text style={[s.logoSub, isNarrow && s.logoSubNarrow]}>RAFAELA · SANTA FE</Text>
             </View>
@@ -56,7 +52,7 @@ export default function Login() {
               {/* Card glow top border */}
               <View style={s.cardAccentBar} />
 
-              <Text style={s.title}>Bienvenido 👋</Text>
+              <Text style={s.title}>Bienvenido</Text>
               <Text style={s.sub}>Ingresá para continuar y contratar prestadores en minutos.</Text>
 
               <Field label="Email"      value={email}    onChangeText={setEmail}    placeholder="tu@email.com"  keyboard="email-address" />
@@ -70,7 +66,7 @@ export default function Login() {
             </View>
 
             {/* Footer */}
-            <Text style={[s.footer, isNarrow && s.footerNarrow]}>Hecho en Rafaela con ❤️ · Experiencia rápida, simple y segura</Text>
+            <Text style={[s.footer, isNarrow && s.footerNarrow]}>Hecho en Rafaela · Experiencia rápida, simple y segura</Text>
           </View>
 
         </ScrollView>
@@ -122,14 +118,6 @@ const s = StyleSheet.create({
   // Logo
   hero: { alignItems: 'center', marginBottom: 36 },
   heroNarrow: { marginBottom: 24 },
-  logoPill: {
-    width: 64, height: 64, borderRadius: 20,
-    backgroundColor: C.accent + '15',
-    borderWidth: 1, borderColor: C.accent + '40',
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 16,
-  },
-  logoEmoji: { fontSize: 28 },
   logo: {
     fontSize: 52, fontWeight: '800', color: C.accent,
     letterSpacing: -3,
