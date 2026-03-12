@@ -9,7 +9,7 @@ const defaultCtx = {
   error:         null,
   signUp:        async () => ({ error: new Error('AuthProvider not mounted') }),
   signIn:        async () => ({ error: new Error('AuthProvider not mounted') }),
-  signOut:       async () => {},
+  signOut:       async () => ({ error: null }),
   updateProfile: async () => ({ error: new Error('AuthProvider not mounted') }),
   refetchProfile:async () => {},
 };
@@ -92,9 +92,14 @@ export function AuthProvider({ children }) {
   // signOut: error handled, no crash on failure
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) return { error };
+      setUser(null);
+      setProfile(null);
+      return { error: null };
     } catch (e) {
       console.warn('[useAuth] signOut failed:', e.message);
+      return { error: e };
     }
   };
 
