@@ -1,0 +1,64 @@
+﻿* 4fb7faf (HEAD -> master, origin/master, origin/HEAD) style(web): limitar ancho maximo de vistas de autenticacion para pantallas grandes
+* ea8dbf3 fix(build): restaurar dependencias faltantes y configurar SPA para Vercel
+* c80977f fix: reescribir useServices.js con useInfiniteQuery (Prioridad 1)
+*   aada3c8 Merge pull request #11 from geromendez199/geroia/restructure-project-for-improved-organization
+|\  
+| * 853d883 (origin/geroia/restructure-project-for-improved-organization) feat: restructure app with role-based flows, UI system, and supabase v2 schema
+|/  
+*   94c2f1b Merge pull request #10 from geromendez199/geroia/fix-logout-issue-on-mobile
+|\  
+| * 9c463e0 (origin/geroia/fix-logout-issue-on-mobile) Fix logout flow and mobile web viewport scaling
+|/  
+*   ffa6932 Merge pull request #9 from geromendez199/geroia/fix-login-issues
+|\  
+| * c905dbb (origin/geroia/fix-login-issues) Fix auth route detection after login
+|/  
+*   d29caa9 Merge pull request #8 from geromendez199/geroia/implement-audit-report-recommendations
+|\  
+| * dfa5295 (origin/geroia/implement-audit-report-recommendations) Harden prelaunch reliability and QA pipeline
+|/  
+*   ede58ec Merge pull request #7 from geromendez199/geroia/conduct-comprehensive-github-repository-audit
+|\  
+| * 8f045b1 (origin/geroia/conduct-comprehensive-github-repository-audit) docs: add comprehensive pre-launch repository audit
+|/  
+*   1623c00 Merge pull request #6 from geromendez199/geroia/fix-login-functionality-and-remove-emojis
+|\  
+| * 40b15b7 (origin/geroia/fix-login-functionality-and-remove-emojis) Fix login state handoff and remove auth screen emojis
+|/  
+*   06a202a Merge pull request #5 from geromendez199/geroia/corregir-el-problema-de-inicio-de-sesion
+|\  
+| * 7d2a5ce (origin/geroia/corregir-el-problema-de-inicio-de-sesion) Fix auth navigation and Vercel refresh routing
+|/  
+*   d3cc80b Merge pull request #4 from geromendez199/geroia/fix-login-issue-with-supabase-credentials
+|\  
+| * 7479631 (origin/geroia/fix-login-issue-with-supabase-credentials) Fix Supabase web auth storage fallback for login
+|/  
+*   9457252 Merge pull request #3 from geromendez199/geroia/create-separate-responsive-login-page
+|\  
+| * 882c270 (origin/geroia/create-separate-responsive-login-page) Hide app chrome on auth screens and improve login responsiveness
+|/  
+*   1a6c30c Merge pull request #2 from geromendez199/geroia/fix-deployment-error-on-vercel
+|\  
+| * c07c313 (origin/geroia/fix-deployment-error-on-vercel) Fix FlatList single-column wrapper style on web
+|/  
+*   6b6020d Merge pull request #1 from geromendez199/geroia/refactor-and-improve-application-ui/ux
+|\  
+| * 44dd091 (origin/geroia/refactor-and-improve-application-ui/ux) Polish UI with new design tokens and responsive refinements
+|/  
+* 11cde72 feat: Add root layout with tab navigation, authentication, and query providers, and update dependencies.
+* 1551e9c feat: Implement core application structure, Supabase integration, authentication, data fetching, and initial testing.
+* 75eb763 refactor: complete audit implementation - responsive layout, P0/P1/P2/P3 fixes
+* 7470df0 feat: initialize Supabase client with platform-specific storage and environment variables.
+* e347197 feat: initialize web application with base HTML structure and layout component.
+* a6273eb feat: add initial application structure with screens for orders, user profiles, and service providers.
+* 6f1d54e feat: Implement core service listing, booking flow, shared UI components, and Supabase integration.
+* aa13e6c feat: Implement initial application structure with authentication, core screens, and service provider management.
+* ed5d907 build: Set web output mode to 'single' in app.json.
+* e20def6 fix: convert .npmrc to UTF-8 encoding
+* ca0a73a Remove explicit `version` and `builds` configuration from `vercel.json`.
+* 103a93f feat: Add web platform support and Vercel deployment configuration.
+* 964e9ce fix: align react/react-dom to 19.2.4 for Expo build
+* 1d2934d fix: npmrc legacy peer deps
+* 42ecfd5 fix: add react-dom and scheduler
+* eed02de Add initial eas.json configuration file
+* bfff47f Initial commit

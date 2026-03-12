@@ -1,0 +1,30 @@
+﻿4fb7faf HEAD@{0}: commit: style(web): limitar ancho maximo de vistas de autenticacion para pantallas grandes
+ea8dbf3 HEAD@{1}: commit: fix(build): restaurar dependencias faltantes y configurar SPA para Vercel
+c80977f HEAD@{2}: reset: moving to c80977ff43f2bc6704ee262ceab0dfd9fc7892ba
+aa2e40a HEAD@{3}: pull --tags origin master: Fast-forward
+c80977f HEAD@{4}: reset: moving to c80977ff43f2bc6704ee262ceab0dfd9fc7892ba
+aa2e40a HEAD@{5}: commit: fix: revertir header global que romp├¡a los tabs y restaurar imports de React Native eliminados por eslint (regresi├│n visual)
+e3033ac HEAD@{6}: commit: feat: Implement initial navigation layouts for changarin, client, and authentication sections using Expo Router.
+ad4c24c HEAD@{7}: commit: fix: restaurar importaciones de UI en welcome.jsx que causaban pantalla en blanco
+655aeaa HEAD@{8}: commit: fix: configurar vercel.json para servir index.html como SPA
+a39e1d3 HEAD@{9}: commit: fix: solucionar error de build web en Vercel por plugins y dependencias faltantes
+e2f0ea8 HEAD@{10}: commit (merge): Merge branch 'master' of https://github.com/geromendez199/changa
+1a122d0 HEAD@{11}: commit: fix: integrar logo global en _layout.jsx (Prioridad 3)
+e26dbff HEAD@{12}: commit: fix: limpiar warnings de importaciones no utilizadas de forma segura (Prioridad 2)
+c80977f HEAD@{13}: reset: moving to HEAD~1
+d68eec1 HEAD@{14}: commit: fix: limpiar warnings de importaciones no utilizadas (Prioridad 2)
+c80977f HEAD@{15}: commit: fix: reescribir useServices.js con useInfiniteQuery (Prioridad 1)
+aada3c8 HEAD@{16}: pull: Fast-forward
+11cde72 HEAD@{17}: commit: feat: Add root layout with tab navigation, authentication, and query providers, and update dependencies.
+1551e9c HEAD@{18}: commit: feat: Implement core application structure, Supabase integration, authentication, data fetching, and initial testing.
+75eb763 HEAD@{19}: commit: refactor: complete audit implementation - responsive layout, P0/P1/P2/P3 fixes
+7470df0 HEAD@{20}: commit: feat: initialize Supabase client with platform-specific storage and environment variables.
+e347197 HEAD@{21}: commit: feat: initialize web application with base HTML structure and layout component.
+a6273eb HEAD@{22}: commit: feat: add initial application structure with screens for orders, user profiles, and service providers.
+6f1d54e HEAD@{23}: commit: feat: Implement core service listing, booking flow, shared UI components, and Supabase integration.
+aa13e6c HEAD@{24}: commit: feat: Implement initial application structure with authentication, core screens, and service provider management.
+ed5d907 HEAD@{25}: commit: build: Set web output mode to 'single' in app.json.
+e20def6 HEAD@{26}: commit: fix: convert .npmrc to UTF-8 encoding
+ca0a73a HEAD@{27}: commit: Remove explicit `version` and `builds` configuration from `vercel.json`.
+103a93f HEAD@{28}: commit: feat: Add web platform support and Vercel deployment configuration.
+964e9ce HEAD@{29}: clone: from https://github.com/geromendez199/changa.git

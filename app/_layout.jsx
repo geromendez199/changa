@@ -11,7 +11,7 @@ function Guard() {
   const inAuth = segments[0] === '(auth)';
   useEffect(() => { if (!loading) SplashScreen.hideAsync(); }, [loading]);
   if (loading) return null;
-  if (!user && !inAuth) return <Redirect href='/(auth)/welcome' />;
+  if (!user && !inAuth) return <Redirect href='/(auth)/login' />;
   if (user && inAuth) return <Redirect href={profile?.role === 'changarin' ? '/(changarin)' : '/(cliente)'} />;
   return <Stack screenOptions={{ headerShown: false }} />;
 }
