@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { Btn, Field } from '../../components/UI';
 import { C } from '../../constants';
+import { email as emailRule, notEmpty, password as passwordRule, maxLen, validateForm } from '../../lib/validate';
 
 export default function Register() {
   const router = useRouter();
@@ -17,15 +18,26 @@ export default function Register() {
   const [loading, setLoading]   = useState(false);
 
   const handleRegister = async () => {
-    if (!name || !email || !password) return Alert.alert('Error', 'Completá todos los campos.');
-    if (password.length < 6) return Alert.alert('Error', 'La contraseña necesita al menos 6 caracteres.');
+    const values = { name: name.trim(), email: email.trim(), password };
+    const { valid, errors } = validateForm(values, {
+      name: [v => notEmpty(v) && maxLen(v, 120), 'Ingresá un nombre válido (1-120 caracteres).'],
+      email: [v => emailRule(v), 'Ingresá un email válido.'],
+      password: [v => passwordRule(v), 'La contraseña debe tener al menos 8 caracteres.'],
+    });
+    if (!valid) return Alert.alert('Error', Object.values(errors)[0]);
+
     setLoading(true);
-    const { error } = await signUp(email.trim(), password, name.trim());
-    setLoading(false);
-    if (error) return Alert.alert('Error', error.message);
-    Alert.alert('Cuenta creada', 'Revisá tu email para confirmar la cuenta y luego ingresá.', [
-      { text: 'Ir al login', onPress: () => router.replace('/login') },
-    ]);
+    try {
+      const { error } = await signUp(values.email, values.password, values.name);
+      if (error) throw error;
+      Alert.alert('Cuenta creada', 'Revisá tu email para confirmar la cuenta y luego ingresá.', [
+        { text: 'Ir al login', onPress: () => router.replace('/login') },
+      ]);
+    } catch (e) {
+      Alert.alert('Error', e.message || 'No se pudo crear la cuenta.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

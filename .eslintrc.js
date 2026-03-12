@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ['expo'],
+  extends: ['eslint:recommended'],
   plugins: ['react-hooks'],
   rules: {
     // Catch missing/wrong useEffect dependencies to prevent stale closures
@@ -12,10 +12,19 @@ module.exports = {
     // No console.log in production (use console.warn/error for intentional logs)
     'no-console': ['warn', { allow: ['warn', 'error'] }],
   },
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    ecmaFeatures: { jsx: true },
+  },
   env: {
     browser: true,
     node:    true,
     es2022:  true,
+    jest: true,
+  },
+  globals: {
+    __DEV__: 'readonly',
   },
   ignorePatterns: ['node_modules/', 'dist/', '.expo/'],
 };

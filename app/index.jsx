@@ -9,9 +9,9 @@ import { useAuth } from '../hooks/useAuth';
 import { useServices } from '../hooks/useServices';
 import { Btn, Field, Avatar, Badge, SectionTitle, EmptyState } from '../components/UI';
 import { C, CATEGORIES } from '../constants';
+import { notEmpty, maxLen, validateForm } from '../lib/validate';
 
 const isWeb = Platform.OS === 'web';
-const PAGE_SIZE = 20;
 
 // ─── Service Card (memoized to prevent unnecessary re-renders) ─────────────────
 const ServiceCard = memo(function ServiceCard({ sv, onBook }) {
@@ -74,20 +74,27 @@ function BookingModal({ sv, visible, onClose, onDone }) {
   const [loading, setLoading] = useState(false);
 
   const send = async () => {
-    if (!address.trim()) return Alert.alert('Falta dirección', 'Ingresá tu dirección para la visita.');
+    const values = { address: address.trim(), when: when.trim(), note: note.trim() };
+    const { valid, errors } = validateForm(values, {
+      address: [v => notEmpty(v) && maxLen(v, 200), 'Ingresá una dirección válida (1-200 caracteres).'],
+      when: [v => maxLen(v, 120), 'La fecha/hora no puede superar 120 caracteres.'],
+      note: [v => maxLen(v, 1000), 'La descripción no puede superar 1000 caracteres.'],
+    });
+    if (!valid) return Alert.alert('Error', Object.values(errors)[0]);
     if (!user?.id) return Alert.alert('Error', 'Necesitás estar autenticado.');
+
     setLoading(true);
     try {
       const { error } = await supabase.from('bookings').insert({
         client_id: user.id, service_id: sv.id, worker_id: sv.worker_id,
-        address: address.trim(), scheduled_for: when.trim(), note: note.trim(),
+        address: values.address, scheduled_for: values.when, note: values.note,
         status: 'pending',
       });
       if (error) throw error;
       setAddress(''); setWhen(''); setNote('');
       onDone();
     } catch (e) {
-      Alert.alert('Error al enviar', e.message);
+      Alert.alert('Error al enviar', e.message || 'No se pudo enviar la solicitud.');
     } finally {
       setLoading(false);
     }
