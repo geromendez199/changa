@@ -195,7 +195,7 @@ export default function HomeScreen() {
         }
         numColumns={isWeb ? webColumns : 1}
         key={isWeb ? `web-grid-${webColumns}` : 'mobile-list'}
-        columnWrapperStyle={isWeb ? { gap: 16, paddingHorizontal: 24 } : undefined}
+        columnWrapperStyle={isWeb && webColumns > 1 ? { gap: 16, paddingHorizontal: 24 } : undefined}
         renderItem={({ item }) => (
           <View style={[s.gridItem, !isWeb && { paddingHorizontal: 24 }]}>
             <ServiceCard sv={item} onBook={sv => { setBooking(sv); setShowModal(true); }} />
