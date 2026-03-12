@@ -1,118 +1,18 @@
+import { Stack, Redirect, useSegments } from 'expo-router';
 import { useEffect } from 'react';
-import { Tabs, usePathname, useRouter } from 'expo-router';
-import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '../hooks/useAuth';
-import { ErrorBoundary } from '../components/ErrorBoundary';
-import { C } from '../constants';
-
-const queryClient = new QueryClient();
-
-const isWeb = Platform.OS === 'web';
-
-// ─── Tab icon ─────────────────────────────────────────────────────────────────
-function TabIcon({ emoji, label, focused }) {
-  return (
-    <View style={s.tabItem}>
-      <Text style={[s.tabEmoji, focused && s.tabEmojiFocused]}>{emoji}</Text>
-      <Text style={[s.tabLabel, focused && s.tabLabelActive]}>{label}</Text>
-    </View>
-  );
+SplashScreen.preventAutoHideAsync();
+const client = new QueryClient();
+function Guard() {
+  const { user, profile, loading } = useAuth();
+  const segments = useSegments();
+  const inAuth = segments[0] === '(auth)';
+  useEffect(() => { if (!loading) SplashScreen.hideAsync(); }, [loading]);
+  if (loading) return null;
+  if (!user && !inAuth) return <Redirect href='/(auth)/welcome' />;
+  if (user && inAuth) return <Redirect href={profile?.role === 'changarin' ? '/(changarin)' : '/(cliente)'} />;
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
-
-// ─── Navigation shell ─────────────────────────────────────────────────────────
-function Nav() {
-  const { user, loading } = useAuth();
-  const router   = useRouter();
-  const pathname = usePathname();
-  const inAuth = pathname === '/login' || pathname === '/register';
-
-  useEffect(() => {
-    if (loading) return;
-    if (!user && !inAuth) router.replace('/login');
-    if (user  &&  inAuth) router.replace('/');
-  }, [user, loading, inAuth, router]);
-
-  if (loading) {
-    return (
-      <View style={s.splash}>
-        <Text style={s.splashLogo}>changa.</Text>
-        <ActivityIndicator color={C.accent} size="large" />
-      </View>
-    );
-  }
-
-  return (
-    <View style={{ flex: 1 }}>
-      {/* Global Header / Logo */}
-      {!inAuth && (
-        <View style={s.globalHeader}>
-          <Text style={s.globalLogo} accessibilityRole="header">changa.</Text>
-        </View>
-      )}
-      <Tabs
-        screenOptions={{
-          headerShown:       false,
-          tabBarStyle:       inAuth ? s.tabBarHidden : s.tabBar,
-          tabBarShowLabel:   false,
-          tabBarHideOnKeyboard: true,
-        }}
-      >
-        <Tabs.Screen name="index"     options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" label="INICIO"    focused={focused} /> }} />
-        <Tabs.Screen name="pedidos"   options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📋" label="PEDIDOS"   focused={focused} /> }} />
-        <Tabs.Screen name="prestador" options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🛠️" label="PRESTADOR" focused={focused} /> }} />
-        <Tabs.Screen name="perfil"    options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="PERFIL"    focused={focused} /> }} />
-        <Tabs.Screen name="(auth)"    options={{ href: null }} />
-      </Tabs>
-    </View>
-  );
-}
-
-export default function RootLayout() {
-  return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <Nav />
-        </AuthProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  );
-}
-
-const s = StyleSheet.create({
-  splash:     { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', gap: 24 },
-  splashLogo: { fontSize: 42, fontWeight: '800', color: C.accent, letterSpacing: -2 },
-
-  globalHeader: {
-    backgroundColor: C.bg,
-    paddingTop: Platform.OS === 'ios' ? 48 : 16,
-    paddingBottom: 14,
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: C.borderSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  globalLogo: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: C.accentStrong,
-    letterSpacing: -1,
-  },
-
-  tabItem:         { alignItems: 'center', justifyContent: 'center', gap: 3, paddingTop: 4 },
-  tabEmoji:        { fontSize: 20, opacity: 0.5 },
-  tabEmojiFocused: { opacity: 1 },
-  tabLabel:        { fontSize: 8, letterSpacing: 1.2, fontWeight: '800', color: C.dim },
-  tabLabelActive:  { color: C.accentStrong },
-
-  tabBar: {
-    backgroundColor: C.bgElevated,
-    borderTopColor: C.borderSoft,
-    borderTopWidth: 1,
-    height: Platform.OS === 'ios' ? 84 : 66,
-    paddingBottom: Platform.OS === 'ios' ? 22 : 10,
-  },
-  tabBarHidden: { display: 'none' },
-});
+export default function Root() { return <QueryClientProvider client={client}><AuthProvider><Guard /></AuthProvider></QueryClientProvider>; }
