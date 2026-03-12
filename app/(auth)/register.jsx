@@ -24,7 +24,7 @@ export default function Register() {
     setLoading(false);
     if (error) return Alert.alert('Error', error.message);
     Alert.alert('¡Cuenta creada! 🎉', 'Revisá tu email para confirmar la cuenta y luego ingresá.', [
-      { text: 'Ir al login', onPress: () => router.replace('/(auth)/login') },
+      { text: 'Ir al login', onPress: () => router.replace('/login') },
     ]);
   };
 
