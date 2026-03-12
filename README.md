@@ -1,89 +1,23 @@
-# changa. 🟢
-### La app de changas para Rafaela, Santa Fe
+# changa
 
-React Native · Expo SDK 54 · Supabase · iOS + Android
+App móvil de changas para Rafaela, Santa Fe (Expo + Supabase).
 
----
-
-## Paso 1 — Instalar
-
-```powershell
-npm install --legacy-peer-deps
-```
-
----
-
-## Paso 2 — Configurar Supabase
-
-1. Crear cuenta en https://supabase.com
-2. **New Project** → nombre: `changa` → región: South America (São Paulo)
-3. Ir a **SQL Editor** → New Query → pegar todo el contenido de `supabase-schema.sql` → **Run**
-4. Ir a **Settings → API** → copiar **Project URL** y **anon public key**
-5. Crear archivo `.env` en la raíz:
-
-```
-EXPO_PUBLIC_SUPABASE_URL=https://XXXXXXXX.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-```
-
----
-
-## Paso 3 — Correr
-
-```powershell
-npx expo start --lan
-```
-
-Escanear el QR con la cámara del iPhone (o con Expo Go en Android).
-
----
-
-## Funcionalidades
-
-| Feature                        | Estado |
-|-------------------------------|--------|
-| Login y registro con email    | ✅     |
-| Rutas protegidas              | ✅     |
-| Ver servicios de prestadores  | ✅     |
-| Filtrar por categoría         | ✅     |
-| Contratar (pedido en DB)      | ✅     |
-| Crear servicio (prestador)    | ✅     |
-| Editar servicio               | ✅     |
-| Borrar servicio               | ✅     |
-| Pausar/activar servicio       | ✅     |
-| Ver pedidos como cliente      | ✅     |
-| Confirmar/rechazar pedidos    | ✅     |
-| Editar perfil                 | ✅     |
-| Cerrar sesión                 | ✅     |
-| Pull-to-refresh               | ✅     |
-
----
+## Setup
+1. Copiar `.env.example` a `.env.local` y completar `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+2. Instalar dependencias: `npm install`.
+3. Correr: `npm run start`.
+4. Correr tests: `npm run test:unit`.
 
 ## Estructura
+- `app/`: rutas Expo Router por rol (`(auth)`, `(cliente)`, `(changarin)`).
+- `components/ui`: design system reutilizable.
+- `components/features`: tarjetas y bloques de negocio.
+- `lib/`: capa de acceso a Supabase.
+- `hooks/`: hooks de estado y realtime.
+- `supabase-schema-v2.sql`: esquema completo con RLS y triggers.
 
-```
-changa/
-├── app/
-│   ├── (auth)/
-│   │   ├── _layout.jsx
-│   │   ├── login.jsx
-│   │   └── register.jsx
-│   ├── _layout.jsx      ← tabs + auth guard
-│   ├── index.jsx        ← buscar y contratar
-│   ├── pedidos.jsx      ← mis pedidos
-│   ├── prestador.jsx    ← panel del prestador
-│   └── perfil.jsx       ← mi perfil
-├── components/
-│   └── UI.jsx           ← componentes compartidos
-├── hooks/
-│   └── useAuth.js       ← contexto de autenticación
-├── lib/
-│   └── supabase.js      ← cliente Supabase
-├── constants.js         ← colores y categorías
-├── supabase-schema.sql  ← schema de la base de datos
-└── .env.example
-```
+## Base de datos
+Ejecutar `supabase-schema-v2.sql` en Supabase SQL editor para crear tablas, políticas y funciones desde cero.
 
----
-
-*Rafaela, Santa Fe, Argentina 🇦🇷*
+## Build
+- `app.json` y `eas.json` preparados para EAS (development, preview apk, production).

@@ -1,0 +1,2 @@
+import { Tabs } from 'expo-router';
+export default function ClienteLayout() { return <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: '#6C47FF', tabBarStyle: { backgroundColor: '#fff', shadowColor: '#6C47FF', shadowOpacity: 0.12, elevation: 8 } }}><Tabs.Screen name='index' options={{ title: 'Inicio' }} /><Tabs.Screen name='buscar' options={{ title: 'Buscar' }} /><Tabs.Screen name='pedidos' options={{ title: 'Pedidos' }} /><Tabs.Screen name='perfil' options={{ title: 'Perfil' }} /></Tabs>; }
