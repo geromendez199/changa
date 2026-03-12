@@ -15,7 +15,7 @@
       "package": "com.geromendez.changa",
       "adaptiveIcon": { "backgroundColor": "#6C47FF" }
     },
-    "plugins": ["expo-router", "expo-image-picker", "expo-haptics"],
+    "plugins": ["expo-router", "expo-image-picker"],
     "web": { "bundler": "metro", "output": "single" }
   }
 }
