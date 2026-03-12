@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, SafeAreaView, Alert, Platform,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
 import { Btn, Field, Avatar } from '../components/UI';
 import { C } from '../constants';
@@ -12,6 +13,7 @@ const isWeb = Platform.OS === 'web';
 
 export default function PerfilScreen() {
   const { user, profile, signOut, updateProfile } = useAuth();
+  const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -61,10 +63,28 @@ export default function PerfilScreen() {
     }
   };
 
-  const logout = () => Alert.alert('Cerrar sesión', '¿Estás seguro?', [
-    { text: 'Cancelar', style: 'cancel' },
-    { text: 'Salir', style: 'destructive', onPress: signOut },
-  ]);
+  const runLogout = async () => {
+    const { error } = await signOut();
+    if (error) {
+      Alert.alert('Error', error.message || 'No se pudo cerrar sesión.');
+      return;
+    }
+    router.replace('/login');
+  };
+
+  const logout = () => {
+    if (isWeb) {
+      if (globalThis.confirm?.('¿Estás seguro de que querés cerrar sesión?')) {
+        runLogout();
+      }
+      return;
+    }
+
+    Alert.alert('Cerrar sesión', '¿Estás seguro?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Salir', style: 'destructive', onPress: runLogout },
+    ]);
+  };
 
   const INFO_ROWS = [
     { icon: '👤', label: 'Nombre',    val: profile?.full_name },
