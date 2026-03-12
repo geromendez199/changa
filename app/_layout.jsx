@@ -84,32 +84,32 @@ const s = StyleSheet.create({
 
   globalHeader: {
     backgroundColor: C.bg,
-    paddingTop: Platform.OS === 'ios' ? 48 : 16, // Top padding for safe area
-    paddingBottom: 12,
+    paddingTop: Platform.OS === 'ios' ? 48 : 16,
+    paddingBottom: 14,
     paddingHorizontal: 24,
     borderBottomWidth: 1,
-    borderBottomColor: C.border,
+    borderBottomColor: C.borderSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   globalLogo: {
     fontSize: 24,
     fontWeight: '800',
-    color: C.accent,
+    color: C.accentStrong,
     letterSpacing: -1,
   },
 
   tabItem:         { alignItems: 'center', justifyContent: 'center', gap: 3, paddingTop: 4 },
-  tabEmoji:        { fontSize: 20, opacity: 0.45 },
+  tabEmoji:        { fontSize: 20, opacity: 0.5 },
   tabEmojiFocused: { opacity: 1 },
-  tabLabel:        { fontSize: 8, letterSpacing: 1.2, fontWeight: '800', color: C.muted },
-  tabLabelActive:  { color: C.accent },
+  tabLabel:        { fontSize: 8, letterSpacing: 1.2, fontWeight: '800', color: C.dim },
+  tabLabelActive:  { color: C.accentStrong },
 
   tabBar: {
-    backgroundColor: C.card,
-    borderTopColor:  C.border,
-    borderTopWidth:  1,
-    height:          Platform.OS === 'ios' ? 84 : 66,
-    paddingBottom:   Platform.OS === 'ios' ? 22 : 10,
+    backgroundColor: C.bgElevated,
+    borderTopColor: C.borderSoft,
+    borderTopWidth: 1,
+    height: Platform.OS === 'ios' ? 84 : 66,
+    paddingBottom: Platform.OS === 'ios' ? 22 : 10,
   },
 });
