@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { Btn, Field, Divider } from '../../components/UI';
 import { C } from '../../constants';
+import { email as emailRule, notEmpty, validateForm } from '../../lib/validate';
 
 export default function Login() {
   const router = useRouter();
@@ -18,11 +19,22 @@ export default function Login() {
   const [loading, setLoading]   = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) return Alert.alert('Error', 'Completá email y contraseña.');
+    const values = { email: email.trim(), password };
+    const { valid, errors } = validateForm(values, {
+      email: [v => emailRule(v), 'Ingresá un email válido.'],
+      password: [v => notEmpty(v), 'Ingresá tu contraseña.'],
+    });
+    if (!valid) return Alert.alert('Error', Object.values(errors)[0]);
+
     setLoading(true);
-    const { error } = await signIn(email.trim(), password);
-    setLoading(false);
-    if (error) return Alert.alert('No se pudo ingresar', error.message);
+    try {
+      const { error } = await signIn(values.email, values.password);
+      if (error) throw error;
+    } catch (e) {
+      Alert.alert('No se pudo ingresar', e.message || 'Revisá tus datos e intentá nuevamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

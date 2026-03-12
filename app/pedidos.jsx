@@ -56,8 +56,13 @@ export default function PedidosScreen() {
     Alert.alert('Actualizar pedido', `¿${labels[status]}?`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Sí', onPress: async () => {
-        await supabase.from('bookings').update({ status }).eq('id', id);
-        load();
+        try {
+          const { error } = await supabase.from('bookings').update({ status }).eq('id', id);
+          if (error) throw error;
+          await load();
+        } catch (e) {
+          Alert.alert('Error', e.message || 'No se pudo actualizar el estado.');
+        }
       }},
     ]);
   };

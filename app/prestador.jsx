@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { Btn, Field, EmptyState, StatCard } from '../components/UI';
 import { C, CATEGORIES } from '../constants';
+import { notEmpty, maxLen, price as isValidPrice, validateForm } from '../lib/validate';
 
 const isWeb = Platform.OS === 'web';
 
@@ -28,24 +29,43 @@ function ServiceForm({ initial, onSave, onClose }) {
   const f = key => val => setForm(p => ({ ...p, [key]: val }));
 
   const save = async () => {
-    if (!form.title.trim()) return Alert.alert('Error', 'El título es obligatorio.');
-    if (!form.price || isNaN(parseInt(form.price))) return Alert.alert('Error', 'Ingresá un precio válido.');
-    setLoading(true);
-    const payload = {
+    const values = {
       title: form.title.trim(),
       description: form.description.trim(),
       category: form.category,
-      price: parseInt(form.price),
+      price: form.price,
       zone: form.zone.trim(),
-      active: form.active,
-      worker_id: user.id,
     };
-    const { error } = editing
-      ? await supabase.from('services').update(payload).eq('id', initial.id)
-      : await supabase.from('services').insert(payload);
-    setLoading(false);
-    if (error) return Alert.alert('Error al guardar', error.message);
-    onSave();
+    const { valid, errors } = validateForm(values, {
+      title: [v => notEmpty(v) && maxLen(v, 120), 'El título es obligatorio y debe tener hasta 120 caracteres.'],
+      description: [v => maxLen(v, 1000), 'La descripción no puede superar los 1000 caracteres.'],
+      category: [v => CATEGORIES.some(cat => cat.id === v), 'Seleccioná una categoría válida.'],
+      price: [v => isValidPrice(v), 'Ingresá un precio válido entre 1 y 999999.'],
+      zone: [v => maxLen(v, 120), 'La zona no puede superar los 120 caracteres.'],
+    });
+    if (!valid) return Alert.alert('Error', Object.values(errors)[0]);
+
+    setLoading(true);
+    try {
+      const payload = {
+        title: values.title,
+        description: values.description,
+        category: values.category,
+        price: parseInt(values.price, 10),
+        zone: values.zone,
+        active: form.active,
+        worker_id: user.id,
+      };
+      const { error } = editing
+        ? await supabase.from('services').update(payload).eq('id', initial.id)
+        : await supabase.from('services').insert(payload);
+      if (error) throw error;
+      onSave();
+    } catch (e) {
+      Alert.alert('Error al guardar', e.message || 'No se pudo guardar el servicio.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -141,14 +161,24 @@ export default function PrestadorScreen() {
   const del = id => Alert.alert('Eliminar', '¿Eliminar este servicio? No se puede deshacer.', [
     { text: 'Cancelar', style: 'cancel' },
     { text: 'Eliminar', style: 'destructive', onPress: async () => {
-      await supabase.from('services').delete().eq('id', id);
-      load();
+      try {
+        const { error } = await supabase.from('services').delete().eq('id', id);
+        if (error) throw error;
+        await load();
+      } catch (e) {
+        Alert.alert('Error', e.message || 'No se pudo eliminar el servicio.');
+      }
     }},
   ]);
 
   const toggle = async sv => {
-    await supabase.from('services').update({ active: !sv.active }).eq('id', sv.id);
-    load();
+    try {
+      const { error } = await supabase.from('services').update({ active: !sv.active }).eq('id', sv.id);
+      if (error) throw error;
+      await load();
+    } catch (e) {
+      Alert.alert('Error', e.message || 'No se pudo actualizar el servicio.');
+    }
   };
 
   const activeCount = services.filter(s => s.active).length;

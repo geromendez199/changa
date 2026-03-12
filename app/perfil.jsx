@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, SafeAreaView, Alert, Platform,
@@ -6,6 +6,7 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { Btn, Field, Avatar } from '../components/UI';
 import { C } from '../constants';
+import { notEmpty, phone, maxLen, validateForm } from '../lib/validate';
 
 const isWeb = Platform.OS === 'web';
 
@@ -22,12 +23,42 @@ export default function PerfilScreen() {
 
   const f = key => val => setForm(p => ({ ...p, [key]: val }));
 
+  useEffect(() => {
+    if (!editing) {
+      setForm({
+        full_name: profile?.full_name || '',
+        phone: profile?.phone || '',
+        bio: profile?.bio || '',
+        zone: profile?.zone || '',
+      });
+    }
+  }, [profile, editing]);
+
   const save = async () => {
+    const values = {
+      full_name: form.full_name.trim(),
+      phone: form.phone.trim(),
+      bio: form.bio.trim(),
+      zone: form.zone.trim(),
+    };
+    const { valid, errors } = validateForm(values, {
+      full_name: [v => notEmpty(v) && maxLen(v, 120), 'Ingresá un nombre válido (1-120 caracteres).'],
+      phone: [v => phone(v), 'Ingresá un teléfono válido.'],
+      bio: [v => maxLen(v, 500), 'La biografía no puede superar los 500 caracteres.'],
+      zone: [v => maxLen(v, 120), 'La zona no puede superar los 120 caracteres.'],
+    });
+    if (!valid) return Alert.alert('Error', Object.values(errors)[0]);
+
     setLoading(true);
-    const { error } = await updateProfile(form);
-    setLoading(false);
-    if (error) Alert.alert('Error', error.message);
-    else setEditing(false);
+    try {
+      const { error } = await updateProfile(values);
+      if (error) throw error;
+      setEditing(false);
+    } catch (e) {
+      Alert.alert('Error', e.message || 'No se pudieron guardar los cambios.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = () => Alert.alert('Cerrar sesión', '¿Estás seguro?', [

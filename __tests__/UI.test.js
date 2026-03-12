@@ -34,7 +34,7 @@ describe('Btn component', () => {
   });
 
   it('shows ActivityIndicator when loading, not label', () => {
-    const { queryByText, getByTestId } = render(
+    const { queryByText } = render(
       <Btn label="Guardar" onPress={() => {}} loading />
     );
     // Label text should not be visible when loading
