@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Tabs, useRouter, useSegments } from 'expo-router';
+import { Tabs, usePathname, useRouter } from 'expo-router';
 import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '../hooks/useAuth';
@@ -24,8 +24,8 @@ function TabIcon({ emoji, label, focused }) {
 function Nav() {
   const { user, loading } = useAuth();
   const router   = useRouter();
-  const segments = useSegments();
-  const inAuth = segments[0] === '(auth)';
+  const pathname = usePathname();
+  const inAuth = pathname === '/login' || pathname === '/register';
 
   useEffect(() => {
     if (loading) return;
