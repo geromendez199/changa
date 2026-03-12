@@ -29,7 +29,7 @@ function Nav() {
 
   useEffect(() => {
     if (loading) return;
-    if (!user && !inAuth) router.replace('/(auth)/login');
+    if (!user && !inAuth) router.replace('/login');
     if (user  &&  inAuth) router.replace('/');
   }, [user, loading, inAuth, router]);
 

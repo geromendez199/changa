@@ -22,7 +22,8 @@ export default function Login() {
     setLoading(true);
     const { error } = await signIn(email.trim(), password);
     setLoading(false);
-    if (error) Alert.alert('No se pudo ingresar', error.message);
+    if (error) return Alert.alert('No se pudo ingresar', error.message);
+    router.replace('/');
   };
 
   return (
@@ -65,7 +66,7 @@ export default function Login() {
 
               <Divider label="o" />
 
-              <Btn label="Crear cuenta nueva" onPress={() => router.push('/(auth)/register')} ghost />
+              <Btn label="Crear cuenta nueva" onPress={() => router.push('/register')} ghost />
             </View>
 
             {/* Footer */}
