@@ -25,13 +25,13 @@ function Nav() {
   const { user, loading } = useAuth();
   const router   = useRouter();
   const segments = useSegments();
+  const inAuth = segments[0] === '(auth)';
 
   useEffect(() => {
     if (loading) return;
-    const inAuth = segments[0] === '(auth)';
     if (!user && !inAuth) router.replace('/(auth)/login');
     if (user  &&  inAuth) router.replace('/');
-  }, [user, loading]);
+  }, [user, loading, inAuth, router]);
 
   if (loading) {
     return (
@@ -45,13 +45,15 @@ function Nav() {
   return (
     <View style={{ flex: 1 }}>
       {/* Global Header / Logo */}
-      <View style={s.globalHeader}>
-        <Text style={s.globalLogo} accessibilityRole="header">changa.</Text>
-      </View>
+      {!inAuth && (
+        <View style={s.globalHeader}>
+          <Text style={s.globalLogo} accessibilityRole="header">changa.</Text>
+        </View>
+      )}
       <Tabs
         screenOptions={{
           headerShown:       false,
-          tabBarStyle:       s.tabBar,
+          tabBarStyle:       inAuth ? s.tabBarHidden : s.tabBar,
           tabBarShowLabel:   false,
           tabBarHideOnKeyboard: true,
         }}
@@ -112,4 +114,5 @@ const s = StyleSheet.create({
     height: Platform.OS === 'ios' ? 84 : 66,
     paddingBottom: Platform.OS === 'ios' ? 22 : 10,
   },
+  tabBarHidden: { display: 'none' },
 });

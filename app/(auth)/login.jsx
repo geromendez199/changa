@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView,
-  KeyboardAvoidingView, ScrollView, Platform, Alert, TouchableOpacity, Dimensions,
+  KeyboardAvoidingView, ScrollView, Platform, Alert, useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { Btn, Field, Divider } from '../../components/UI';
 import { C } from '../../constants';
 
-const W = Dimensions.get('window').width;
-
 export default function Login() {
   const router = useRouter();
   const { signIn } = useAuth();
+  const { width } = useWindowDimensions();
+  const isNarrow = width < 390;
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading]   = useState(false);
@@ -28,26 +28,30 @@ export default function Login() {
   return (
     <SafeAreaView style={s.safe}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[s.scroll, isNarrow && s.scrollNarrow]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
 
           {/* Background glow blobs */}
           <View style={s.blob1} pointerEvents="none" />
           <View style={s.blob2} pointerEvents="none" />
 
           {/* Center wrapper */}
-          <View style={s.center}>
+          <View style={[s.center, isNarrow && s.centerNarrow]}>
 
             {/* Logo section */}
-            <View style={s.hero}>
+            <View style={[s.hero, isNarrow && s.heroNarrow]}>
               <View style={s.logoPill}>
                 <Text style={s.logoEmoji}>⚡</Text>
               </View>
-              <Text style={s.logo}>changa.</Text>
-              <Text style={s.logoSub}>RAFAELA · SANTA FE</Text>
+              <Text style={[s.logo, isNarrow && s.logoNarrow]}>changa.</Text>
+              <Text style={[s.logoSub, isNarrow && s.logoSubNarrow]}>RAFAELA · SANTA FE</Text>
             </View>
 
             {/* Card */}
-            <View style={s.card}>
+            <View style={[s.card, isNarrow && s.cardNarrow]}>
               {/* Card glow top border */}
               <View style={s.cardAccentBar} />
 
@@ -65,7 +69,7 @@ export default function Login() {
             </View>
 
             {/* Footer */}
-            <Text style={s.footer}>Hecho en Rafaela con ❤️ · Experiencia rápida, simple y segura</Text>
+            <Text style={[s.footer, isNarrow && s.footerNarrow]}>Hecho en Rafaela con ❤️ · Experiencia rápida, simple y segura</Text>
           </View>
 
         </ScrollView>
@@ -81,9 +85,12 @@ const s = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
     ...(isWeb && { minHeight: '100vh' }),
   },
+
+  scrollNarrow: { paddingHorizontal: 14, paddingVertical: 16 },
 
   // Background decorative blobs
   blob1: {
@@ -101,6 +108,7 @@ const s = StyleSheet.create({
 
   // Centering wrapper for web
   center: {
+    width: '100%',
     ...(isWeb && {
       maxWidth: 420,
       width: '100%',
@@ -108,8 +116,11 @@ const s = StyleSheet.create({
     }),
   },
 
+  centerNarrow: { maxWidth: 360, alignSelf: 'center' },
+
   // Logo
   hero: { alignItems: 'center', marginBottom: 36 },
+  heroNarrow: { marginBottom: 24 },
   logoPill: {
     width: 64, height: 64, borderRadius: 20,
     backgroundColor: C.accent + '15',
@@ -123,13 +134,15 @@ const s = StyleSheet.create({
     letterSpacing: -3,
     ...(isWeb && { fontFamily: 'system-ui, -apple-system, sans-serif' }),
   },
+  logoNarrow: { fontSize: 46 },
   logoSub: { fontSize: 11, color: C.muted, letterSpacing: 5, marginTop: 2 },
+  logoSubNarrow: { letterSpacing: 3.2 },
 
   // Card
   card: {
     backgroundColor: C.card,
     borderRadius: 24,
-    padding: 28,
+    padding: 24,
     borderWidth: 1,
     borderColor: C.borderSoft,
     overflow: 'hidden',
@@ -144,9 +157,11 @@ const s = StyleSheet.create({
     backgroundColor: C.accent,
     opacity: 0.8,
   },
+  cardNarrow: { padding: 18, borderRadius: 20 },
   title: { fontSize: 26, fontWeight: '800', color: C.text, marginBottom: 6, letterSpacing: -0.5 },
   sub: { fontSize: 14, color: C.muted, marginBottom: 26, lineHeight: 20 },
 
   // Footer
   footer: { textAlign: 'center', color: C.dim, fontSize: 12, marginTop: 24, lineHeight: 18 },
+  footerNarrow: { marginTop: 18, fontSize: 11 },
 });
