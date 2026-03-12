@@ -54,7 +54,7 @@ export default function Register() {
             <View style={s.card}>
               <View style={s.cardAccentBar} />
               <Text style={s.title}>Registrate</Text>
-              <Text style={s.sub}>Gratis · 30 segundos</Text>
+              <Text style={s.sub}>Gratis · 30 segundos · Publicá o contratá sin fricción</Text>
 
               <Field label="Nombre completo" value={name}     onChangeText={setName}     placeholder="María García"       autoCapitalize="words" />
               <Field label="Email"           value={email}    onChangeText={setEmail}    placeholder="tu@email.com"       keyboard="email-address" />
@@ -63,7 +63,7 @@ export default function Register() {
               <Btn label="Crear cuenta →" onPress={handleRegister} loading={loading} />
             </View>
 
-            <Text style={s.footer}>Hecho en Rafaela con ❤️</Text>
+            <Text style={s.footer}>Hecho en Rafaela con ❤️ · Experiencia rápida, simple y segura</Text>
           </View>
 
         </ScrollView>
@@ -91,7 +91,7 @@ const s = StyleSheet.create({
   blob2: {
     position: 'absolute', bottom: -80, right: -100,
     width: 260, height: 260, borderRadius: 130,
-    backgroundColor: '#a855f7' + '0D',
+    backgroundColor: C.blue + '12',
     ...(isWeb && { filter: 'blur(80px)' }),
   },
   center: {
@@ -118,10 +118,10 @@ const s = StyleSheet.create({
     borderRadius: 24,
     padding: 28,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: C.borderSoft,
     overflow: 'hidden',
     ...(isWeb && {
-      boxShadow: '0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(200,255,0,0.08)',
+      boxShadow: '0 25px 60px rgba(3,9,23,0.55), 0 0 0 1px rgba(124,155,255,0.2)',
     }),
   },
   cardAccentBar: {
@@ -130,5 +130,5 @@ const s = StyleSheet.create({
   },
   title: { fontSize: 26, fontWeight: '800', color: C.text, marginBottom: 6, letterSpacing: -0.5 },
   sub: { fontSize: 14, color: C.muted, marginBottom: 28 },
-  footer: { textAlign: 'center', color: C.dim, fontSize: 12, marginTop: 24 },
+  footer: { textAlign: 'center', color: C.dim, fontSize: 12, marginTop: 24, lineHeight: 18 },
 });

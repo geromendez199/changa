@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
-import { Btn, Field } from '../../components/UI';
+import { Btn, Field, Divider } from '../../components/UI';
 import { C } from '../../constants';
 
 const W = Dimensions.get('window').width;
@@ -52,22 +52,20 @@ export default function Login() {
               <View style={s.cardAccentBar} />
 
               <Text style={s.title}>Bienvenido 👋</Text>
-              <Text style={s.sub}>Ingresá para continuar</Text>
+              <Text style={s.sub}>Ingresá para continuar y contratar prestadores en minutos.</Text>
 
               <Field label="Email"      value={email}    onChangeText={setEmail}    placeholder="tu@email.com"  keyboard="email-address" />
               <Field label="Contraseña" value={password} onChangeText={setPassword} placeholder="••••••••" secure />
 
               <Btn label="Ingresar →" onPress={handleLogin} loading={loading} />
 
-              <View style={s.divider}>
-                <View style={s.line} /><Text style={s.or}>o</Text><View style={s.line} />
-              </View>
+              <Divider label="o" />
 
               <Btn label="Crear cuenta nueva" onPress={() => router.push('/(auth)/register')} ghost />
             </View>
 
             {/* Footer */}
-            <Text style={s.footer}>Hecho en Rafaela con ❤️</Text>
+            <Text style={s.footer}>Hecho en Rafaela con ❤️ · Experiencia rápida, simple y segura</Text>
           </View>
 
         </ScrollView>
@@ -97,7 +95,7 @@ const s = StyleSheet.create({
   blob2: {
     position: 'absolute', bottom: -60, left: -100,
     width: 260, height: 260, borderRadius: 130,
-    backgroundColor: '#4a90e2' + '0D',
+    backgroundColor: C.blue + '12',
     ...(isWeb && { filter: 'blur(80px)' }),
   },
 
@@ -133,10 +131,10 @@ const s = StyleSheet.create({
     borderRadius: 24,
     padding: 28,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: C.borderSoft,
     overflow: 'hidden',
     ...(isWeb && {
-      boxShadow: '0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(200,255,0,0.08)',
+      boxShadow: '0 25px 60px rgba(3,9,23,0.55), 0 0 0 1px rgba(124,155,255,0.2)',
       backdropFilter: 'blur(20px)',
     }),
   },
@@ -147,13 +145,8 @@ const s = StyleSheet.create({
     opacity: 0.8,
   },
   title: { fontSize: 26, fontWeight: '800', color: C.text, marginBottom: 6, letterSpacing: -0.5 },
-  sub: { fontSize: 14, color: C.muted, marginBottom: 28 },
-
-  // Divider
-  divider: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 16 },
-  line: { flex: 1, height: 1, backgroundColor: C.border },
-  or: { color: C.dim, fontSize: 12 },
+  sub: { fontSize: 14, color: C.muted, marginBottom: 26, lineHeight: 20 },
 
   // Footer
-  footer: { textAlign: 'center', color: C.dim, fontSize: 12, marginTop: 24 },
+  footer: { textAlign: 'center', color: C.dim, fontSize: 12, marginTop: 24, lineHeight: 18 },
 });

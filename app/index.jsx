@@ -2,7 +2,7 @@ import { useState, useMemo, memo } from 'react';
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity,
   StyleSheet, SafeAreaView, Modal, Alert, ActivityIndicator,
-  RefreshControl, Platform, FlatList
+  RefreshControl, Platform, FlatList, useWindowDimensions
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -126,6 +126,8 @@ function BookingModal({ sv, visible, onClose, onDone }) {
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 export default function HomeScreen() {
+  const { width } = useWindowDimensions();
+  const webColumns = width > 1200 ? 3 : width > 840 ? 2 : 1;
   const [activeCat,   setActiveCat]   = useState(null);
   const [search,      setSearch]      = useState('');
   const [booking,     setBooking]     = useState(null);
@@ -191,8 +193,8 @@ export default function HomeScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.accent} />
         }
-        numColumns={isWeb ? 3 : 1}
-        key={isWeb ? 'web-grid' : 'mobile-list'}
+        numColumns={isWeb ? webColumns : 1}
+        key={isWeb ? `web-grid-${webColumns}` : 'mobile-list'}
         columnWrapperStyle={isWeb ? { gap: 16, paddingHorizontal: 24 } : undefined}
         renderItem={({ item }) => (
           <View style={[s.gridItem, !isWeb && { paddingHorizontal: 24 }]}>
@@ -218,7 +220,7 @@ export default function HomeScreen() {
                 <Text style={s.heroAccent}>resolver hoy?</Text>
               </Text>
               <Text style={s.heroSub}>
-                Conectate con {loading ? '...' : allServices.length}+ prestadores locales verificados
+                Encontrá en segundos al profesional indicado. Todos los perfiles incluyen zona, precio y disponibilidad.
               </Text>
             </View>
 
@@ -372,7 +374,7 @@ const s = StyleSheet.create({
   searchWrap: { paddingHorizontal: 24, marginBottom: 16 },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: C.card, borderWidth: 1.5, borderColor: C.border,
+    backgroundColor: C.bgElevated, borderWidth: 1.5, borderColor: C.border,
     borderRadius: 16, paddingHorizontal: 18, paddingVertical: 14,
   },
   searchInput: { flex: 1, color: C.text, fontSize: 15 },
@@ -411,9 +413,9 @@ const s = StyleSheet.create({
   card: {
     backgroundColor: C.card, borderWidth: 1.5, borderColor: C.border,
     borderRadius: 20, overflow: 'hidden', flex: 1,
-    ...(isWeb && { cursor: 'pointer' }),
+    ...(isWeb && { cursor: 'pointer', boxShadow: '0 12px 28px rgba(3,9,23,0.35)' }),
   },
-  cardOpen:  { borderColor: C.accent },
+  cardOpen:  { borderColor: C.accentStrong },
   cardStrip: { height: 3 },
   cardInner: { padding: 16 },
   cardRow:   { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
@@ -433,7 +435,7 @@ const s = StyleSheet.create({
   // Toast
   toast: {
     position: 'absolute', top: 16, left: 20, right: 20, zIndex: 99,
-    backgroundColor: C.accent, borderRadius: 14, padding: 16, alignItems: 'center',
+    backgroundColor: C.accentStrong, borderRadius: 14, padding: 16, alignItems: 'center',
   },
   toastText: { color: '#000', fontWeight: '800', fontSize: 14 },
 
