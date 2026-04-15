@@ -1,103 +1,100 @@
 import { ArrowLeft, MapPin, SlidersHorizontal } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { BottomNav } from "../components/BottomNav";
 import { JobCard } from "../components/JobCard";
 import { Input } from "../components/Input";
+import { categoryFilters } from "../data/mockData";
+import { useAppState } from "../hooks/useAppState";
+import { formatDistance, formatUrgencyLabel } from "../utils/format";
+import { JobSort, searchJobs } from "../utils/search";
 
-const categories = ["Todos", "Hogar", "Oficios", "Delivery", "Eventos"];
-
-const jobs = [
-  {
-    id: "1",
-    image: "https://images.unsplash.com/photo-1611021061218-761c355ed331?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXJwZW50ZXIlMjB3b3JraW5nJTIwd29vZHxlbnwxfHx8fDE3NzYxOTU4MTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    title: "Reparación de puerta de madera",
-    description: "Se necesita reparar y barnizar puerta de entrada de madera maciza",
-    category: "Carpintería",
-    price: "$18.000",
-    rating: 4.8,
-    distance: "1.2 km",
-    urgency: "Urgente",
-  },
-  {
-    id: "2",
-    image: "https://images.unsplash.com/photo-1581578949510-fa7315c4c350?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxob3VzZSUyMGNsZWFuaW5nJTIwc2VydmljZXxlbnwxfHx8fDE3NzYyNTQ2NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    title: "Limpieza profunda completa",
-    description: "Limpieza completa de departamento 2 ambientes con cocina y baño",
-    category: "Limpieza",
-    price: "$15.000",
-    rating: 4.9,
-    distance: "2.1 km",
-  },
-  {
-    id: "3",
-    image: "https://images.unsplash.com/photo-1676210133055-eab6ef033ce3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwbHVtYmVyJTIwZml4aW5nJTIwcGlwZXN8ZW58MXx8fHwxNzc2MTk4NTc4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    title: "Arreglo de cañerías urgente",
-    description: "Pérdida importante en cañería del baño, se necesita reparar hoy",
-    category: "Plomería",
-    price: "$12.000",
-    rating: 4.7,
-    distance: "0.8 km",
-    urgency: "Urgente",
-  },
-  {
-    id: "4",
-    image: "https://images.unsplash.com/photo-1629941633816-a1d688cb2d1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYWludGVyJTIwcGFpbnRpbmclMjB3YWxsfGVufDF8fHx8MTc3NjI1NDY3NHww&ixlib=rb-4.1.0&q=80&w=1080",
-    title: "Pintura de habitaciones",
-    description: "Pintar 2 habitaciones de 3x3m cada una con material incluido",
-    category: "Pintura",
-    price: "$20.000",
-    rating: 4.6,
-    distance: "1.5 km",
-  },
-  {
-    id: "5",
-    image: "https://images.unsplash.com/photo-1660330589693-99889d60181e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJpY2lhbiUyMHdvcmtpbmd8ZW58MXx8fHwxNzc2MjMxMTc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    title: "Instalación eléctrica completa",
-    description: "Cambio de todos los enchufes y instalación de luces LED",
-    category: "Electricidad",
-    price: "$14.000",
-    rating: 4.8,
-    distance: "2.5 km",
-  },
+const sortingOptions: { label: string; value: JobSort }[] = [
+  { label: "Distancia", value: "distance" },
+  { label: "Precio más bajo", value: "precio_asc" },
+  { label: "Precio más alto", value: "precio_desc" },
+  { label: "Mejor calificación", value: "rating" },
 ];
 
 export function SearchResults() {
   const navigate = useNavigate();
+  const { jobs } = useAppState();
+  const [params, setParams] = useSearchParams();
+
+  const [query, setQuery] = useState(params.get("q") || "");
+  const [category, setCategory] = useState(params.get("category") || "Todos");
+  const [sortBy, setSortBy] = useState<JobSort>("distance");
+  const [showFilters, setShowFilters] = useState(false);
+  const [onlyUrgent, setOnlyUrgent] = useState(false);
+  const [prioritizeDistance, setPrioritizeDistance] = useState(true);
+
+  const filteredJobs = useMemo(
+    () => searchJobs(jobs, { query, category, sortBy, onlyUrgent, prioritizeDistance }),
+    [category, jobs, onlyUrgent, prioritizeDistance, query, sortBy],
+  );
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
-      {/* Header */}
       <div className="bg-white px-6 pt-14 pb-6 sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-3 mb-5">
-          <button
-            onClick={() => navigate("/home")}
-            className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
+          <button onClick={() => navigate("/home")} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
             <ArrowLeft size={24} className="text-[#111827]" />
           </button>
           <div className="flex-1">
-            <Input placeholder="Buscar servicios..." />
+            <Input
+              placeholder="Buscar servicios..."
+              value={query}
+              onChange={(value) => {
+                setQuery(value);
+                setParams((prev) => {
+                  const next = new URLSearchParams(prev);
+                  next.set("q", value);
+                  return next;
+                });
+              }}
+            />
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mb-5">
+        <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2 flex-1 text-sm">
             <MapPin size={16} className="text-[#10B981]" />
             <span className="font-medium text-gray-700">Palermo, CABA</span>
           </div>
-          <button className="flex items-center gap-2 bg-[#F8FAFC] px-4 py-2.5 rounded-full text-sm font-semibold text-[#111827] border border-gray-200 hover:bg-gray-50 transition-colors">
-            <SlidersHorizontal size={16} />
-            Filtros
+          <button
+            onClick={() => setShowFilters((s) => !s)}
+            className="flex items-center gap-2 bg-[#F8FAFC] px-4 py-2.5 rounded-full text-sm font-semibold text-[#111827] border border-gray-200 hover:bg-gray-50 transition-colors"
+          >
+            <SlidersHorizontal size={16} /> Filtros
           </button>
         </div>
 
-        {/* Category chips */}
+        {showFilters && (
+          <div className="bg-[#F8FAFC] border border-gray-200 rounded-2xl p-3 mb-4 space-y-2 text-sm">
+            <label className="flex items-center justify-between">
+              <span>Solo urgentes</span>
+              <input type="checkbox" checked={onlyUrgent} onChange={(e) => setOnlyUrgent(e.target.checked)} />
+            </label>
+            <label className="flex items-center justify-between">
+              <span>Priorizar cercanía</span>
+              <input type="checkbox" checked={prioritizeDistance} onChange={(e) => setPrioritizeDistance(e.target.checked)} />
+            </label>
+            <label className="flex items-center justify-between gap-3">
+              <span>Ordenar por</span>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as JobSort)} className="bg-white border border-gray-200 rounded-xl px-3 py-1.5">
+                {sortingOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+            </label>
+          </div>
+        )}
+
         <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-6 px-6">
-          {categories.map((cat, idx) => (
+          {categoryFilters.map((cat) => (
             <button
-              key={idx}
+              key={cat}
+              onClick={() => setCategory(cat)}
               className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
-                idx === 0
+                category === cat
                   ? "bg-[#10B981] text-white shadow-lg shadow-[#10B981]/25"
                   : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300"
               }`}
@@ -108,29 +105,38 @@ export function SearchResults() {
         </div>
       </div>
 
-      {/* Results count */}
       <div className="px-6 py-5">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-bold text-[#111827] text-lg">
-              48 resultados
-            </h2>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Ordenados por distancia
-            </p>
+            <h2 className="font-bold text-[#111827] text-lg">{filteredJobs.length} resultados</h2>
+            <p className="text-sm text-gray-500 mt-0.5">Ordenados por {sortingOptions.find((s) => s.value === sortBy)?.label.toLowerCase()}</p>
           </div>
-          <button className="text-sm text-[#10B981] font-semibold hover:underline">
-            Ordenar
-          </button>
         </div>
       </div>
 
-      {/* Job listings */}
       <div className="px-6 space-y-3 pb-4">
-        {jobs.map((job) => (
-          <JobCard key={job.id} {...job} />
+        {filteredJobs.map((job) => (
+          <JobCard
+            key={job.id}
+            id={job.id}
+            image={job.image}
+            title={job.title}
+            description={job.description}
+            category={job.category}
+            price={job.priceLabel}
+            rating={job.rating}
+            distance={formatDistance(job.distanceKm)}
+            urgency={formatUrgencyLabel(job.urgency)}
+          />
         ))}
       </div>
+
+      {filteredJobs.length === 0 && (
+        <div className="mx-6 bg-white rounded-3xl border border-gray-100 p-6 text-center">
+          <p className="font-semibold text-[#111827] mb-1">No encontramos changas para tu búsqueda</p>
+          <p className="text-sm text-gray-500">Probá con otra categoría o quitá algunos filtros.</p>
+        </div>
+      )}
 
       <BottomNav />
     </div>
