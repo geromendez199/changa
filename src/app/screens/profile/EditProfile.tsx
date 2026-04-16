@@ -2,8 +2,8 @@
  * WHY: Improve profile-edit feedback and trust-building copy so users understand why completing their profile matters.
  * CHANGED: YYYY-MM-DD
  */
-import { Save } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Camera, Save, Trash2 } from "lucide-react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Button } from "../../components/Button";
@@ -16,16 +16,66 @@ import { UserAvatar } from "../../components/UserAvatar";
 import { useAppState, useCurrentUser } from "../../hooks/useAppState";
 import { getFallbackPreviewMessage } from "../../../services/service.utils";
 
+const MAX_AVATAR_FILE_SIZE_BYTES = 6 * 1024 * 1024;
+const AVATAR_MAX_DIMENSION_PX = 512;
+const AVATAR_OUTPUT_QUALITY = 0.82;
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("No pudimos leer la imagen seleccionada."));
+    };
+    reader.onerror = () => reject(new Error("No pudimos leer la imagen seleccionada."));
+    reader.readAsDataURL(file);
+  });
+
+const loadImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("No pudimos preparar la foto de perfil."));
+    image.src = src;
+  });
+
+const buildAvatarPreview = async (file: File) => {
+  const sourceDataUrl = await readFileAsDataUrl(file);
+  const image = await loadImage(sourceDataUrl);
+  const canvas = document.createElement("canvas");
+  const scale = Math.min(1, AVATAR_MAX_DIMENSION_PX / Math.max(image.width, image.height));
+  const targetWidth = Math.max(1, Math.round(image.width * scale));
+  const targetHeight = Math.max(1, Math.round(image.height * scale));
+
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("No pudimos preparar la foto de perfil.");
+  }
+
+  context.drawImage(image, 0, 0, targetWidth, targetHeight);
+  return canvas.toDataURL("image/jpeg", AVATAR_OUTPUT_QUALITY);
+};
+
 export function EditProfile() {
   const navigate = useNavigate();
   const user = useCurrentUser();
   const { saveUserProfile, dataSource } = useAppState();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [name, setName] = useState(user?.name || "");
   const [location, setLocation] = useState(user?.location || "");
   const [bio, setBio] = useState(user?.bio || "");
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
+  const [avatarFileName, setAvatarFileName] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isProcessingAvatar, setIsProcessingAvatar] = useState(false);
   const isPreview = dataSource === "fallback";
 
   useEffect(() => {
@@ -34,9 +84,57 @@ export function EditProfile() {
     setLocation(user.location || "");
     setBio(user.bio || "");
     setAvatarUrl(user.avatarUrl || "");
+    setAvatarFileName("");
   }, [user]);
 
   if (!user) return null;
+
+  const onAvatarFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setFeedback(null);
+
+    if (!file.type.startsWith("image/")) {
+      setFeedback({ type: "error", message: "Elegí una imagen válida para la foto de perfil." });
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_FILE_SIZE_BYTES) {
+      setFeedback({ type: "error", message: "La imagen es demasiado pesada. Elegí una de hasta 6 MB." });
+      event.target.value = "";
+      return;
+    }
+
+    setIsProcessingAvatar(true);
+
+    try {
+      const previewUrl = await buildAvatarPreview(file);
+      setAvatarUrl(previewUrl);
+      setAvatarFileName(file.name);
+      event.target.value = "";
+      toast.success("Foto lista", {
+        description: "La imagen ya está cargada y lista para guardarse en este dispositivo.",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No pudimos procesar la imagen.";
+      setFeedback({ type: "error", message });
+      event.target.value = "";
+    } finally {
+      setIsProcessingAvatar(false);
+    }
+  };
+
+  const onRemoveAvatar = () => {
+    setAvatarUrl("");
+    setAvatarFileName("");
+    setFeedback(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const onSave = async () => {
     setFeedback(null);
@@ -75,7 +173,7 @@ export function EditProfile() {
     setFeedback({ type: "success", message: "Perfil guardado correctamente" });
     toast.success("Perfil actualizado", {
       description: avatarUrl.trim()
-        ? "Los datos principales ya se actualizaron. La foto queda guardada en este dispositivo mientras terminamos la sincronización segura."
+        ? "Los datos principales ya se actualizaron. La foto queda guardada en este dispositivo."
         : "Tus cambios principales ya están visibles en Changa.",
     });
     setTimeout(() => navigate("/profile"), 900);
@@ -102,8 +200,8 @@ export function EditProfile() {
         </SurfaceCard>
 
         <SurfaceCard tone="soft" padding="sm" className="text-sm leading-relaxed text-[var(--app-text-muted)] shadow-none">
-          La foto por URL todavía se guarda en este dispositivo mientras terminamos la
-          sincronización segura del avatar entre sesiones y equipos.
+          La foto se carga desde tu dispositivo y, por ahora, queda guardada en este equipo o
+          celular mientras terminamos la sincronización segura entre sesiones.
         </SurfaceCard>
 
         <SurfaceCard padding="lg" className="space-y-4">
@@ -118,12 +216,53 @@ export function EditProfile() {
             <div>
               <p className="text-sm font-semibold text-[var(--app-text)]">Vista previa del perfil</p>
               <p className="mt-1 text-sm text-[var(--app-text-muted)]">
-                Si pegás una URL de imagen válida, se va a ver así en tu perfil y en tus chats.
+                La foto que elijas se va a ver así en tu perfil y en tus chats.
               </p>
             </div>
           </div>
 
-          <Input placeholder="URL de foto de perfil" value={avatarUrl} onChange={setAvatarUrl} size="lg" />
+          <div className="space-y-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={onAvatarFileChange}
+            />
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                type="button"
+                size="lg"
+                variant="secondary"
+                onClick={() => fileInputRef.current?.click()}
+                icon={<Camera size={18} />}
+                disabled={isPreview || isProcessingAvatar}
+              >
+                {isProcessingAvatar ? "Procesando foto..." : "Subir foto desde archivo"}
+              </Button>
+
+              {avatarUrl ? (
+                <Button
+                  type="button"
+                  size="lg"
+                  variant="ghost"
+                  onClick={onRemoveAvatar}
+                  icon={<Trash2 size={18} />}
+                  disabled={isPreview || isProcessingAvatar}
+                >
+                  Quitar foto
+                </Button>
+              ) : null}
+            </div>
+
+            <p className="text-sm text-[var(--app-text-muted)]">
+              {avatarFileName
+                ? `Archivo seleccionado: ${avatarFileName}`
+                : "Elegí una imagen desde tu computadora o celular. Máximo 6 MB."}
+            </p>
+          </div>
+
           <Input placeholder="Nombre público" value={name} onChange={setName} size="lg" />
           <Input placeholder="Ubicación" value={location} onChange={setLocation} size="lg" />
           <Textarea
@@ -144,7 +283,13 @@ export function EditProfile() {
           </div>
         ) : null}
 
-        <Button fullWidth size="lg" onClick={onSave} icon={<Save size={18} />} disabled={isSaving || isPreview}>
+        <Button
+          fullWidth
+          size="lg"
+          onClick={onSave}
+          icon={<Save size={18} />}
+          disabled={isSaving || isPreview || isProcessingAvatar}
+        >
           {isPreview ? "Guardado real disponible con Supabase" : isSaving ? "Guardando..." : "Guardar cambios"}
         </Button>
       </div>
