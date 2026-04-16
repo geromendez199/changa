@@ -1,4 +1,9 @@
+/**
+ * WHY: Validate profile mutations consistently before persisting them through Supabase.
+ * CHANGED: YYYY-MM-DD
+ */
 import type { User } from "@supabase/supabase-js";
+import { parseWithValidation, profileUpdateSchema } from "../lib/validation/schemas";
 import { supabase } from "../lib/supabase";
 import { Profile, Review } from "../types/domain";
 import { ProfilesRow, ReviewsRow, mapProfileRow, mapReviewRow } from "../types/supabase";
@@ -70,16 +75,20 @@ export async function ensureProfileForUser(user: User): Promise<ServiceResult<Pr
 }
 
 export async function saveProfile(userId: string, input: SaveProfileInput): Promise<ServiceResult<Profile | null>> {
-  if (!isNonEmptyString(userId)) return failureResult(null, "No pudimos guardar tu perfil.");
-  if (!isNonEmptyString(input.fullName)) return failureResult(null, "Ingresá un nombre válido.");
-  if (!isNonEmptyString(input.location)) return failureResult(null, "Ingresá una ubicación válida.");
-  if (shouldUseFallback()) return successResult(null, "fallback");
-
-  const trimmedName = input.fullName.trim();
-  const trimmedLocation = input.location.trim();
-  const trimmedBio = isNonEmptyString(input.bio) ? input.bio.trim() : null;
-
   try {
+    if (!isNonEmptyString(userId)) return failureResult(null, "No pudimos guardar tu perfil.");
+
+    const validatedInput = parseWithValidation(profileUpdateSchema, {
+      fullName: input.fullName,
+      location: input.location,
+      bio: input.bio,
+    });
+    if (shouldUseFallback()) return successResult(null, "fallback");
+
+    const trimmedName = validatedInput.fullName.trim();
+    const trimmedLocation = validatedInput.location.trim();
+    const trimmedBio = isNonEmptyString(validatedInput.bio) ? validatedInput.bio.trim() : null;
+
     const { data: existingProfile, error: existingError } = await supabase!
       .from("profiles")
       .select("*")
@@ -121,14 +130,17 @@ export async function saveProfile(userId: string, input: SaveProfileInput): Prom
 }
 
 export async function updateProfileLocation(userId: string, location: string): Promise<ServiceResult<Profile | null>> {
-  if (!isNonEmptyString(userId)) return failureResult(null, "No pudimos actualizar tu ubicación.");
-  if (!isNonEmptyString(location)) return failureResult(null, "Ingresá una ubicación válida.");
-  if (shouldUseFallback()) return successResult(null, "fallback");
-
   try {
+    if (!isNonEmptyString(userId)) return failureResult(null, "No pudimos actualizar tu ubicación.");
+
+    const validatedInput = parseWithValidation(profileUpdateSchema.pick({ location: true }), {
+      location,
+    });
+    if (shouldUseFallback()) return successResult(null, "fallback");
+
     const { data, error } = await supabase!
       .from("profiles")
-      .update({ location: location.trim() })
+      .update({ location: validatedInput.location.trim() })
       .eq("id", userId)
       .select("*")
       .maybeSingle<ProfilesRow>();

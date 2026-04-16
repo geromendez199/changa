@@ -1,4 +1,9 @@
+/**
+ * WHY: Route chat sends through a single RPC so message creation and conversation timestamp updates stay atomic.
+ * CHANGED: YYYY-MM-DD
+ */
 import { supabase } from "../lib/supabase";
+import { chatMessageSchema, parseWithValidation } from "../lib/validation/schemas";
 import { Conversation, Message } from "../types/domain";
 import { ConversationsRow, MessagesRow, mapConversationRow, mapMessageRow } from "../types/supabase";
 import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldUseFallback, successResult, toSafeArray } from "./service.utils";
@@ -50,32 +55,20 @@ export async function getConversationMessages(conversationId: string): Promise<S
 }
 
 export async function sendChatMessage(input: { conversationId: string; senderUserId: string; content: string }): Promise<ServiceResult<Message | null>> {
-  const trimmed = input.content.trim();
-  if (!trimmed) return failureResult(null, "El mensaje no puede estar vacío.");
-  if (!isNonEmptyString(input.conversationId) || !isNonEmptyString(input.senderUserId)) {
-    return failureResult(null, "No pudimos enviar el mensaje. Intentá nuevamente.");
-  }
-  if (shouldUseFallback()) return failureResult(null, "Configurá Supabase para enviar mensajes reales.");
-
   try {
-    const { data, error } = await supabase!
-      .from("messages")
-      .insert({
-        conversation_id: input.conversationId,
-        sender_user_id: input.senderUserId,
-        content: trimmed,
-      })
-      .select("*")
-      .single<MessagesRow>();
+    const validatedInput = parseWithValidation(chatMessageSchema, input);
+    if (shouldUseFallback()) return failureResult(null, "Configurá Supabase para enviar mensajes reales.");
+
+    const { data, error } = await supabase!.rpc("send_message", {
+      p_conversation_id: validatedInput.conversationId,
+      p_sender_user_id: validatedInput.senderUserId,
+      p_content: validatedInput.content,
+    });
 
     if (error) throw error;
+    if (!data) return successResult(null);
 
-    await supabase!
-      .from("conversations")
-      .update({ last_message_at: new Date().toISOString() })
-      .eq("id", input.conversationId);
-
-    return successResult(mapMessageRow(data));
+    return successResult(mapMessageRow(data as Partial<MessagesRow>));
   } catch (error) {
     return failureResult(null, normalizeError(error, "No pudimos enviar tu mensaje."));
   }

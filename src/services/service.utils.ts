@@ -4,6 +4,7 @@
  */
 import { PostgrestError } from "@supabase/supabase-js";
 import { isSupabaseEnabled, supabase } from "../lib/supabase";
+import { ValidationError } from "../lib/validation/errors";
 
 export interface ServiceResult<T> {
   data: T;
@@ -32,6 +33,7 @@ export const FALLBACK_MODE = !isSupabaseEnabled || !supabase;
 export function normalizeError(error: unknown, fallbackMessage = "Error inesperado al consultar datos."): string {
   if (!error) return fallbackMessage;
   if (typeof error === "string") return error;
+  if (error instanceof ValidationError) return error.message;
 
   const pgError = error as PostgrestError;
   if (pgError?.message) {

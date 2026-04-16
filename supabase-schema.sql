@@ -47,6 +47,16 @@ create table if not exists jobs (
   created_at timestamptz not null default now()
 );
 
+-- search_document is generated and stored so job search stays fast and indexable
+-- without forcing the browser client to maintain a denormalized search field manually.
+alter table jobs
+add column if not exists search_document tsvector
+generated always as (
+  setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
+  setweight(to_tsvector('simple', coalesce(description, '')), 'B') ||
+  setweight(to_tsvector('simple', coalesce(location, '')), 'C')
+) stored;
+
 create table if not exists applications (
   id uuid primary key default gen_random_uuid(),
   job_id uuid not null references jobs(id) on delete cascade,
@@ -199,8 +209,33 @@ create index if not exists idx_conversations_job_id on conversations (job_id);
 
 create index if not exists idx_messages_conversation_created_at on messages (conversation_id, created_at asc);
 create index if not exists idx_messages_sender_user_id on messages (sender_user_id);
+create index if not exists idx_jobs_search_document
+on jobs
+using gin (search_document);
 
 create index if not exists idx_reviews_reviewed_user_created_at on reviews (reviewed_user_id, created_at desc);
 create index if not exists idx_notifications_user_created_at on notifications (user_id, created_at desc);
 create index if not exists idx_payment_methods_user_created_at on payment_methods (user_id, created_at desc);
 create index if not exists idx_transactions_user_created_at on transactions (user_id, created_at desc);
+
+create or replace function send_message(
+  p_conversation_id uuid,
+  p_sender_user_id uuid,
+  p_content text
+) returns messages
+language plpgsql security definer
+as $$
+declare
+  v_message messages;
+begin
+  insert into messages (conversation_id, sender_user_id, content)
+  values (p_conversation_id, p_sender_user_id, p_content)
+  returning * into v_message;
+  
+  update conversations
+  set last_message_at = v_message.created_at
+  where id = p_conversation_id;
+  
+  return v_message;
+end;
+$$;

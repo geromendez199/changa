@@ -1,4 +1,9 @@
+/**
+ * WHY: Use indexed full-text search and centralized query shaping so job reads scale better without changing UI contracts.
+ * CHANGED: YYYY-MM-DD
+ */
 import { supabase } from "../lib/supabase";
+import { jobCreateSchema, jobSearchParamsSchema, parseWithValidation } from "../lib/validation/schemas";
 import { Job } from "../types/domain";
 import { JobsRow, mapJobRow } from "../types/supabase";
 import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldUseFallback, successResult, toSafeArray } from "./service.utils";
@@ -35,26 +40,30 @@ export async function getFeaturedJobs(): Promise<ServiceResult<Job[]>> {
 }
 
 export async function searchJobs(params: SearchJobsParams): Promise<ServiceResult<Job[]>> {
-  if (shouldUseFallback()) {
-    return failureResult([], "Configurá Supabase para ver changas reales.");
-  }
-
   try {
+    const validatedParams = parseWithValidation(jobSearchParamsSchema, params);
+    if (shouldUseFallback()) {
+      return failureResult([], "Configurá Supabase para ver changas reales.");
+    }
+
     let query = supabase!.from("jobs").select("*").eq("status", "publicado");
 
-    if (params.category && params.category !== "Todos") {
-      query = query.eq("category", params.category);
+    if (validatedParams.category && validatedParams.category !== "Todos") {
+      query = query.eq("category", validatedParams.category);
     }
-    if (params.onlyUrgent) {
+    if (validatedParams.onlyUrgent) {
       query = query.eq("urgency", "urgente");
     }
-    if (params.query?.trim()) {
-      const sanitized = params.query.trim().replace(/[,%]/g, " ");
-      query = query.or(`title.ilike.%${sanitized}%,description.ilike.%${sanitized}%`);
+    if (validatedParams.query?.trim()) {
+      const sanitized = validatedParams.query.trim().replace(/[&|!():<>]/g, " ");
+      query = query.textSearch("search_document", sanitized, {
+        config: "simple",
+        type: "websearch",
+      });
     }
 
     query =
-      params.sortBy === "newest"
+      validatedParams.sortBy === "newest"
         ? query.order("posted_at", { ascending: false })
         : query.order("distance_km", { ascending: true }).order("posted_at", { ascending: false });
 
@@ -91,35 +100,27 @@ export async function getJobById(id: string): Promise<ServiceResult<Job | null>>
 }
 
 export async function createJob(input: CreateJobInput): Promise<ServiceResult<Job | null>> {
-  const title = input.title.trim();
-  const description = input.description.trim();
-  const location = input.location.trim();
-  const availability = input.availability.trim();
-  const priceValue = Math.round(input.priceValue);
-
-  if (!isNonEmptyString(input.postedByUserId)) {
-    return failureResult(null, "Necesitás iniciar sesión para publicar.");
-  }
-  if (title.length < 8 || description.length < 20 || !location || !availability || priceValue <= 0) {
-    return failureResult(null, "Revisá los datos: faltan campos obligatorios de la publicación.");
-  }
-  if (shouldUseFallback()) {
-    return failureResult(null, "Configurá Supabase para publicar changas reales.");
-  }
-
   try {
+    const validatedInput = parseWithValidation(jobCreateSchema, {
+      ...input,
+      priceValue: Math.round(input.priceValue),
+    });
+    if (shouldUseFallback()) {
+      return failureResult(null, "Configurá Supabase para publicar changas reales.");
+    }
+
     const { data, error } = await supabase!
       .from("jobs")
       .insert({
-        posted_by_user_id: input.postedByUserId,
-        title,
-        description,
-        category: input.category,
-        location,
-        price_value: priceValue,
-        availability,
-        urgency: input.urgency,
-        image: input.image?.trim() || DEFAULT_JOB_IMAGE,
+        posted_by_user_id: validatedInput.postedByUserId,
+        title: validatedInput.title,
+        description: validatedInput.description,
+        category: validatedInput.category,
+        location: validatedInput.location,
+        price_value: Math.round(validatedInput.priceValue),
+        availability: validatedInput.availability,
+        urgency: validatedInput.urgency,
+        image: validatedInput.image?.trim() || DEFAULT_JOB_IMAGE,
         status: "publicado",
       })
       .select("*")

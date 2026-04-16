@@ -5,7 +5,7 @@
   "x-maintainer-notes": {
     "WHY": "Add baseline quality gates and local tooling for Phase 3A without changing the runtime architecture.",
     "CHANGED": "YYYY-MM-DD",
-    "DEPENDENCY_JUSTIFICATION": "eslint, @typescript-eslint, prettier, vitest, and typescript are added to support linting, formatting, testing, and the new typecheck script."
+    "DEPENDENCY_JUSTIFICATION": "eslint, @typescript-eslint, prettier, vitest, and typescript support linting, formatting, testing, and typecheck. zod is added in Phase 3B for shared client-boundary validation before Supabase calls."
   },
   "type": "module",
   "scripts": {
@@ -74,7 +74,8 @@
     "sonner": "2.0.3",
     "tailwind-merge": "3.2.0",
     "tw-animate-css": "1.3.8",
-    "vaul": "1.1.2"
+    "vaul": "1.1.2",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.1.12",

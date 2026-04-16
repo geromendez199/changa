@@ -1,4 +1,9 @@
+/**
+ * WHY: Validate auth credentials consistently before calling Supabase Auth.
+ * CHANGED: YYYY-MM-DD
+ */
 import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
+import { authCredentialsSchema, parseWithValidation } from "../lib/validation/schemas";
 import { shouldUseFallback, normalizeError } from "./service.utils";
 import { supabase } from "../lib/supabase";
 
@@ -16,12 +21,6 @@ function mapAuthError(error: unknown): string {
   if (errorMessage.includes("Email not confirmed")) return "Confirmá tu email para continuar.";
 
   return errorMessage;
-}
-
-function validateCredentials(email: string, password: string): AuthResult | null {
-  if (!email.includes("@")) return { ok: false, message: "Ingresá un email válido." };
-  if (password.length < 6) return { ok: false, message: "La contraseña debe tener al menos 6 caracteres." };
-  return null;
 }
 
 export async function getCurrentSession(): Promise<Session | null> {
@@ -47,13 +46,14 @@ export function onAuthStateChange(callback: (event: AuthChangeEvent, session: Se
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<AuthResult> {
-  const normalizedEmail = email.trim().toLowerCase();
-  const validationError = validateCredentials(normalizedEmail, password);
-  if (validationError) return validationError;
-  if (shouldUseFallback()) return { ok: false, message: "Falta configurar Supabase para iniciar sesión." };
-
   try {
-    const { error } = await supabase!.auth.signInWithPassword({ email: normalizedEmail, password });
+    const credentials = parseWithValidation(authCredentialsSchema, { email, password });
+    if (shouldUseFallback()) return { ok: false, message: "Falta configurar Supabase para iniciar sesión." };
+
+    const { error } = await supabase!.auth.signInWithPassword({
+      email: credentials.email,
+      password: credentials.password,
+    });
     if (error) throw error;
     return { ok: true };
   } catch (error) {
@@ -62,13 +62,14 @@ export async function signInWithEmail(email: string, password: string): Promise<
 }
 
 export async function signUpWithEmail(email: string, password: string): Promise<AuthResult> {
-  const normalizedEmail = email.trim().toLowerCase();
-  const validationError = validateCredentials(normalizedEmail, password);
-  if (validationError) return validationError;
-  if (shouldUseFallback()) return { ok: false, message: "Falta configurar Supabase para crear la cuenta." };
-
   try {
-    const { error } = await supabase!.auth.signUp({ email: normalizedEmail, password });
+    const credentials = parseWithValidation(authCredentialsSchema, { email, password });
+    if (shouldUseFallback()) return { ok: false, message: "Falta configurar Supabase para crear la cuenta." };
+
+    const { error } = await supabase!.auth.signUp({
+      email: credentials.email,
+      password: credentials.password,
+    });
     if (error) throw error;
 
     return { ok: true, message: "Cuenta creada. Revisá tu email si tu proyecto requiere confirmación." };
