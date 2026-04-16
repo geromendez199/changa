@@ -1,29 +1,47 @@
 /**
- * WHY: Make job detail feel more credible with stronger poster trust signals and clear safety guidance around hiring.
+ * WHY: Turn job detail into a complete marketplace flow where workers can apply and clients can manage applicants with chat continuity.
  * CHANGED: YYYY-MM-DD
  */
-import { ArrowLeft, Calendar, CircleHelp, Clock, Flag, Heart, MapPin, Phone, Shield, Star } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, Calendar, Clock, MapPin, Shield, Star } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
+import { Button } from "../components/Button";
+import { Input } from "../components/Input";
 import { PreviewModeNotice } from "../components/PreviewModeNotice";
 import { SectionHeader } from "../components/SectionHeader";
 import { SkeletonBlock } from "../components/SkeletonBlock";
 import { SurfaceCard } from "../components/SurfaceCard";
+import { Textarea } from "../components/Textarea";
 import { UserAvatar } from "../components/UserAvatar";
 import { useAppState } from "../hooks/useAppState";
+import { Application, Job } from "../types/domain";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
-import { Job } from "../types/domain";
 import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 export function JobDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { loadJobById, profiles, dataSource } = useAppState();
+  const {
+    loadJobById,
+    profiles,
+    applications,
+    conversations,
+    currentUserId,
+    loadJobApplications,
+    applyToJob,
+    setApplicationDecision,
+    ensureConversation,
+    dataSource,
+  } = useAppState();
   const [job, setJob] = useState<Job | null>(null);
+  const [jobApplications, setJobApplications] = useState<Application[]>([]);
+  const [coverMessage, setCoverMessage] = useState("");
+  const [proposedAmount, setProposedAmount] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmittingApplication, setIsSubmittingApplication] = useState(false);
+  const [activeApplicationId, setActiveApplicationId] = useState<string | null>(null);
   const isPreview = dataSource === "fallback";
 
   useEffect(() => {
@@ -35,13 +53,40 @@ export function JobDetail() {
       setIsLoading(false);
     }
 
-    load();
-  }, [id]);
+    void load();
+  }, [id, loadJobById]);
+
+  useEffect(() => {
+    async function loadApplications() {
+      if (!job || currentUserId !== job.postedByUserId) {
+        setJobApplications([]);
+        return;
+      }
+
+      const nextApplications = await loadJobApplications(job.id);
+      setJobApplications(nextApplications);
+    }
+
+    void loadApplications();
+  }, [currentUserId, job, loadJobApplications]);
+
+  const publisher = useMemo(
+    () => (job ? profiles.find((user) => user.id === job.postedByUserId) : undefined),
+    [job, profiles],
+  );
+
+  const isOwner = Boolean(job && currentUserId && currentUserId === job.postedByUserId);
+  const myApplication = job
+    ? applications.find(
+        (application) =>
+          application.jobId === job.id && application.applicantUserId === currentUserId,
+      ) ?? null
+    : null;
 
   if (isLoading) {
     return (
       <div className="app-screen px-6 pt-20 pb-12">
-        <SkeletonBlock className="h-[320px] rounded-[28px]" />
+        <SkeletonBlock className="h-[280px] rounded-[28px]" />
         <div className="mt-6 space-y-4">
           <SkeletonBlock className="h-7 w-4/5 rounded-full" />
           <div className="grid grid-cols-2 gap-3">
@@ -72,7 +117,11 @@ export function JobDetail() {
             <Button onClick={() => navigate("/search")} fullWidth>
               Ver otras changas
             </Button>
-            <Button variant="secondary" onClick={() => id && void loadJobById(id).then(setJob)} fullWidth>
+            <Button
+              variant="secondary"
+              onClick={() => id && void loadJobById(id).then(setJob)}
+              fullWidth
+            >
               Intentá nuevamente
             </Button>
           </div>
@@ -81,52 +130,180 @@ export function JobDetail() {
     );
   }
 
-  const publisher = profiles.find((user) => user.id === job.postedByUserId);
-  const phoneVerified = publisher?.trustIndicators.some((indicator) =>
-    indicator.toLowerCase().includes("tel"),
-  );
   const trustSignals = publisher
     ? [
         {
-          label: "Identidad",
-          value: publisher.verified ? "Verificada" : "Pendiente",
-          icon: Shield,
+          label: "Verificación",
+          value: publisher.verified ? "Activa" : "Pendiente",
         },
         {
-          label: "Teléfono",
-          value: phoneVerified ? "Verificado" : "Próximamente",
-          icon: Phone,
+          label: "Trabajos",
+          value: `${publisher.completedJobs}`,
         },
         {
           label: "Cumplimiento",
           value: `${publisher.successRate}%`,
-          icon: Clock,
         },
       ]
     : [];
 
+  const handleApply = async () => {
+    if (!currentUserId) {
+      navigate(`/login?redirect=${encodeURIComponent(`/job/${job.id}`)}`);
+      return;
+    }
+
+    setIsSubmittingApplication(true);
+    const result = await applyToJob({
+      jobId: job.id,
+      coverMessage,
+      proposedAmount: Number(proposedAmount),
+    });
+    setIsSubmittingApplication(false);
+
+    if (!result.ok || !result.application) {
+      toast.error("No pudimos enviar la postulación", {
+        description: result.message,
+      });
+      return;
+    }
+
+    setCoverMessage("");
+    setProposedAmount("");
+    toast.success("Postulación enviada", {
+      description: "Ahora el cliente puede revisar tu propuesta y responderte.",
+    });
+  };
+
+  const handleApplicationDecision = async (
+    application: Application,
+    status: "aceptada" | "rechazada",
+  ) => {
+    setActiveApplicationId(application.id);
+    const result = await setApplicationDecision({
+      applicationId: application.id,
+      jobId: job.id,
+      applicantUserId: application.applicantUserId,
+      status,
+    });
+
+    if (!result.ok) {
+      setActiveApplicationId(null);
+      toast.error("No pudimos actualizar la postulación", {
+        description: result.message,
+      });
+      return;
+    }
+
+    setJobApplications((prev) =>
+      prev.map((item) =>
+        item.id === application.id ? { ...item, status, coverMessage: item.coverMessage, proposedAmount: item.proposedAmount } : item,
+      ),
+    );
+
+    if (status === "aceptada") {
+      const conversationResult = await ensureConversation({
+        participant1Id: job.postedByUserId,
+        participant2Id: application.applicantUserId,
+        jobId: job.id,
+      });
+
+      setActiveApplicationId(null);
+
+      if (!conversationResult.ok || !conversationResult.conversation) {
+        toast.error("Aceptamos la postulación, pero falló el chat", {
+          description:
+            conversationResult.message ?? "Intentá abrir la conversación nuevamente.",
+        });
+        return;
+      }
+
+      toast.success("Postulante aceptado", {
+        description: "La conversación ya quedó disponible para coordinar la changa.",
+      });
+      return;
+    }
+
+    setActiveApplicationId(null);
+    toast.success("Postulación rechazada", {
+      description: "La changa sigue abierta para otras personas.",
+    });
+  };
+
+  const openConversationForApplication = async (application: Application) => {
+    const existingConversation = conversations.find(
+      (conversation) =>
+        conversation.jobId === job.id &&
+        conversation.participantIds.includes(job.postedByUserId) &&
+        conversation.participantIds.includes(application.applicantUserId),
+    );
+
+    if (existingConversation) {
+      navigate(`/chat/${existingConversation.id}`);
+      return;
+    }
+
+    const conversationResult = await ensureConversation({
+      participant1Id: job.postedByUserId,
+      participant2Id: application.applicantUserId,
+      jobId: job.id,
+    });
+
+    if (!conversationResult.ok || !conversationResult.conversation) {
+      toast.error("No pudimos abrir el chat", {
+        description: conversationResult.message ?? "Intentá nuevamente.",
+      });
+      return;
+    }
+
+    navigate(`/chat/${conversationResult.conversation.id}`);
+  };
+
+  const openMyAcceptedChat = async () => {
+    if (!currentUserId) return;
+
+    const existingConversation = conversations.find(
+      (conversation) =>
+        conversation.jobId === job.id &&
+        conversation.participantIds.includes(currentUserId) &&
+        conversation.participantIds.includes(job.postedByUserId),
+    );
+
+    if (existingConversation) {
+      navigate(`/chat/${existingConversation.id}`);
+      return;
+    }
+
+    const conversationResult = await ensureConversation({
+      participant1Id: job.postedByUserId,
+      participant2Id: currentUserId,
+      jobId: job.id,
+    });
+
+    if (!conversationResult.ok || !conversationResult.conversation) {
+      toast.error("No pudimos abrir el chat", {
+        description: conversationResult.message ?? "Intentá nuevamente.",
+      });
+      return;
+    }
+
+    navigate(`/chat/${conversationResult.conversation.id}`);
+  };
+
   return (
     <div className="app-screen pb-32">
       <div className="relative">
-        <img src={job.image} alt={job.title} className="w-full h-[320px] object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
+        <img src={job.image} alt={job.title} className="h-[260px] w-full object-cover sm:h-[320px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
 
-        <button onClick={() => navigate(-1)} className="app-icon-button absolute top-14 left-6 bg-white/95">
+        <button
+          onClick={() => navigate(-1)}
+          className="app-icon-button absolute left-4 top-6 bg-white/95 sm:left-6 sm:top-14"
+        >
           <ArrowLeft size={20} className="text-[var(--app-text)]" />
         </button>
 
-        <button
-          onClick={() =>
-            toast("Guardados en preparación", {
-              description: "La lista de favoritas se va a sumar en una próxima etapa.",
-            })
-          }
-          className="app-icon-button absolute top-14 right-6 bg-white/95"
-        >
-          <Heart size={20} className="text-[var(--app-text)]" />
-        </button>
-
-        <div className="absolute bottom-6 left-6 flex gap-2">
+        <div className="absolute bottom-4 left-4 flex flex-wrap gap-2 sm:bottom-6 sm:left-6">
           <Badge variant="accent">{job.category}</Badge>
           {job.urgency === "urgente" ? (
             <Badge variant="urgent">{formatUrgencyLabel(job.urgency)}</Badge>
@@ -134,19 +311,16 @@ export function JobDetail() {
         </div>
       </div>
 
-      <div className="px-6 py-6">
+      <div className="px-4 py-5 sm:px-6 sm:py-6">
         <h1 className="mb-3 text-2xl font-bold leading-tight tracking-[-0.03em] text-[var(--app-text)]">
           {job.title}
         </h1>
 
         {isPreview ? (
-          <PreviewModeNotice
-            className="mb-6"
-            description={getFallbackPreviewMessage("esta publicación")}
-          />
+          <PreviewModeNotice className="mb-5" description={getFallbackPreviewMessage("esta publicación")} />
         ) : null}
 
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <SurfaceCard tone="muted" padding="sm">
             <div className="mb-1 flex items-center gap-2 text-[var(--app-text-muted)]">
               <MapPin size={16} className="text-[var(--app-brand)]" />
@@ -163,16 +337,16 @@ export function JobDetail() {
               <span className="text-xs font-medium">Disponibilidad</span>
             </div>
             <p className="text-sm font-semibold text-[var(--app-text)]">{job.availability}</p>
-            <p className="mt-0.5 text-xs text-[var(--app-text-muted)]">Horario flexible</p>
+            <p className="mt-0.5 text-xs text-[var(--app-text-muted)]">Coordinación directa</p>
           </SurfaceCard>
         </div>
 
-        <div className="bg-gradient-to-br from-[#0DAE79] to-[#0B9A6B] rounded-3xl p-6 mb-6 shadow-xl shadow-[#0DAE79]/20">
-          <div className="flex items-center justify-between">
+        <div className="mb-6 rounded-3xl bg-gradient-to-br from-[#0DAE79] to-[#0B9A6B] p-6 shadow-xl shadow-[#0DAE79]/20">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-white/80 text-sm mb-1">Presupuesto</p>
+              <p className="mb-1 text-sm text-white/80">Presupuesto</p>
               <p className="text-3xl font-bold text-white">{job.priceLabel}</p>
-              <p className="text-white/70 text-xs mt-1">Pago al finalizar</p>
+              <p className="mt-1 text-xs text-white/70">A coordinar por la app</p>
             </div>
             <div className="rounded-2xl bg-white/20 p-3 backdrop-blur-sm">
               <Shield size={32} className="text-white" />
@@ -185,8 +359,8 @@ export function JobDetail() {
           <p className="mt-4 leading-relaxed text-[var(--app-text-muted)]">{job.description}</p>
         </SurfaceCard>
 
-        {publisher && (
-          <SurfaceCard padding="md">
+        {publisher ? (
+          <SurfaceCard className="mb-6" padding="md">
             <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[var(--app-text-muted)]">
               Publicado por
             </p>
@@ -198,7 +372,7 @@ export function JobDetail() {
                 size="md"
               />
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="mb-1 flex items-center gap-2">
                   <h3 className="font-bold text-[var(--app-text)]">{publisher.name}</h3>
                   {publisher.verified ? (
                     <Badge variant="verified" icon={<Shield size={10} />}>
@@ -206,32 +380,23 @@ export function JobDetail() {
                     </Badge>
                   ) : null}
                 </div>
-                <div className="flex items-center gap-3 text-sm">
+                <div className="flex flex-wrap items-center gap-3 text-sm">
                   <div className="flex items-center gap-1">
-                    <Star size={14} className="text-[#FBBF24] fill-[#FBBF24]" />
+                    <Star size={14} className="fill-[#FBBF24] text-[#FBBF24]" />
                     <span className="font-semibold text-[var(--app-text)]">{publisher.rating}</span>
                     <span className="text-[var(--app-text-muted)]">({publisher.totalReviews})</span>
                   </div>
-                  <div className="h-1 w-1 rounded-full bg-[#cad4cf]"></div>
-                  <span className="text-[var(--app-text-muted)]">{publisher.completedJobs} trabajos</span>
+                  <div className="h-1 w-1 rounded-full bg-[#cad4cf]" />
+                  <span className="text-[var(--app-text-muted)]">
+                    {publisher.completedJobs} trabajos
+                  </span>
                 </div>
               </div>
             </div>
 
-            {publisher.trustIndicators.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {publisher.trustIndicators.map((indicator) => (
-                  <Badge key={indicator} variant="verified">
-                    {indicator}
-                  </Badge>
-                ))}
-              </div>
-            )}
-
             <div className="mt-4 grid grid-cols-3 gap-2">
               {trustSignals.map((signal) => (
                 <SurfaceCard key={signal.label} tone="muted" padding="sm" className="text-center">
-                  <signal.icon size={16} className="mx-auto mb-2 text-[var(--app-brand)]" />
                   <p className="text-[11px] font-semibold text-[var(--app-text-muted)]">
                     {signal.label}
                   </p>
@@ -240,94 +405,174 @@ export function JobDetail() {
               ))}
             </div>
           </SurfaceCard>
+        ) : null}
+
+        {isOwner ? (
+          <SurfaceCard className="mb-6" padding="lg">
+            <SectionHeader
+              title="Postulantes"
+              subtitle={
+                jobApplications.length > 0
+                  ? `${jobApplications.length} personas respondieron esta changa`
+                  : "Todavía no hay postulaciones"
+              }
+            />
+
+            {jobApplications.length > 0 ? (
+              <div className="mt-4 space-y-3">
+                {jobApplications.map((application) => {
+                  const applicant = profiles.find((profile) => profile.id === application.applicantUserId);
+                  const isAccepted = application.status === "aceptada";
+                  const isRejected = application.status === "rechazada";
+
+                  return (
+                    <SurfaceCard key={application.id} tone="muted" padding="md">
+                      <div className="flex items-start gap-3">
+                        <UserAvatar
+                          name={applicant?.name}
+                          avatarUrl={applicant?.avatarUrl}
+                          fallbackLetter={applicant?.avatarLetter ?? "?"}
+                          size="sm"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-sm font-bold text-[var(--app-text)]">
+                              {applicant?.name ?? "Usuario"}
+                            </h3>
+                            <Badge
+                              variant={
+                                isAccepted ? "accepted" : isRejected ? "error" : "pending"
+                              }
+                              size="sm"
+                            >
+                              {isAccepted ? "Aceptada" : isRejected ? "Rechazada" : "Pendiente"}
+                            </Badge>
+                          </div>
+                          <p className="mt-2 text-sm leading-relaxed text-[var(--app-text-muted)]">
+                            {application.coverMessage}
+                          </p>
+                          <p className="mt-2 text-sm font-semibold text-[var(--app-brand)]">
+                            Propone {`$${application.proposedAmount.toLocaleString("es-AR")}`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                        {application.status === "enviada" ? (
+                          <>
+                            <Button
+                              fullWidth
+                              size="sm"
+                              disabled={activeApplicationId === application.id}
+                              onClick={() => void handleApplicationDecision(application, "aceptada")}
+                            >
+                              Aceptar
+                            </Button>
+                            <Button
+                              fullWidth
+                              size="sm"
+                              variant="secondary"
+                              disabled={activeApplicationId === application.id}
+                              onClick={() => void handleApplicationDecision(application, "rechazada")}
+                            >
+                              Rechazar
+                            </Button>
+                          </>
+                        ) : null}
+
+                        {isAccepted ? (
+                          <Button
+                            fullWidth
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => void openConversationForApplication(application)}
+                          >
+                            Abrir chat
+                          </Button>
+                        ) : null}
+                      </div>
+                    </SurfaceCard>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-4 rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-5 text-sm text-[var(--app-text-muted)]">
+                Cuando alguien se postule, vas a poder aceptarlo o rechazarlo desde acá.
+              </div>
+            )}
+          </SurfaceCard>
+        ) : (
+          <SurfaceCard className="mb-6" padding="lg">
+            {myApplication ? (
+              <>
+                <SectionHeader title="Tu postulación" />
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <Badge
+                    variant={
+                      myApplication.status === "aceptada"
+                        ? "accepted"
+                        : myApplication.status === "rechazada"
+                          ? "error"
+                          : "pending"
+                    }
+                  >
+                    {myApplication.status === "aceptada"
+                      ? "Aceptada"
+                      : myApplication.status === "rechazada"
+                        ? "Rechazada"
+                        : "En revisión"}
+                  </Badge>
+                  <span className="text-sm font-semibold text-[var(--app-brand)]">
+                    {`$${myApplication.proposedAmount.toLocaleString("es-AR")}`}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-[var(--app-text-muted)]">
+                  {myApplication.coverMessage}
+                </p>
+
+                {myApplication.status === "aceptada" ? (
+                  <div className="mt-4">
+                    <Button fullWidth onClick={() => void openMyAcceptedChat()}>
+                      Abrir chat con el cliente
+                    </Button>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <SectionHeader
+                  title="Postularme"
+                  subtitle="Mandá una propuesta clara para que el cliente pueda decidir rápido."
+                />
+                <div className="mt-4 space-y-3">
+                  <Textarea
+                    value={coverMessage}
+                    onChange={(event) => setCoverMessage(event.target.value)}
+                    placeholder="Contá tu experiencia, cuándo podrías hacerlo y cualquier detalle útil."
+                  />
+                  <Input
+                    type="number"
+                    value={proposedAmount}
+                    onChange={setProposedAmount}
+                    placeholder="Monto propuesto en ARS"
+                    size="lg"
+                  />
+                  <Button
+                    fullWidth
+                    disabled={
+                      isSubmittingApplication ||
+                      coverMessage.trim().length < 12 ||
+                      Number(proposedAmount) <= 0
+                    }
+                    onClick={() => void handleApply()}
+                  >
+                    {isSubmittingApplication ? "Enviando..." : "Enviar postulación"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </SurfaceCard>
         )}
-
-        <div className="grid grid-cols-3 gap-3 mt-6">
-          <SurfaceCard tone="muted" padding="sm" className="text-center">
-            <Shield size={20} className="mx-auto mb-1 text-[var(--app-info-text)]" />
-            <p className="text-xs font-semibold text-[var(--app-info-text)]">Pago protegido</p>
-          </SurfaceCard>
-          <SurfaceCard tone="muted" padding="sm" className="text-center">
-            <Clock size={20} className="mx-auto mb-1 text-[var(--app-brand)]" />
-            <p className="text-xs font-semibold text-[var(--app-brand)]">Contexto claro</p>
-          </SurfaceCard>
-          <SurfaceCard tone="muted" padding="sm" className="text-center">
-            <Star size={20} className="mx-auto mb-1 text-[#b7791f]" />
-            <p className="text-xs font-semibold text-[#b7791f]">Reputación visible</p>
-          </SurfaceCard>
-        </div>
-
-        <SurfaceCard className="mt-6" padding="md">
-          <h2 className="text-lg font-bold text-[var(--app-text)]">Antes de coordinar</h2>
-          <div className="mt-3 space-y-2 text-sm leading-relaxed text-[var(--app-text-muted)]">
-            <p>1. Revisá el perfil, las reseñas y la tasa de cumplimiento de la otra persona.</p>
-            <p>2. Confirmá detalles, tiempos y alcance por chat para que quede todo claro.</p>
-            <p>3. Priorizá pagos y acuerdos dentro de Changa para mantener contexto y respaldo.</p>
-          </div>
-
-          <div className="mt-4 flex gap-2">
-            <Button
-              onClick={() =>
-                toast("Centro de ayuda", {
-                  description: "La guía de seguridad se va a sumar en una próxima etapa.",
-                })
-              }
-              variant="secondary"
-              fullWidth
-            >
-              <span className="inline-flex items-center gap-2">
-                <CircleHelp size={16} />
-                Ayuda
-              </span>
-            </Button>
-            <Button
-              onClick={() =>
-                toast("Reporte registrado", {
-                  description: "El flujo completo para reportar publicaciones se va a sumar en una próxima etapa.",
-                })
-              }
-              variant="danger"
-              fullWidth
-            >
-              <span className="inline-flex items-center gap-2">
-                <Flag size={16} />
-                Reportar
-              </span>
-            </Button>
-          </div>
-        </SurfaceCard>
-      </div>
-
-      <div className="app-floating-bar fixed bottom-0 left-0 right-0 mx-auto max-w-md px-6 py-5">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() =>
-              toast("Guardados en preparación", {
-                description: "La lista de favoritas se va a sumar en una próxima etapa.",
-              })
-            }
-            className="app-icon-button shrink-0"
-          >
-            <Heart size={20} className="text-[var(--app-text-muted)]" />
-          </button>
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            onClick={() =>
-              toast(
-                isPreview ? "Vista previa local" : "Postulación en preparación",
-                {
-                  description: isPreview
-                    ? "Esta changa usa datos de muestra. Para postularte con una cuenta real hace falta conectar Supabase."
-                    : "Estamos terminando el flujo completo de postulaciones y seguimiento dentro de la app.",
-                },
-              )
-            }
-          >
-            {isPreview ? "Postulación disponible en modo real" : "Postulación en preparación"}
-          </Button>
-        </div>
       </div>
     </div>
   );

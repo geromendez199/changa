@@ -21,6 +21,7 @@ export function MyJobs() {
     jobs,
     conversations,
     currentUserId,
+    ensureConversation,
     removePublishedJob,
     withdrawMyApplication,
   } = useAppState();
@@ -88,7 +89,13 @@ export function MyJobs() {
               </div>
               <p className="text-base font-bold text-[var(--app-brand)]">{job.priceLabel}</p>
             </div>
-            <div className="flex gap-2 border-t border-[var(--app-border)] px-4 pb-4 pt-3">
+            <div className="flex flex-col gap-2 border-t border-[var(--app-border)] px-4 pb-4 pt-3 sm:flex-row">
+              <button
+                onClick={() => navigate(`/job/${job.id}`)}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[var(--app-border)] px-3 py-3 text-sm font-semibold text-[var(--app-text)]"
+              >
+                Ver aviso
+              </button>
               <button
                 onClick={() => navigate(`/publish?edit=${job.id}`)}
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[var(--app-border)] px-3 py-3 text-sm font-semibold text-[var(--app-text)]"
@@ -159,13 +166,23 @@ export function MyJobs() {
                     );
 
                     if (!conversation) {
-                      toast("Chat pendiente", {
-                        description: "La conversación se habilita cuando ambas partes ya están coordinando dentro de la app.",
-                      });
-                      return;
-                    }
+                      void ensureConversation({
+                        participant1Id: job!.postedByUserId,
+                        participant2Id: currentUserId ?? "",
+                        jobId: job!.id,
+                      }).then((result) => {
+                        if (!result.ok || !result.conversation) {
+                          toast.error("No pudimos abrir el chat", {
+                            description: result.message ?? "Intentá nuevamente.",
+                          });
+                          return;
+                        }
 
-                    navigate(`/chat/${conversation.id}`);
+                        navigate(`/chat/${result.conversation.id}`);
+                      });
+                    } else {
+                      navigate(`/chat/${conversation.id}`);
+                    }
                   }}
                   className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[var(--app-brand)] px-3 py-3 text-sm font-semibold text-white"
                 >

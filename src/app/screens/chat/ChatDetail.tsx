@@ -149,7 +149,7 @@ export function ChatDetail() {
         )}
       </div>
 
-      <div className="app-floating-bar fixed bottom-0 left-0 right-0 mx-auto flex max-w-md items-center gap-3 px-6 py-4">
+      <div className="app-floating-bar fixed bottom-0 left-0 right-0 mx-auto flex max-w-[28rem] items-center gap-3 px-4 py-4 sm:max-w-[32rem] sm:px-6">
         <div className="flex-1">
           <Input placeholder="Escribí un mensaje..." value={text} onChange={setText} size="lg" />
           {composerFeedback && (

@@ -3,7 +3,13 @@
  * CHANGED: YYYY-MM-DD
  */
 import { useCallback, useState } from "react";
-import { getMyApplications, withdrawApplication } from "../services/applications.service";
+import {
+  createApplication,
+  getApplicationsForJob,
+  getMyApplications,
+  updateApplicationStatus,
+  withdrawApplication,
+} from "../services/applications.service";
 import {
   createJob,
   deleteJob,
@@ -213,6 +219,132 @@ export function useJobsState({ userId, pushError }: UseJobsStateOptions) {
     [pushError, userId],
   );
 
+  const loadJobApplications = useCallback(
+    async (jobId: string) => {
+      const result = await getApplicationsForJob(jobId);
+      pushError(result.error);
+      return result.data;
+    },
+    [pushError],
+  );
+
+  const applyToJob = useCallback(
+    async (input: { jobId: string; coverMessage: string; proposedAmount: number }) => {
+      if (!userId) {
+        const message = "Necesitás iniciar sesión para postularte.";
+        pushError(message);
+        return { ok: false, message, application: null as Application | null };
+      }
+
+      if (shouldUseFallback()) {
+        const fallbackApplication: Application = {
+          id: `sample-application-${Date.now()}`,
+          jobId: input.jobId,
+          applicantUserId: userId,
+          coverMessage: input.coverMessage.trim(),
+          proposedAmount: Math.round(input.proposedAmount),
+          status: "enviada",
+          createdAt: new Date().toISOString(),
+        };
+
+        setApplications((prev) => [fallbackApplication, ...prev]);
+        return {
+          ok: true,
+          message: "Postulación enviada en esta vista previa.",
+          application: fallbackApplication,
+        };
+      }
+
+      const result = await createApplication({
+        jobId: input.jobId,
+        applicantUserId: userId,
+        coverMessage: input.coverMessage,
+        proposedAmount: input.proposedAmount,
+      });
+
+      if (!result.data) {
+        const message = result.error ?? "No pudimos enviar tu postulación.";
+        pushError(message);
+        return { ok: false, message, application: null as Application | null };
+      }
+
+      setApplications((prev) => [result.data!, ...prev.filter((item) => item.id !== result.data!.id)]);
+      return { ok: true, message: "Postulación enviada.", application: result.data };
+    },
+    [pushError, userId],
+  );
+
+  const setApplicationDecision = useCallback(
+    async (input: {
+      applicationId: string;
+      jobId: string;
+      applicantUserId: string;
+      status: "aceptada" | "rechazada";
+    }) => {
+      if (!userId) {
+        const message = "Necesitás iniciar sesión para gestionar postulantes.";
+        pushError(message);
+        return { ok: false, message, application: null as Application | null };
+      }
+
+      if (shouldUseFallback()) {
+        const fallbackApplication: Application = {
+          id: input.applicationId,
+          jobId: input.jobId,
+          applicantUserId: input.applicantUserId,
+          coverMessage: "",
+          proposedAmount: 0,
+          status: input.status,
+          createdAt: new Date().toISOString(),
+        };
+
+        setApplications((prev) =>
+          prev.map((application) =>
+            application.id === input.applicationId
+              ? { ...application, status: input.status }
+              : application,
+          ),
+        );
+
+        return {
+          ok: true,
+          message:
+            input.status === "aceptada"
+              ? "Postulante aceptado en esta vista previa."
+              : "Postulación rechazada en esta vista previa.",
+          application: fallbackApplication,
+        };
+      }
+
+      const result = await updateApplicationStatus({
+        ...input,
+        ownerUserId: userId,
+      });
+
+      if (!result.data) {
+        const message = result.error ?? "No pudimos actualizar la postulación.";
+        pushError(message);
+        return { ok: false, message, application: null as Application | null };
+      }
+
+      setApplications((prev) =>
+        prev.map((application) =>
+          application.id === input.applicationId ? result.data! : application,
+        ),
+      );
+
+      return {
+        ok: true,
+        message:
+          input.status === "aceptada"
+            ? "Postulante aceptado."
+            : "Postulación rechazada.",
+        application: result.data,
+      };
+    },
+    [pushError, userId],
+  );
+
   const resetUserJobState = useCallback(() => {
     setMyJobs([]);
     setApplications([]);
@@ -229,6 +361,9 @@ export function useJobsState({ userId, pushError }: UseJobsStateOptions) {
     updatePublishedJob,
     removePublishedJob,
     withdrawMyApplication,
+    loadJobApplications,
+    applyToJob,
+    setApplicationDecision,
     resetUserJobState,
   };
 }

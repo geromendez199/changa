@@ -155,6 +155,12 @@ create policy "applications applicant read" on applications for select using (au
 create policy "applications owner read" on applications for select using (
   exists (select 1 from jobs j where j.id = applications.job_id and j.posted_by_user_id = auth.uid())
 );
+create policy "applications owner update" on applications for update using (
+  exists (select 1 from jobs j where j.id = applications.job_id and j.posted_by_user_id = auth.uid())
+) with check (
+  exists (select 1 from jobs j where j.id = applications.job_id and j.posted_by_user_id = auth.uid())
+);
+create policy "applications applicant delete" on applications for delete using (auth.uid() = applicant_user_id);
 
 -- conversations/messages: only participants
 create policy "conversations participants read" on conversations for select using (auth.uid() in (participant_1_id, participant_2_id));
@@ -206,6 +212,8 @@ create index if not exists idx_applications_job_id on applications (job_id);
 create index if not exists idx_conversations_participant_1_last_message_at on conversations (participant_1_id, last_message_at desc);
 create index if not exists idx_conversations_participant_2_last_message_at on conversations (participant_2_id, last_message_at desc);
 create index if not exists idx_conversations_job_id on conversations (job_id);
+create unique index if not exists idx_conversations_unique_job_participants
+on conversations (job_id, least(participant_1_id, participant_2_id), greatest(participant_1_id, participant_2_id));
 
 create index if not exists idx_messages_conversation_created_at on messages (conversation_id, created_at asc);
 create index if not exists idx_messages_sender_user_id on messages (sender_user_id);

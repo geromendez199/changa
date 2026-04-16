@@ -52,6 +52,25 @@ export const chatMessageSchema = z.object({
     .max(2000, "El mensaje es demasiado largo."),
 });
 
+export const applicationCreateSchema = z.object({
+  jobId: trimmedRequiredString("No pudimos identificar la changa."),
+  applicantUserId: trimmedRequiredString("Necesitás iniciar sesión para postularte."),
+  coverMessage: z
+    .string()
+    .trim()
+    .min(12, "Contá brevemente por qué sos una buena opción.")
+    .max(1000, "El mensaje es demasiado largo."),
+  proposedAmount: z.number().finite().positive("Ingresá un monto válido."),
+});
+
+export const applicationStatusSchema = z.object({
+  applicationId: trimmedRequiredString("No pudimos identificar la postulación."),
+  jobId: trimmedRequiredString("No pudimos identificar la changa."),
+  ownerUserId: trimmedRequiredString("Necesitás iniciar sesión para gestionar postulantes."),
+  applicantUserId: trimmedRequiredString("No pudimos identificar a la persona postulada."),
+  status: z.enum(["aceptada", "rechazada"]),
+});
+
 export const jobSearchParamsSchema = z.object({
   query: z.string().trim().max(120, "La búsqueda es demasiado larga.").optional(),
   category: z.union([z.enum(jobCategories), z.literal("Todos")]).optional(),

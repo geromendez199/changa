@@ -54,6 +54,21 @@ interface AppStateValue {
   ) => Promise<{ ok: boolean; message: string; job: Job | null }>;
   removePublishedJob: (jobId: string) => Promise<{ ok: boolean; message: string }>;
   withdrawMyApplication: (applicationId: string) => Promise<{ ok: boolean; message: string }>;
+  loadJobApplications: (jobId: string) => Promise<Application[]>;
+  applyToJob: (
+    input: { jobId: string; coverMessage: string; proposedAmount: number },
+  ) => Promise<{ ok: boolean; message: string; application: Application | null }>;
+  setApplicationDecision: (input: {
+    applicationId: string;
+    jobId: string;
+    applicantUserId: string;
+    status: "aceptada" | "rechazada";
+  }) => Promise<{ ok: boolean; message: string; application: Application | null }>;
+  ensureConversation: (input: {
+    participant1Id: string;
+    participant2Id: string;
+    jobId: string;
+  }) => Promise<{ ok: boolean; message?: string; conversation: Conversation | null }>;
   sendMessage: (conversationId: string, content: string) => Promise<{ ok: boolean; message?: string }>;
   refreshJobs: (params?: SearchJobsParams) => Promise<void>;
   loadJobById: (id: string) => Promise<Job | null>;
@@ -85,6 +100,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     updatePublishedJob,
     removePublishedJob,
     withdrawMyApplication,
+    loadJobApplications,
+    applyToJob,
+    setApplicationDecision,
     resetUserJobState,
   } = useJobsState({ userId: effectiveUserId, pushError });
   const {
@@ -102,6 +120,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     loadConversationList,
     refreshChatDetail,
     sendMessage,
+    ensureConversation,
     resetChatState,
   } = useChatState({ userId: effectiveUserId, pushError });
   const {
@@ -296,6 +315,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       updatePublishedJob,
       removePublishedJob,
       withdrawMyApplication,
+      loadJobApplications,
+      applyToJob,
+      setApplicationDecision,
+      ensureConversation,
       sendMessage,
       refreshJobs,
       loadJobById,
@@ -328,6 +351,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       updatePublishedJob,
       removePublishedJob,
       withdrawMyApplication,
+      loadJobApplications,
+      applyToJob,
+      setApplicationDecision,
+      ensureConversation,
       sendMessage,
       refreshJobs,
       loadJobById,

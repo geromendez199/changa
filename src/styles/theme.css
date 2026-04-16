@@ -226,13 +226,13 @@
 
 @layer components {
   .app-screen {
-    @apply mx-auto min-h-screen max-w-md;
+    @apply mx-auto min-h-screen w-full max-w-[28rem] sm:max-w-[32rem];
     background: var(--app-bg);
     color: var(--app-text);
   }
 
   .app-header-shell {
-    @apply bg-white px-6 pt-14 pb-6;
+    @apply bg-white px-4 pt-12 pb-6 sm:px-6 sm:pt-14;
     border-bottom: 1px solid var(--app-border);
     box-shadow: 0 8px 24px rgba(17, 24, 39, 0.04);
   }

@@ -47,7 +47,7 @@ export const users: User[] = [
     completedJobs: 9,
     successRate: 91,
     bio: "Hago mantenimiento liviano, armado de muebles y traslados cortos. Suelo confirmar horarios antes de salir.",
-    trustIndicators: ["Email validado", "Pagos protegidos"],
+    trustIndicators: ["Pagos protegidos"],
     createdAt: "2024-08-10T12:00:00.000Z",
   },
   {
@@ -77,7 +77,7 @@ export const users: User[] = [
     completedJobs: 5,
     successRate: 86,
     bio: "Estoy arrancando con changas de flete corto y tareas rápidas dentro de Rafaela.",
-    trustIndicators: ["Email validado"],
+    trustIndicators: [],
     createdAt: "2025-02-07T14:15:00.000Z",
   },
   {
@@ -122,7 +122,7 @@ export const users: User[] = [
     completedJobs: 3,
     successRate: 88,
     bio: "Me muevo para limpieza, orden y apoyo en eventos chicos. Coordino rápido por mensaje.",
-    trustIndicators: ["Email validado"],
+    trustIndicators: [],
     createdAt: "2024-12-04T17:00:00.000Z",
   },
 ];

@@ -74,3 +74,53 @@ export async function sendChatMessage(input: { conversationId: string; senderUse
     return failureResult(null, normalizeError(error, "No pudimos enviar tu mensaje."));
   }
 }
+
+export async function getOrCreateConversation(input: {
+  participant1Id: string;
+  participant2Id: string;
+  jobId: string;
+}): Promise<ServiceResult<Conversation | null>> {
+  const participantIds = [input.participant1Id, input.participant2Id].filter(isNonEmptyString);
+  if (participantIds.length !== 2 || !isNonEmptyString(input.jobId)) {
+    return failureResult(null, "No pudimos preparar el chat para esta changa.");
+  }
+
+  if (shouldUseFallback()) return successResult(null, "fallback");
+
+  try {
+    const [participant1Id, participant2Id] = participantIds;
+
+    const { data: existingRows, error: existingError } = await supabase!
+      .from("conversations")
+      .select("*")
+      .eq("job_id", input.jobId)
+      .or(
+        `and(participant_1_id.eq.${participant1Id},participant_2_id.eq.${participant2Id}),and(participant_1_id.eq.${participant2Id},participant_2_id.eq.${participant1Id})`,
+      )
+      .limit(1);
+
+    if (existingError) throw existingError;
+
+    const existingConversation = toSafeArray<Partial<ConversationsRow>>(existingRows)
+      .map(mapConversationRow)
+      .find((conversation) => isNonEmptyString(conversation.id));
+
+    if (existingConversation) return successResult(existingConversation);
+
+    const { data, error } = await supabase!
+      .from("conversations")
+      .insert({
+        participant_1_id: participant1Id,
+        participant_2_id: participant2Id,
+        job_id: input.jobId,
+      })
+      .select("*")
+      .single<ConversationsRow>();
+
+    if (error) throw error;
+
+    return successResult(mapConversationRow(data));
+  } catch (error) {
+    return failureResult(null, normalizeError(error, "No pudimos abrir el chat de esta changa."));
+  }
+}

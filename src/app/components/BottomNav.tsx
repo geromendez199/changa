@@ -30,7 +30,7 @@ export function BottomNav() {
   };
 
   return (
-    <nav className="app-floating-bar fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-md px-4 pb-safe">
+    <nav className="app-floating-bar fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-[28rem] px-4 pb-safe sm:max-w-[32rem]">
       <div className="flex h-20 items-center justify-around">
         {navItems.map((item) => {
           if (item.isCenter) {

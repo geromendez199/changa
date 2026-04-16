@@ -30,7 +30,7 @@ export interface SaveProfileInput {
   bio?: string | null;
 }
 
-const defaultTrust = ["Email validado"];
+const defaultTrust = [];
 
 const mapReviews = (rows: unknown): Review[] =>
   toSafeArray<Partial<ReviewsRow>>(rows)
