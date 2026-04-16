@@ -18,9 +18,9 @@ const toneClasses: Record<NonNullable<SurfaceCardProps["tone"]>, string> = {
 
 const paddingClasses: Record<NonNullable<SurfaceCardProps["padding"]>, string> = {
   none: "",
-  sm: "p-4",
-  md: "p-5",
-  lg: "p-6",
+  sm: "p-[clamp(0.875rem,3vw,1rem)]",
+  md: "p-[clamp(1rem,3.6vw,1.25rem)]",
+  lg: "p-[clamp(1.125rem,4vw,1.5rem)]",
 };
 
 export const SurfaceCard = forwardRef<HTMLDivElement, SurfaceCardProps>(function SurfaceCard(

@@ -51,7 +51,7 @@ export function Input({
           onChange={(event) => onChange?.(event.target.value)}
           className={cn(
             "app-field px-4 text-[15px]",
-            size === "lg" ? "min-h-[56px]" : "min-h-[52px]",
+            size === "lg" ? "min-h-[var(--app-control-height-lg)]" : "min-h-[var(--app-control-height-md)]",
             icon && "pl-12",
             error && "border-[var(--app-danger-text)] ring-4 ring-red-500/10",
             inputClassName,

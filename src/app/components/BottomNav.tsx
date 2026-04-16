@@ -31,7 +31,7 @@ export function BottomNav() {
 
   return (
     <nav className="app-floating-bar fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-full px-4 pb-safe md:max-w-[56rem] xl:max-w-[72rem]">
-      <div className="flex h-20 items-center justify-around">
+      <div className="flex h-[var(--app-bottom-nav-height)] items-center justify-around">
         {navItems.map((item) => {
           if (item.isCenter) {
             return (
@@ -44,7 +44,7 @@ export function BottomNav() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0DAE79_0%,#0B9A6B_100%)] shadow-[0_16px_32px_rgba(13,174,121,0.28)] transition-all duration-200 active:scale-95">
                   <item.icon size={24} className="text-white" strokeWidth={2.5} />
                 </div>
-                <span className="mt-2 text-[10px] font-semibold text-[var(--app-text-muted)]">
+                <span className="mt-2 text-[var(--app-bottom-nav-label-size)] font-semibold text-[var(--app-text-muted)]">
                   {item.label}
                 </span>
               </button>
@@ -72,6 +72,7 @@ export function BottomNav() {
                 className={`text-[10px] font-semibold transition-colors ${
                   isActive(item.path) ? "text-[var(--app-brand)]" : "text-[var(--app-text-muted)]"
                 }`}
+                style={{ fontSize: "var(--app-bottom-nav-label-size)" }}
               >
                 {item.label}
               </span>

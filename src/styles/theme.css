@@ -65,6 +65,62 @@
   --app-radius-panel: 28px;
   --app-radius-card: 24px;
   --app-radius-control: 18px;
+  --app-shell-padding: 24px;
+  --app-header-top: 56px;
+  --app-header-bottom: 24px;
+  --app-control-height-md: 52px;
+  --app-control-height-lg: 56px;
+  --app-icon-button-size: 44px;
+  --app-bottom-nav-height: 80px;
+  --app-bottom-nav-label-size: 10px;
+}
+
+@media (max-width: 389px) {
+  :root {
+    --font-size: 15px;
+    --app-radius-panel: 24px;
+    --app-radius-card: 20px;
+    --app-radius-control: 16px;
+    --app-shell-padding: 16px;
+    --app-header-top: 44px;
+    --app-header-bottom: 20px;
+    --app-control-height-md: 48px;
+    --app-control-height-lg: 52px;
+    --app-icon-button-size: 40px;
+    --app-bottom-nav-height: 74px;
+    --app-bottom-nav-label-size: 9px;
+  }
+}
+
+@media (min-width: 430px) and (max-width: 767px) {
+  :root {
+    --font-size: 17px;
+    --app-radius-panel: 30px;
+    --app-radius-card: 26px;
+    --app-radius-control: 20px;
+    --app-shell-padding: 28px;
+    --app-header-top: 60px;
+    --app-header-bottom: 28px;
+    --app-control-height-md: 56px;
+    --app-control-height-lg: 60px;
+    --app-icon-button-size: 48px;
+    --app-bottom-nav-height: 84px;
+    --app-bottom-nav-label-size: 11px;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --font-size: 16px;
+    --app-shell-padding: 24px;
+    --app-header-top: 56px;
+    --app-header-bottom: 24px;
+    --app-control-height-md: 52px;
+    --app-control-height-lg: 56px;
+    --app-icon-button-size: 44px;
+    --app-bottom-nav-height: 80px;
+    --app-bottom-nav-label-size: 10px;
+  }
 }
 
 .dark {
@@ -232,7 +288,11 @@
   }
 
   .app-header-shell {
-    @apply bg-white px-4 pt-12 pb-6 sm:px-6 sm:pt-14;
+    @apply bg-white;
+    padding-left: var(--app-shell-padding);
+    padding-right: var(--app-shell-padding);
+    padding-top: var(--app-header-top);
+    padding-bottom: var(--app-header-bottom);
     border-bottom: 1px solid var(--app-border);
     box-shadow: 0 8px 24px rgba(17, 24, 39, 0.04);
   }
@@ -265,8 +325,8 @@
 
   .app-icon-button {
     @apply inline-flex items-center justify-center rounded-full transition-all duration-200;
-    width: 44px;
-    height: 44px;
+    width: var(--app-icon-button-size);
+    height: var(--app-icon-button-size);
     background: var(--app-surface-muted);
     border: 1px solid var(--app-border);
     color: var(--app-text);
@@ -288,7 +348,7 @@
     border: 1px solid var(--app-border);
     border-radius: var(--app-radius-control);
     color: var(--app-text);
-    min-height: 54px;
+    min-height: var(--app-control-height-md);
     transition:
       border-color 180ms ease,
       box-shadow 180ms ease,
