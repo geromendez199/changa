@@ -1,40 +1,24 @@
 /**
- * WHY: Turn the home screen into a clearer startup-style entry point with role-aware messaging, trust cues, and better loading and empty states.
+ * WHY: Keep the home screen simple and focused on finding changas fast without extra explanatory blocks.
  * CHANGED: YYYY-MM-DD
  */
-import {
-  ArrowRight,
-  Bell,
-  BriefcaseBusiness,
-  Compass,
-  MapPin,
-  MessageSquareText,
-  Search,
-  ShieldCheck,
-  WalletCards,
-  Wrench,
-} from "lucide-react";
+import { Bell, Compass, MapPin, Search } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { BottomNav } from "../components/BottomNav";
-import { Button } from "../components/Button";
-import { JobCard } from "../components/JobCard";
-import { JobCardSkeleton } from "../components/JobCardSkeleton";
-import { Input } from "../components/Input";
-import { useAppState } from "../hooks/useAppState";
-import { formatDistance, formatUrgencyLabel } from "../utils/format";
-import { categoryFilters } from "../constants/catalog";
 import { EmptyStateCard } from "../components/EmptyStateCard";
 import { BrandLogo } from "../components/BrandLogo";
-import { PreviewModeNotice } from "../components/PreviewModeNotice";
+import { Input } from "../components/Input";
+import { JobCard } from "../components/JobCard";
+import { JobCardSkeleton } from "../components/JobCardSkeleton";
 import { SectionHeader } from "../components/SectionHeader";
 import { SurfaceCard } from "../components/SurfaceCard";
-import { ROLE_INTENT_DETAILS, useRoleIntent } from "../../hooks/useRoleIntent";
-import { getFallbackPreviewMessage } from "../../services/service.utils";
+import { categoryFilters } from "../constants/catalog";
+import { useAppState } from "../hooks/useAppState";
+import { formatDistance, formatUrgencyLabel } from "../utils/format";
 
 export function Home() {
   const navigate = useNavigate();
-  const { roleIntent, roleIntentDetails, setRoleIntent } = useRoleIntent();
   const {
     jobs,
     isLoading,
@@ -43,57 +27,15 @@ export function Home() {
     selectedLocation,
     requestDeviceLocation,
     currentUserId,
-    dataSource,
   } = useAppState();
 
   useEffect(() => {
     void refreshJobs();
   }, [refreshJobs]);
 
-  const activeRole = roleIntent ?? "help";
-  const roleToggleItems = [
-    { id: "help" as const, label: ROLE_INTENT_DETAILS.help.label, icon: Wrench },
-    { id: "work" as const, label: ROLE_INTENT_DETAILS.work.label, icon: BriefcaseBusiness },
-  ];
-  const trustHighlights = [
-    { label: "Perfiles con reputación", icon: ShieldCheck },
-    { label: "Chat con contexto", icon: MessageSquareText },
-    { label: "Pagos protegidos", icon: WalletCards },
-  ] as const;
   const featuredJobs = jobs.slice(0, 3);
   const nearbyJobs = [...jobs].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 3);
   const shouldShowLoadingCards = isLoading && jobs.length === 0;
-  const isPreview = dataSource === "fallback";
-
-  const handlePrimaryIntentAction = () => {
-    if (isPreview) {
-      navigate(activeRole === "help" ? "/publish" : "/profile");
-      return;
-    }
-
-    if (activeRole === "help") {
-      navigate(currentUserId ? "/publish" : "/signup?role=help");
-      return;
-    }
-
-    navigate(currentUserId ? "/profile/edit" : "/signup?role=work");
-  };
-
-  const handleSecondaryIntentAction = () => {
-    if (isPreview) {
-      navigate("/search");
-      return;
-    }
-
-    if (activeRole === "help") {
-      setRoleIntent("work");
-      navigate("/search");
-      return;
-    }
-
-    setRoleIntent("help");
-    navigate(currentUserId ? "/publish" : "/signup?role=help");
-  };
 
   return (
     <div className="app-screen pb-28">
@@ -137,90 +79,6 @@ export function Home() {
             </button>
           </div>
         </SurfaceCard>
-
-        {isPreview ? (
-          <PreviewModeNotice
-            className="mt-4"
-            compact
-            description={getFallbackPreviewMessage("el feed y la búsqueda")}
-          />
-        ) : null}
-      </div>
-
-      <div className="px-6 pt-6">
-        <SurfaceCard padding="lg">
-          <div className="app-kicker">
-            Changa te conecta con tareas y oportunidades reales de tu zona
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {roleToggleItems.map((item) => {
-              const isActive = activeRole === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setRoleIntent(item.id)}
-                  className={`rounded-[22px] border px-4 py-3 text-left transition-all ${
-                    isActive
-                      ? "border-[var(--app-brand)] bg-[var(--app-brand-soft)] text-[var(--app-text)] shadow-[0_10px_24px_rgba(13,174,121,0.12)]"
-                      : "border-[var(--app-border)] bg-[var(--app-surface-muted)] text-[var(--app-text-muted)]"
-                  }`}
-                >
-                  <item.icon
-                    size={18}
-                    className={isActive ? "text-[var(--app-brand)]" : "text-[#93a299]"}
-                  />
-                  <p className="mt-2 text-sm font-semibold">{item.label}</p>
-                </button>
-              );
-            })}
-          </div>
-
-          <h1 className="mt-5 text-2xl font-black leading-tight tracking-[-0.03em] text-[var(--app-text)]">
-            {roleIntentDetails.homeTitle}
-          </h1>
-          <p className="mt-2 text-sm leading-relaxed text-[var(--app-text-muted)]">
-            {roleIntentDetails.homeDescription}
-          </p>
-
-          <div className="mt-5 grid grid-cols-3 gap-2">
-            {trustHighlights.map((item) => (
-              <SurfaceCard key={item.label} tone="muted" padding="sm" className="text-center">
-                <item.icon size={18} className="mx-auto mb-2 text-[var(--app-brand)]" />
-                <p className="text-[11px] font-semibold leading-tight text-[var(--app-text)]">
-                  {item.label}
-                </p>
-              </SurfaceCard>
-            ))}
-          </div>
-
-          <div className="mt-5 space-y-2">
-            <Button
-              fullWidth
-              size="lg"
-              onClick={handlePrimaryIntentAction}
-              icon={<ArrowRight size={16} />}
-            >
-              {isPreview
-                ? activeRole === "help"
-                  ? "Ver cómo se publica"
-                  : "Ver perfil de ejemplo"
-                : activeRole === "help"
-                  ? "Publicar una changa"
-                  : currentUserId
-                    ? "Completar mi perfil"
-                    : "Crear cuenta para trabajar"}
-            </Button>
-            <Button fullWidth variant="secondary" onClick={handleSecondaryIntentAction}>
-              {isPreview
-                ? "Seguir explorando changas"
-                : activeRole === "help"
-                  ? "Quiero encontrar changas"
-                  : "Necesito ayuda con una tarea"}
-            </Button>
-          </div>
-        </SurfaceCard>
       </div>
 
       <div className="px-6 py-6">
@@ -241,28 +99,24 @@ export function Home() {
         </div>
       </div>
 
-      {errorMessage && (
+      {errorMessage ? (
         <SurfaceCard
           tone="soft"
           padding="sm"
           className="mx-6 mb-4 border-amber-100 bg-[#FFFDF7] text-sm text-[var(--app-text-muted)] shadow-none"
         >
-          <p className="font-semibold text-[var(--app-text)]">
-            No pudimos actualizar las changas ahora mismo.
-          </p>
-          <p className="mt-1">{errorMessage || "Intentá nuevamente en unos segundos."}</p>
-          <button onClick={() => void refreshJobs()} className="mt-3 font-semibold text-[var(--app-brand)]">
+          <p className="font-semibold text-[var(--app-text)]">No pudimos actualizar las changas.</p>
+          <button onClick={() => void refreshJobs()} className="mt-2 font-semibold text-[var(--app-brand)]">
             Reintentar
           </button>
         </SurfaceCard>
-      )}
+      ) : null}
 
       {(featuredJobs.length > 0 || shouldShowLoadingCards) && (
         <div className="mb-8">
           <div className="px-6 mb-5">
             <SectionHeader
-              title="Destacadas para hoy"
-              subtitle="Pedidos activos con buena visibilidad y contexto claro."
+              title="Destacadas"
               actionLabel="Ver todas"
               onAction={() => navigate("/search")}
             />
@@ -295,13 +149,13 @@ export function Home() {
       <div className="px-6">
         <div className="mb-5">
           <SectionHeader
-            title="Cerca de tu zona"
+            title="Cerca tuyo"
             subtitle={
               isLoading
-                ? "Buscando oportunidades cercanas..."
+                ? "Cargando changas..."
                 : jobs.length > 0
-                  ? `${jobs.length} changas activas para explorar`
-                  : "Todavía no hay changas publicadas en esta zona"
+                  ? `${jobs.length} changas`
+                  : "No hay changas por ahora"
             }
           />
         </div>
@@ -333,22 +187,10 @@ export function Home() {
           !isLoading && (
             <EmptyStateCard
               icon={<Compass size={28} />}
-              eyebrow="Todavía no hay movimiento cerca"
-              title="Tu zona todavía no tiene changas visibles"
-              description="Podés publicar lo que necesitás o activar tu ubicación para priorizar resultados cercanos apenas aparezcan."
-              note="Mientras tanto, también podés explorar categorías para descubrir oportunidades en otras zonas."
-              actionLabel={activeRole === "help" ? "Publicar una changa" : "Explorar categorías"}
-              onAction={() =>
-                navigate(
-                  activeRole === "help"
-                    ? currentUserId
-                      ? "/publish"
-                      : "/login?redirect=%2Fpublish"
-                    : "/search",
-                )
-              }
-              secondaryActionLabel="Activar ubicación"
-              onSecondaryAction={requestDeviceLocation}
+              title="Todavía no hay changas"
+              description="Volvé a intentar en un rato o activá tu ubicación."
+              actionLabel="Activar ubicación"
+              onAction={requestDeviceLocation}
             />
           )
         )}

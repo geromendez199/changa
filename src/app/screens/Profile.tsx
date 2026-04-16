@@ -1,22 +1,18 @@
 /**
- * WHY: Strengthen trust and safety perception on the profile screen using real credibility signals plus honest placeholders for data that is still evolving.
+ * WHY: Keep the profile screen cleaner and easier to scan by removing explanatory blocks and focusing on core user info.
  * CHANGED: YYYY-MM-DD
  */
 import { BottomNav } from "../components/BottomNav";
-import { Star, Briefcase, Shield, CreditCard, Settings, ChevronRight, TrendingUp, Bell, LogOut, Pencil, Phone, Clock3, CircleHelp, Flag } from "lucide-react";
+import { Star, Briefcase, Shield, CreditCard, Settings, ChevronRight, TrendingUp, Bell, LogOut, Pencil } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
 import { Badge } from "../components/Badge";
-import { Button } from "../components/Button";
 import { useAppState, useCurrentUser } from "../hooks/useAppState";
 import { useAuth } from "../../context/AuthContext";
 import { EmptyStateCard } from "../components/EmptyStateCard";
-import { PreviewModeNotice } from "../components/PreviewModeNotice";
 import { SectionHeader } from "../components/SectionHeader";
 import { SurfaceCard } from "../components/SurfaceCard";
 import { UserAvatar } from "../components/UserAvatar";
-import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 export function Profile() {
   const navigate = useNavigate();
@@ -33,52 +29,6 @@ export function Profile() {
 
   const profile = profiles.find((item) => item.id === currentUser.id) ?? currentUser;
   const myReviews = reviews.filter((review) => review.reviewedUserId === profile.id).slice(0, 2);
-  const phoneVerified = profile.trustIndicators.some((indicator) =>
-    indicator.toLowerCase().includes("tel"),
-  );
-  const identityVerified = profile.verified;
-
-  const trustRows = [
-    {
-      label: "Identidad",
-      value: identityVerified ? "Verificada" : "Pendiente",
-      description: identityVerified
-        ? "Tu perfil ya muestra una señal fuerte de confianza."
-        : "Completá más datos para fortalecer tu perfil.",
-      icon: Shield,
-      iconClassName: "text-[#0DAE79]",
-      surfaceClassName: "bg-green-50",
-    },
-    {
-      label: "Teléfono",
-      value: phoneVerified ? "Verificado" : "Próximamente",
-      description: phoneVerified
-        ? "Se usa para dar más respaldo a la coordinación."
-        : "Lo vamos a sumar como una capa extra de seguridad.",
-      icon: Phone,
-      iconClassName: "text-blue-600",
-      surfaceClassName: "bg-blue-50",
-    },
-    {
-      label: "Pagos",
-      value: "Protegidos",
-      description: "Priorizá acuerdos y movimientos desde Changa para mantener contexto.",
-      icon: CreditCard,
-      iconClassName: "text-emerald-600",
-      surfaceClassName: "bg-emerald-50",
-    },
-    {
-      label: "Respuesta",
-      value: profile.completedJobs > 0 ? "Historial activo" : "En construcción",
-      description:
-        profile.completedJobs > 0
-          ? "Ya tenés señales de cumplimiento visibles para otras personas."
-          : "Tus primeras coordinaciones van a construir esta señal.",
-      icon: Clock3,
-      iconClassName: "text-amber-600",
-      surfaceClassName: "bg-amber-50",
-    },
-  ] as const;
 
   return (
     <div className="app-screen pb-28">
@@ -153,51 +103,19 @@ export function Profile() {
         </SurfaceCard>
       </div>
 
-      <div className="px-6 mb-6">
-        <SurfaceCard padding="md">
-          {isPreview ? (
-            <PreviewModeNotice
-              className="mb-4"
-              description={`${getFallbackPreviewMessage("este perfil")} Las señales visibles son de ejemplo y la edición real sigue protegida.`}
-            />
-          ) : null}
-
-          <SectionHeader
-            title="Confianza y seguridad"
-            subtitle="Estas señales ayudan a otras personas a entender rápido con quién están tratando."
-            className="mb-4"
-          />
-
-          <div className="space-y-3">
-            {trustRows.map((item) => (
-              <SurfaceCard key={item.label} tone="muted" padding="sm">
-                <div className="flex items-start gap-3">
-                  <div className={`rounded-2xl p-3 ${item.surfaceClassName}`}>
-                    <item.icon size={18} className={item.iconClassName} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="font-semibold text-[var(--app-text)]">{item.label}</p>
-                      <Badge variant="default" size="sm">{item.value}</Badge>
-                    </div>
-                    <p className="mt-1 text-sm leading-relaxed text-[var(--app-text-muted)]">{item.description}</p>
-                  </div>
-                </div>
-              </SurfaceCard>
-            ))}
-          </div>
-
-          {profile.trustIndicators.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
+      {profile.trustIndicators.length > 0 ? (
+        <div className="px-6 mb-6">
+          <SurfaceCard padding="md">
+            <div className="flex flex-wrap gap-2">
               {profile.trustIndicators.map((indicator) => (
                 <Badge key={indicator} variant="verified">
                   {indicator}
                 </Badge>
               ))}
             </div>
-          )}
-        </SurfaceCard>
-      </div>
+          </SurfaceCard>
+        </div>
+      ) : null}
 
       <div className="px-6 space-y-3 mb-6">
         <button onClick={() => navigate("/payments")} className="app-surface flex w-full items-center gap-4 p-5 text-left transition-transform duration-200 hover:translate-y-[-2px]">
@@ -225,7 +143,6 @@ export function Profile() {
       <div className="px-6">
         <SectionHeader
           title="Reseñas"
-          subtitle="Últimas calificaciones recibidas"
           className="mb-4"
         />
         <div className="space-y-3">
@@ -260,54 +177,12 @@ export function Profile() {
         {!isLoading && myReviews.length === 0 && (
           <EmptyStateCard
             icon={<Star size={28} />}
-            eyebrow="Tu reputación empieza acá"
             title="Todavía no tenés reseñas"
-            description="Completá tu perfil y empezá a moverte en Changa para construir señales visibles de confianza."
-            note="Las primeras reseñas suelen destrabar mucha más credibilidad en un marketplace local."
+            description="Tus reseñas van a aparecer acá."
             actionLabel="Completar perfil"
             onAction={() => navigate("/profile/edit")}
           />
         )}
-      </div>
-
-      <div className="px-6 mb-6">
-        <SurfaceCard padding="md">
-          <h2 className="text-lg font-bold text-[var(--app-text)]">Ayuda y seguridad</h2>
-          <p className="mt-1 text-sm text-[var(--app-text-muted)]">
-            Si algo te genera dudas, dejalo registrado y priorizá siempre la coordinación dentro de Changa.
-          </p>
-
-          <div className="mt-4 flex gap-2">
-            <Button
-              onClick={() =>
-                toast("Centro de ayuda", {
-                  description: "La guía de seguridad y ayuda se va a sumar en una próxima etapa.",
-                })
-              }
-              variant="secondary"
-              fullWidth
-            >
-              <span className="inline-flex items-center gap-2">
-                <CircleHelp size={16} />
-                Centro de ayuda
-              </span>
-            </Button>
-            <Button
-              onClick={() =>
-                toast("Reporte recibido", {
-                  description: "Cuando esté listo el flujo completo, vas a poder reportar desde acá.",
-                })
-              }
-              variant="danger"
-              fullWidth
-            >
-              <span className="inline-flex items-center gap-2">
-                <Flag size={16} />
-                Reportar
-              </span>
-            </Button>
-          </div>
-        </SurfaceCard>
       </div>
 
       <div className="mb-4 mt-8 px-6">
