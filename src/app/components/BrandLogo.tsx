@@ -3,6 +3,7 @@ import { BRAND, BRAND_LOGO_CANDIDATES } from "../../constants/brand";
 
 interface BrandLogoProps {
   className?: string;
+  frameClassName?: string;
   imageClassName?: string;
   fallbackClassName?: string;
   alt?: string;
@@ -10,6 +11,7 @@ interface BrandLogoProps {
 
 export function BrandLogo({
   className = "",
+  frameClassName = "overflow-hidden",
   imageClassName = "h-20 w-auto object-contain",
   fallbackClassName = "text-3xl font-bold tracking-tight",
   alt,
@@ -24,12 +26,14 @@ export function BrandLogo({
 
   return (
     <div className={`flex items-center justify-center ${className}`.trim()}>
-      <img
-        src={logoSrc}
-        alt={alt ?? BRAND.appName}
-        className={imageClassName}
-        onError={() => setLogoIndex((current) => current + 1)}
-      />
+      <div className={frameClassName}>
+        <img
+          src={logoSrc}
+          alt={alt ?? BRAND.appName}
+          className={`block max-w-none origin-center scale-[2.4] ${imageClassName}`.trim()}
+          onError={() => setLogoIndex((current) => current + 1)}
+        />
+      </div>
     </div>
   );
 }
