@@ -1,5 +1,5 @@
-import { Search, MapPin, Bell, LocateFixed, Compass } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Search, MapPin, Bell, Compass } from "lucide-react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { BottomNav } from "../components/BottomNav";
 import { JobCard } from "../components/JobCard";
@@ -18,13 +18,9 @@ export function Home() {
     errorMessage,
     refreshJobs,
     selectedLocation,
-    locationStatus,
-    locationError,
     requestDeviceLocation,
-    setManualLocation,
     currentUserId,
   } = useAppState();
-  const [manualLocation, setManualLocationText] = useState("");
 
   useEffect(() => {
     void refreshJobs();
@@ -43,9 +39,6 @@ export function Home() {
               <Bell size={20} className="text-gray-600" />
             </button>
           </div>
-          <div className="mt-2">
-            <p className="text-sm text-gray-500">Bienvenido{currentUserId ? " 👋" : ""}</p>
-          </div>
         </div>
 
         <Input placeholder="Buscar servicios..." icon={<Search size={20} />} onChange={(value) => navigate(`/search?q=${encodeURIComponent(value)}`)} />
@@ -55,26 +48,6 @@ export function Home() {
           <span className="font-medium">{selectedLocation || "Ubicación pendiente"}</span>
         </div>
       </div>
-
-      {(locationStatus !== "granted" || !selectedLocation || selectedLocation === "Ubicación pendiente") && (
-        <div className="px-6 pt-4">
-          <div className="bg-white rounded-3xl border border-gray-100 p-4">
-            <p className="text-sm font-semibold text-[#111827] mb-1">Ubicación actual</p>
-            <p className="text-sm text-gray-500 mb-3">Activá ubicación para mejorar resultados cercanos o cargá una zona manualmente.</p>
-            <div className="flex gap-2 mb-2">
-              <button onClick={requestDeviceLocation} className="flex-1 bg-[#0DAE79] text-white rounded-full py-2 text-sm font-semibold flex items-center justify-center gap-2">
-                <LocateFixed size={14} /> Activar ubicación
-              </button>
-              <button onClick={() => navigate("/search")} className="px-4 bg-[#F8FAFC] border border-gray-200 rounded-full text-sm font-semibold text-[#111827]">Explorar</button>
-            </div>
-            <div className="flex gap-2">
-              <input value={manualLocation} onChange={(e) => setManualLocationText(e.target.value)} placeholder="Ej: Palermo, CABA" className="flex-1 bg-[#F8FAFC] border border-gray-200 rounded-2xl px-3 py-2 text-sm" />
-              <button onClick={() => manualLocation.trim() && setManualLocation(manualLocation.trim())} className="px-4 bg-white border border-gray-200 rounded-2xl text-sm">Guardar</button>
-            </div>
-            {(locationError || locationStatus === "denied") && <p className="text-xs text-amber-600 mt-2">{locationError || "Permiso denegado. Podés usar ubicación manual."}</p>}
-          </div>
-        </div>
-      )}
 
       <div className="px-6 py-6">
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-6 px-6">
