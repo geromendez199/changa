@@ -10,7 +10,7 @@ export function Welcome() {
 
   return (
     <div className="app-screen bg-white px-6 pt-12 pb-8">
-      <div className="flex min-h-screen flex-col items-center">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col items-center">
         <div className="w-full pt-6 text-center sm:pt-8">
           <div className="inline-flex min-h-28 min-w-[17.5rem] items-center justify-center rounded-[2rem] bg-white px-6 py-4">
             <BrandLogo

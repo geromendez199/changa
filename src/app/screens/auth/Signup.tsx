@@ -50,7 +50,7 @@ export function Signup() {
 
   return (
     <div className="app-screen flex items-center px-6 pt-12 pb-10">
-      <SurfaceCard className="w-full" padding="lg">
+      <SurfaceCard className="mx-auto w-full max-w-md" padding="lg">
         <div className="mb-6 flex justify-center">
           <BrandLogo
             imageClassName="h-14 w-auto object-contain"

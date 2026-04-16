@@ -40,49 +40,52 @@ export function Home() {
   return (
     <div className="app-screen pb-28">
       <div className="app-header-shell pb-8">
-        <div className="flex items-center justify-between">
-          <BrandLogo
-            className="justify-start"
-            imageClassName="h-16 w-auto object-contain"
-            fallbackClassName="text-2xl font-bold tracking-tight text-[var(--app-text)]"
-          />
-          <button
-            onClick={() => navigate(currentUserId ? "/notifications" : "/login")}
-            className="app-icon-button"
-            aria-label="Abrir notificaciones"
-          >
-            <Bell size={20} className="text-[var(--app-text-muted)]" />
-          </button>
-        </div>
-
-        <Input
-          placeholder="Buscar changas, oficios o categorías"
-          icon={<Search size={20} />}
-          size="lg"
-          containerClassName="mt-5"
-          onChange={(value) => navigate(`/search?q=${encodeURIComponent(value)}`)}
-        />
-
-        <SurfaceCard tone="muted" padding="sm" className="mt-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm text-[var(--app-text-muted)]">
-              <MapPin size={16} className="text-[var(--app-brand)]" />
-              <span className="font-semibold text-[var(--app-text)]">
-                {selectedLocation || "Ubicación pendiente"}
-              </span>
-            </div>
+        <div className="mx-auto max-w-6xl">
+          <div className="flex items-center justify-between">
+            <BrandLogo
+              className="justify-start"
+              imageClassName="h-16 w-auto object-contain"
+              fallbackClassName="text-2xl font-bold tracking-tight text-[var(--app-text)]"
+            />
             <button
-              onClick={requestDeviceLocation}
-              className="text-xs font-semibold text-[var(--app-brand)]"
+              onClick={() => navigate(currentUserId ? "/notifications" : "/login")}
+              className="app-icon-button"
+              aria-label="Abrir notificaciones"
             >
-              Actualizar
+              <Bell size={20} className="text-[var(--app-text-muted)]" />
             </button>
           </div>
-        </SurfaceCard>
+
+          <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
+            <Input
+              placeholder="Buscar changas, oficios o categorías"
+              icon={<Search size={20} />}
+              size="lg"
+              onChange={(value) => navigate(`/search?q=${encodeURIComponent(value)}`)}
+            />
+
+            <SurfaceCard tone="muted" padding="sm" className="xl:mt-0">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm text-[var(--app-text-muted)]">
+                  <MapPin size={16} className="text-[var(--app-brand)]" />
+                  <span className="font-semibold text-[var(--app-text)]">
+                    {selectedLocation || "Ubicación pendiente"}
+                  </span>
+                </div>
+                <button
+                  onClick={requestDeviceLocation}
+                  className="text-xs font-semibold text-[var(--app-brand)]"
+                >
+                  Actualizar
+                </button>
+              </div>
+            </SurfaceCard>
+          </div>
+        </div>
       </div>
 
-      <div className="px-6 py-6">
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-6 px-6">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {categoryFilters.map((cat, idx) => (
             <button
               key={cat}
@@ -103,7 +106,7 @@ export function Home() {
         <SurfaceCard
           tone="soft"
           padding="sm"
-          className="mx-6 mb-4 border-amber-100 bg-[#FFFDF7] text-sm text-[var(--app-text-muted)] shadow-none"
+          className="mx-auto mb-4 max-w-6xl border-amber-100 bg-[#FFFDF7] text-sm text-[var(--app-text-muted)] shadow-none"
         >
           <p className="font-semibold text-[var(--app-text)]">No pudimos actualizar las changas.</p>
           <button onClick={() => void refreshJobs()} className="mt-2 font-semibold text-[var(--app-brand)]">
@@ -114,15 +117,15 @@ export function Home() {
 
       {(featuredJobs.length > 0 || shouldShowLoadingCards) && (
         <div className="mb-8">
-          <div className="px-6 mb-5">
+          <div className="mx-auto mb-5 max-w-6xl px-4 sm:px-6">
             <SectionHeader
               title="Destacadas"
               actionLabel="Ver todas"
               onAction={() => navigate("/search")}
             />
           </div>
-          <div className="flex gap-4 overflow-x-auto px-6 scrollbar-hide -mx-6">
-            <div className="w-4 flex-shrink-0" />
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide xl:grid xl:grid-cols-3 xl:overflow-visible">
             {shouldShowLoadingCards
               ? Array.from({ length: 3 }).map((_, index) => (
                   <JobCardSkeleton key={`featured-skeleton-${index}`} featured />
@@ -141,12 +144,12 @@ export function Home() {
                     featured
                   />
                 ))}
-            <div className="w-4 flex-shrink-0" />
+            </div>
           </div>
         </div>
       )}
 
-      <div className="px-6">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mb-5">
           <SectionHeader
             title="Cerca tuyo"
@@ -161,13 +164,13 @@ export function Home() {
         </div>
 
         {shouldShowLoadingCards ? (
-          <div className="space-y-3">
+          <div className="grid gap-3 xl:grid-cols-2">
             {Array.from({ length: 3 }).map((_, index) => (
               <JobCardSkeleton key={`nearby-skeleton-${index}`} />
             ))}
           </div>
         ) : nearbyJobs.length > 0 ? (
-          <div className="space-y-3">
+          <div className="grid gap-3 xl:grid-cols-2">
             {nearbyJobs.map((job) => (
               <JobCard
                 key={job.id}

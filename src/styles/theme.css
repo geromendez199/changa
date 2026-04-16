@@ -226,7 +226,7 @@
 
 @layer components {
   .app-screen {
-    @apply mx-auto min-h-screen w-full max-w-[28rem] sm:max-w-[32rem];
+    @apply mx-auto min-h-screen w-full max-w-full md:max-w-[56rem] xl:max-w-[72rem];
     background: var(--app-bg);
     color: var(--app-text);
   }
