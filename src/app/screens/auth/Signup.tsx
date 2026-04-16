@@ -9,7 +9,10 @@ import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
 import { useAuth } from "../../../context/AuthContext";
 import { BrandLogo } from "../../components/BrandLogo";
+import { PreviewModeNotice } from "../../components/PreviewModeNotice";
+import { SurfaceCard } from "../../components/SurfaceCard";
 import { ROLE_INTENT_DETAILS, useRoleIntent } from "../../../hooks/useRoleIntent";
+import { FALLBACK_PREVIEW_MESSAGE, IS_DEVELOPMENT_FALLBACK } from "../../../services/service.utils";
 
 export function Signup() {
   const { signUp } = useAuth();
@@ -62,61 +65,97 @@ export function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] px-6 pt-16 pb-10 max-w-md mx-auto font-['Inter']">
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+    <div className="app-screen flex items-center px-6 pt-12 pb-10">
+      <SurfaceCard className="w-full" padding="lg">
         <div className="mb-5 flex justify-center">
           <BrandLogo
             imageClassName="h-14 w-auto object-contain"
-            fallbackClassName="text-3xl font-bold tracking-tight text-[#111827]"
+            fallbackClassName="text-3xl font-bold tracking-tight text-[var(--app-text)]"
             alt="Changa"
           />
         </div>
 
-        <h1 className="text-2xl font-bold text-[#111827] mb-1">Crear cuenta</h1>
-        <p className="text-sm text-gray-500 mb-3">{roleDetails.authDescription}</p>
+        <div className="app-kicker mb-3">Empezá en minutos</div>
+        <h1 className="mb-1 text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+          Crear cuenta
+        </h1>
+        <p className="mb-3 text-sm leading-relaxed text-[var(--app-text-muted)]">
+          {roleDetails.authDescription}
+        </p>
 
-        <div className="mb-6 rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#0DAE79]">
+        {IS_DEVELOPMENT_FALLBACK ? (
+          <PreviewModeNotice
+            className="mb-4"
+            compact
+            title="Registro real desactivado"
+            description={`${FALLBACK_PREVIEW_MESSAGE} En esta vista local podés recorrer la experiencia, pero la creación de cuentas necesita Supabase.`}
+          />
+        ) : null}
+
+        <div className="mb-6 rounded-[22px] border border-[var(--app-border)] bg-[var(--app-surface-soft)] p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--app-brand)]">
             Empezás como
           </p>
-          <p className="mt-1 text-sm font-semibold text-[#111827]">{roleDetails.label}</p>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm font-semibold text-[var(--app-text)]">{roleDetails.label}</p>
+          <p className="mt-1 text-sm leading-relaxed text-[var(--app-text-muted)]">
             Después vas a poder pedir ayuda y también trabajar desde la misma cuenta.
           </p>
         </div>
 
         <div className="space-y-3">
-          <Input placeholder="Email" value={email} onChange={setEmail} type="email" />
+          <Input placeholder="Email" value={email} onChange={setEmail} type="email" size="lg" />
           <Input
             placeholder="Contraseña"
             value={password}
             onChange={setPassword}
             type="password"
+            size="lg"
           />
           <Input
             placeholder="Confirmar contraseña"
             value={confirmPassword}
             onChange={setConfirmPassword}
             type="password"
+            size="lg"
           />
         </div>
 
-        {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl p-3 mt-4">{error}</p>}
-        {success && <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-2xl p-3 mt-4">{success}</p>}
+        {error ? (
+          <p className="mt-4 rounded-[18px] border border-red-100 bg-red-50 p-3 text-sm text-red-600">
+            {error}
+          </p>
+        ) : null}
+        {success ? (
+          <p className="mt-4 rounded-[18px] border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-700">
+            {success}
+          </p>
+        ) : null}
 
         <div className="mt-5">
-          <Button fullWidth onClick={onSubmit} disabled={loading}>
-            {loading ? "Creando cuenta..." : "Crear cuenta gratis"}
+          <Button fullWidth onClick={onSubmit} disabled={loading || IS_DEVELOPMENT_FALLBACK}>
+            {IS_DEVELOPMENT_FALLBACK
+              ? "Conectá Supabase para crear cuentas"
+              : loading
+                ? "Creando cuenta..."
+                : "Crear cuenta gratis"}
           </Button>
         </div>
 
-        <p className="text-sm text-gray-600 text-center mt-5">
+        {IS_DEVELOPMENT_FALLBACK ? (
+          <div className="mt-3">
+            <Button fullWidth variant="secondary" onClick={() => navigate("/home")}>
+              Explorar vista previa
+            </Button>
+          </div>
+        ) : null}
+
+        <p className="mt-5 text-center text-sm text-[var(--app-text-muted)]">
           ¿Ya tenés cuenta?{" "}
-          <Link to={`/login?role=${activeRole}`} className="text-[#0DAE79] font-semibold">
+          <Link to={`/login?role=${activeRole}`} className="font-semibold text-[var(--app-brand)]">
             Iniciar sesión
           </Link>
         </p>
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

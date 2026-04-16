@@ -1,3 +1,7 @@
+/**
+ * WHY: Tighten bottom navigation hierarchy so primary navigation feels calmer, clearer, and more premium on mobile.
+ * CHANGED: YYYY-MM-DD
+ */
 import { Home, Search, Plus, Briefcase, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router";
 import { useAuth } from "../../context/AuthContext";
@@ -26,24 +30,51 @@ export function BottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 pb-safe max-w-md mx-auto z-50">
-      <div className="flex justify-around items-center h-20">
+    <nav className="app-floating-bar fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-md px-4 pb-safe">
+      <div className="flex h-20 items-center justify-around">
         {navItems.map((item) => {
           if (item.isCenter) {
             return (
-              <button key={item.path} onClick={() => navigateItem(item.path, item.requiresAuth)} className="flex flex-col items-center justify-center -mt-8">
-                <div className="bg-gradient-to-br from-[#0DAE79] to-[#0B9A6B] rounded-full p-4 shadow-lg shadow-[#0DAE79]/30 hover:shadow-xl hover:shadow-[#0DAE79]/40 transition-all duration-200 active:scale-95">
+              <button
+                key={item.path}
+                type="button"
+                onClick={() => navigateItem(item.path, item.requiresAuth)}
+                className="flex -mt-8 flex-col items-center justify-center"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0DAE79_0%,#0B9A6B_100%)] shadow-[0_16px_32px_rgba(13,174,121,0.28)] transition-all duration-200 active:scale-95">
                   <item.icon size={24} className="text-white" strokeWidth={2.5} />
                 </div>
-                <span className="text-[10px] font-medium text-gray-500 mt-2">{item.label}</span>
+                <span className="mt-2 text-[10px] font-semibold text-[var(--app-text-muted)]">
+                  {item.label}
+                </span>
               </button>
             );
           }
 
           return (
-            <button key={item.path} onClick={() => navigateItem(item.path, item.requiresAuth)} className="flex flex-col items-center justify-center gap-1.5 py-2 px-3 rounded-2xl transition-all duration-200 min-w-[64px]">
-              <item.icon size={24} className={`transition-colors ${isActive(item.path) ? "text-[#0DAE79]" : "text-gray-400"}`} strokeWidth={isActive(item.path) ? 2.5 : 2} />
-              <span className={`text-[10px] font-medium transition-colors ${isActive(item.path) ? "text-[#0DAE79]" : "text-gray-500"}`}>{item.label}</span>
+            <button
+              key={item.path}
+              type="button"
+              onClick={() => navigateItem(item.path, item.requiresAuth)}
+              aria-current={isActive(item.path) ? "page" : undefined}
+              className={`flex min-w-[68px] flex-col items-center justify-center gap-1 rounded-[20px] px-3 py-2 transition-all duration-200 ${
+                isActive(item.path) ? "bg-[var(--app-brand-soft)]" : "bg-transparent"
+              }`}
+            >
+              <item.icon
+                size={22}
+                className={`transition-colors ${
+                  isActive(item.path) ? "text-[var(--app-brand)]" : "text-[#96a39d]"
+                }`}
+                strokeWidth={isActive(item.path) ? 2.5 : 2}
+              />
+              <span
+                className={`text-[10px] font-semibold transition-colors ${
+                  isActive(item.path) ? "text-[var(--app-brand)]" : "text-[var(--app-text-muted)]"
+                }`}
+              >
+                {item.label}
+              </span>
             </button>
           );
         })}

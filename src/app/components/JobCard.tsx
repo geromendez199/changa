@@ -1,4 +1,8 @@
-import { Star, MapPin } from "lucide-react";
+/**
+ * WHY: Make job cards feel more premium and scannable with calmer surfaces, clearer metadata, and standardized status chips.
+ * CHANGED: YYYY-MM-DD
+ */
+import { MapPin, Star } from "lucide-react";
 import { useNavigate } from "react-router";
 import { Badge } from "./Badge";
 
@@ -31,65 +35,65 @@ export function JobCard({
 
   if (featured) {
     return (
-      <div
+      <button
+        type="button"
         onClick={() => navigate(`/job/${id}`)}
-        className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer min-w-[280px] border border-gray-100"
+        className="app-surface min-w-[280px] cursor-pointer overflow-hidden text-left transition-[transform,box-shadow] duration-200 hover:translate-y-[-2px] hover:shadow-[var(--app-shadow-md)]"
       >
         <div className="relative">
-          <img
-            src={image}
-            alt={title}
-            className="w-full h-40 object-cover"
-          />
+          <img src={image} alt={title} className="h-40 w-full object-cover" />
           <div className="absolute top-3 right-3">
-            <Badge variant="default">{category}</Badge>
+            <Badge variant="accent" size="sm">
+              {category}
+            </Badge>
           </div>
           {urgency && (
             <div className="absolute top-3 left-3">
-              <Badge variant="error">{urgency}</Badge>
+              <Badge variant="urgent" size="sm">
+                {urgency}
+              </Badge>
             </div>
           )}
         </div>
         <div className="p-4">
-          <h3 className="font-semibold text-[#111827] text-base mb-3 line-clamp-2 leading-snug">
+          <h3 className="mb-3 line-clamp-2 text-base font-bold leading-snug tracking-[-0.02em] text-[var(--app-text)]">
             {title}
           </h3>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 text-sm text-gray-500">
+            <div className="flex items-center gap-3 text-sm text-[var(--app-text-muted)]">
               <div className="flex items-center gap-1">
                 <Star size={14} className="text-[#FBBF24] fill-[#FBBF24]" />
-                <span className="font-medium text-gray-700">{rating}</span>
+                <span className="font-semibold text-[var(--app-text)]">{rating}</span>
               </div>
-              <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+              <div className="h-1 w-1 rounded-full bg-[#c7d1cb]" />
               <div className="flex items-center gap-1">
-                <MapPin size={14} className="text-gray-400" />
+                <MapPin size={14} className="text-[#94a39b]" />
                 <span>{distance}</span>
               </div>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <span className="text-[#0DAE79] font-bold text-lg">{price}</span>
+          <div className="mt-3 border-t border-[var(--app-border)] pt-3">
+            <span className="text-lg font-bold tracking-[-0.02em] text-[var(--app-brand)]">
+              {price}
+            </span>
           </div>
         </div>
-      </div>
+      </button>
     );
   }
 
   return (
-    <div
+    <button
+      type="button"
       onClick={() => navigate(`/job/${id}`)}
-      className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100"
+      className="app-surface cursor-pointer overflow-hidden text-left transition-[transform,box-shadow] duration-200 hover:translate-y-[-2px] hover:shadow-[var(--app-shadow-md)]"
     >
       <div className="flex gap-4 p-4">
         <div className="relative flex-shrink-0">
-          <img
-            src={image}
-            alt={title}
-            className="w-24 h-24 object-cover rounded-2xl"
-          />
+          <img src={image} alt={title} className="h-24 w-24 rounded-[22px] object-cover" />
           {urgency && (
             <div className="absolute -top-1 -right-1">
-              <div className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-medium">
+              <div className="rounded-full bg-[var(--app-danger-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--app-danger-text)]">
                 {urgency}
               </div>
             </div>
@@ -97,36 +101,40 @@ export function JobCard({
         </div>
         <div className="flex-1 min-w-0 flex flex-col">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="font-semibold text-[#111827] line-clamp-1 text-base">
+            <h3 className="line-clamp-1 text-base font-bold tracking-[-0.02em] text-[var(--app-text)]">
               {title}
             </h3>
           </div>
           {description && (
-            <p className="text-sm text-gray-500 mb-2 line-clamp-2 leading-relaxed">
+            <p className="mb-2 line-clamp-2 text-sm leading-relaxed text-[var(--app-text-muted)]">
               {description}
             </p>
           )}
           <div className="mt-auto">
             <div className="flex items-center gap-2 mb-2">
-              <Badge variant="default">{category}</Badge>
+              <Badge variant="accent" size="sm">
+                {category}
+              </Badge>
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className="flex items-center gap-2 text-xs text-[var(--app-text-muted)]">
                 <div className="flex items-center gap-1">
                   <Star size={12} className="text-[#FBBF24] fill-[#FBBF24]" />
-                  <span className="font-medium text-gray-700">{rating}</span>
+                  <span className="font-semibold text-[var(--app-text)]">{rating}</span>
                 </div>
-                <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+                <div className="h-1 w-1 rounded-full bg-[#c7d1cb]" />
                 <div className="flex items-center gap-1">
-                  <MapPin size={12} className="text-gray-400" />
+                  <MapPin size={12} className="text-[#94a39b]" />
                   <span>{distance}</span>
                 </div>
               </div>
-              <span className="text-[#0DAE79] font-bold text-base">{price}</span>
+              <span className="text-base font-bold tracking-[-0.02em] text-[var(--app-brand)]">
+                {price}
+              </span>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }

@@ -2,24 +2,31 @@
  * WHY: Improve profile-edit feedback and trust-building copy so users understand why completing their profile matters.
  * CHANGED: YYYY-MM-DD
  */
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
+import { PreviewModeNotice } from "../../components/PreviewModeNotice";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { SurfaceCard } from "../../components/SurfaceCard";
+import { Textarea } from "../../components/Textarea";
+import { UserAvatar } from "../../components/UserAvatar";
 import { useAppState, useCurrentUser } from "../../hooks/useAppState";
+import { getFallbackPreviewMessage } from "../../../services/service.utils";
 
 export function EditProfile() {
   const navigate = useNavigate();
   const user = useCurrentUser();
-  const { saveUserProfile } = useAppState();
+  const { saveUserProfile, dataSource } = useAppState();
   const [name, setName] = useState(user?.name || "");
   const [location, setLocation] = useState(user?.location || "");
   const [bio, setBio] = useState(user?.bio || "");
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const isPreview = dataSource === "fallback";
 
   useEffect(() => {
     if (!user) return;
@@ -67,34 +74,79 @@ export function EditProfile() {
 
     setFeedback({ type: "success", message: "Perfil guardado correctamente" });
     toast.success("Perfil actualizado", {
-      description: "Tus cambios ya están visibles en Changa.",
+      description: avatarUrl.trim()
+        ? "Los datos principales ya se actualizaron. La foto queda guardada en este dispositivo mientras terminamos la sincronización segura."
+        : "Tus cambios principales ya están visibles en Changa.",
     });
     setTimeout(() => navigate("/profile"), 900);
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-8 max-w-md mx-auto font-['Inter']">
-      <div className="bg-white px-6 pt-14 pb-6 shadow-sm">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"><ArrowLeft size={24} className="text-[#111827]" /></button>
-          <div className="flex-1"><h1 className="text-xl font-bold text-[#111827]">Editar perfil</h1><p className="text-sm text-gray-500 mt-0.5">Un perfil claro genera más confianza y mejores respuestas.</p></div>
-        </div>
-      </div>
+    <div className="app-screen pb-8">
+      <ScreenHeader
+        title="Editar perfil"
+        subtitle="Un perfil claro genera más confianza y mejores respuestas."
+        onBack={() => navigate(-1)}
+      />
 
-      <div className="px-6 py-6 space-y-4">
-        <div className="rounded-3xl border border-[#D1FAE5] bg-[#F0FDF4] p-4 text-sm text-gray-600">
+      <div className="space-y-4 px-6 py-6">
+        {isPreview ? (
+          <PreviewModeNotice
+            description={`${getFallbackPreviewMessage("la edición de perfil")} Podés revisar la interfaz, pero el guardado real sigue deshabilitado.`}
+          />
+        ) : null}
+
+        <SurfaceCard tone="soft" padding="md" className="text-sm leading-relaxed text-[var(--app-text-muted)] shadow-none">
           Sumá una foto, tu ubicación y una breve presentación para que otras personas entiendan
           rápido quién sos y por qué confiar en vos.
-        </div>
-        <Input placeholder="URL de foto de perfil" value={avatarUrl} onChange={setAvatarUrl} />
-        <Input placeholder="Nombre público" value={name} onChange={setName} />
-        <Input placeholder="Ubicación" value={location} onChange={setLocation} />
-        <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Contá qué tipo de tareas hacés, cómo trabajás o cualquier dato que aporte confianza." className="w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3.5 px-4 min-h-32 focus:outline-none focus:ring-2 focus:ring-[#0DAE79]" />
+        </SurfaceCard>
 
-        {feedback?.type === "success" && <div className="bg-green-50 border border-green-100 rounded-2xl p-3 text-sm text-green-700">{feedback.message}</div>}
-        {feedback?.type === "error" && <div className="bg-red-50 border border-red-100 rounded-2xl p-3 text-sm text-red-700">{feedback.message}</div>}
+        <SurfaceCard tone="soft" padding="sm" className="text-sm leading-relaxed text-[var(--app-text-muted)] shadow-none">
+          La foto por URL todavía se guarda en este dispositivo mientras terminamos la
+          sincronización segura del avatar entre sesiones y equipos.
+        </SurfaceCard>
 
-        <Button fullWidth onClick={onSave} icon={<Save size={18} />} disabled={isSaving}>{isSaving ? "Guardando..." : "Guardar cambios"}</Button>
+        <SurfaceCard padding="lg" className="space-y-4">
+          <div className="flex items-center gap-4">
+            <UserAvatar
+              name={name || user.name}
+              avatarUrl={avatarUrl || user.avatarUrl}
+              fallbackLetter={user.avatarLetter}
+              size="lg"
+              tone={avatarUrl ? "surface" : "soft"}
+            />
+            <div>
+              <p className="text-sm font-semibold text-[var(--app-text)]">Vista previa del perfil</p>
+              <p className="mt-1 text-sm text-[var(--app-text-muted)]">
+                Si pegás una URL de imagen válida, se va a ver así en tu perfil y en tus chats.
+              </p>
+            </div>
+          </div>
+
+          <Input placeholder="URL de foto de perfil" value={avatarUrl} onChange={setAvatarUrl} size="lg" />
+          <Input placeholder="Nombre público" value={name} onChange={setName} size="lg" />
+          <Input placeholder="Ubicación" value={location} onChange={setLocation} size="lg" />
+          <Textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            placeholder="Contá qué tipo de tareas hacés, cómo trabajás o cualquier dato que aporte confianza."
+          />
+        </SurfaceCard>
+
+        {feedback?.type === "success" ? (
+          <div className="rounded-[18px] border border-green-100 bg-green-50 p-3 text-sm text-green-700">
+            {feedback.message}
+          </div>
+        ) : null}
+        {feedback?.type === "error" ? (
+          <div className="rounded-[18px] border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+            {feedback.message}
+          </div>
+        ) : null}
+
+        <Button fullWidth size="lg" onClick={onSave} icon={<Save size={18} />} disabled={isSaving || isPreview}>
+          {isPreview ? "Guardado real disponible con Supabase" : isSaving ? "Guardando..." : "Guardar cambios"}
+        </Button>
       </div>
     </div>
   );

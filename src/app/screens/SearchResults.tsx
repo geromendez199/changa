@@ -2,10 +2,11 @@
  * WHY: Improve search clarity with stronger marketplace copy, steadier loading states, and more useful empty-state guidance.
  * CHANGED: YYYY-MM-DD
  */
-import { ArrowLeft, MapPin, SlidersHorizontal, SearchX } from "lucide-react";
+import { MapPin, SlidersHorizontal, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { BottomNav } from "../components/BottomNav";
+import { Button } from "../components/Button";
 import { JobCard } from "../components/JobCard";
 import { JobCardSkeleton } from "../components/JobCardSkeleton";
 import { Input } from "../components/Input";
@@ -13,6 +14,11 @@ import { categoryFilters } from "../constants/catalog";
 import { useAppState } from "../hooks/useAppState";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
 import { EmptyStateCard } from "../components/EmptyStateCard";
+import { PreviewModeNotice } from "../components/PreviewModeNotice";
+import { ScreenHeader } from "../components/ScreenHeader";
+import { SectionHeader } from "../components/SectionHeader";
+import { SurfaceCard } from "../components/SurfaceCard";
+import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 const sortingOptions = [
   { label: "Distancia", value: "distance" },
@@ -21,7 +27,7 @@ const sortingOptions = [
 
 export function SearchResults() {
   const navigate = useNavigate();
-  const { jobs, refreshJobs, errorMessage, isLoading, selectedLocation } = useAppState();
+  const { jobs, refreshJobs, errorMessage, isLoading, selectedLocation, dataSource } = useAppState();
   const [params, setParams] = useSearchParams();
 
   const [query, setQuery] = useState(params.get("q") || "");
@@ -30,52 +36,115 @@ export function SearchResults() {
   const [showFilters, setShowFilters] = useState(false);
   const [onlyUrgent, setOnlyUrgent] = useState(false);
   const shouldShowLoadingCards = isLoading && jobs.length === 0;
+  const isPreview = dataSource === "fallback";
 
   useEffect(() => {
     void refreshJobs({ query, category, onlyUrgent, sortBy });
   }, [category, onlyUrgent, query, refreshJobs, sortBy]);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
-      <div className="bg-white px-6 pt-14 pb-6 sticky top-0 z-10 shadow-sm">
-        <div className="flex items-center gap-3 mb-5">
-          <button onClick={() => navigate("/home")} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"><ArrowLeft size={24} className="text-[#111827]" /></button>
-          <div className="flex-1">
-            <Input placeholder="Buscar changas, oficios o categorías" value={query} onChange={(value) => { setQuery(value); setParams((prev) => { const next = new URLSearchParams(prev); next.set("q", value); return next; }); }} />
+    <div className="app-screen pb-28">
+      <ScreenHeader
+        title="Explorar changas"
+        subtitle={
+          selectedLocation
+            ? `Resultados priorizados para ${selectedLocation}.`
+            : "Buscá por categoría, urgencia o cercanía."
+        }
+        onBack={() => navigate("/home")}
+        sticky
+      >
+        <Input
+          placeholder="Buscar changas, oficios o categorías"
+          value={query}
+          size="lg"
+          onChange={(value) => {
+            setQuery(value);
+            setParams((prev) => {
+              const next = new URLSearchParams(prev);
+              next.set("q", value);
+              return next;
+            });
+          }}
+        />
+
+        <div className="mt-4 flex items-center gap-3">
+          <div className="flex flex-1 items-center gap-2 text-sm text-[var(--app-text-muted)]">
+            <MapPin size={16} className="text-[var(--app-brand)]" />
+            <span className="font-semibold text-[var(--app-text)]">{selectedLocation}</span>
           </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setShowFilters((s) => !s)}
+            icon={<SlidersHorizontal size={16} />}
+          >
+            Filtros
+          </Button>
         </div>
 
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center gap-2 flex-1 text-sm"><MapPin size={16} className="text-[#0DAE79]" /><span className="font-medium text-gray-700">{selectedLocation}</span></div>
-          <button onClick={() => setShowFilters((s) => !s)} className="flex items-center gap-2 bg-[#F8FAFC] px-4 py-2.5 rounded-full text-sm font-semibold text-[#111827] border border-gray-200 hover:bg-gray-50 transition-colors"><SlidersHorizontal size={16} /> Filtros</button>
-        </div>
+        {showFilters ? (
+          <SurfaceCard tone="muted" padding="sm" className="mt-4 space-y-3">
+            <label className="flex items-center justify-between text-sm text-[var(--app-text)]">
+              <span className="font-medium">Solo urgentes</span>
+              <input
+                type="checkbox"
+                checked={onlyUrgent}
+                onChange={(e) => setOnlyUrgent(e.target.checked)}
+              />
+            </label>
+            <label className="flex items-center justify-between gap-3 text-sm text-[var(--app-text)]">
+              <span className="font-medium">Ordenar por</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as "distance" | "newest")}
+                className="app-field min-h-11 rounded-[16px] bg-white px-3 py-2 text-sm"
+              >
+                {sortingOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </SurfaceCard>
+        ) : null}
 
-        {showFilters && (
-          <div className="bg-[#F8FAFC] border border-gray-200 rounded-2xl p-3 mb-4 space-y-2 text-sm">
-            <label className="flex items-center justify-between"><span>Solo urgentes</span><input type="checkbox" checked={onlyUrgent} onChange={(e) => setOnlyUrgent(e.target.checked)} /></label>
-            <label className="flex items-center justify-between gap-3"><span>Ordenar por</span><select value={sortBy} onChange={(e) => setSortBy(e.target.value as "distance" | "newest")} className="bg-white border border-gray-200 rounded-xl px-3 py-1.5">{sortingOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select></label>
-          </div>
-        )}
-
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-6 px-6">
+        <div className="mt-4 flex gap-2 overflow-x-auto scrollbar-hide -mx-6 px-6">
           {categoryFilters.map((cat) => (
-            <button key={cat} onClick={() => setCategory(cat)} className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${category === cat ? "bg-[#0DAE79] text-white shadow-lg shadow-[#0DAE79]/25" : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300"}`}>{cat}</button>
+            <button
+              key={cat}
+              onClick={() => setCategory(cat)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
+                category === cat
+                  ? "bg-[var(--app-brand)] text-white shadow-[0_14px_28px_rgba(13,174,121,0.18)]"
+                  : "border border-[var(--app-border)] bg-white text-[var(--app-text-muted)]"
+              }`}
+            >
+              {cat}
+            </button>
           ))}
         </div>
-      </div>
+      </ScreenHeader>
+
+      {isPreview ? (
+        <div className="px-6 pt-4">
+          <PreviewModeNotice description={getFallbackPreviewMessage("los resultados de búsqueda")} />
+        </div>
+      ) : null}
 
       <div className="px-6 py-5">
-        <h2 className="font-bold text-[#111827] text-lg">
-          {isLoading ? "Buscando changas..." : `${jobs.length} resultados`}
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          {selectedLocation
-            ? `Resultados priorizados para ${selectedLocation}.`
-            : "Explorá oportunidades por categoría, urgencia o cercanía."}
-        </p>
+        <SectionHeader
+          title={isLoading ? "Buscando changas..." : `${jobs.length} resultados`}
+          subtitle="Mostramos primero lo que tiene mejor cercanía y contexto."
+        />
       </div>
 
-      {errorMessage && <div className="mx-6 bg-white rounded-3xl border border-gray-100 p-4 text-sm text-gray-500 mb-4">{errorMessage}</div>}
+      {errorMessage ? (
+        <SurfaceCard className="mx-6 mb-4 text-sm text-[var(--app-text-muted)]" padding="sm">
+          {errorMessage}
+        </SurfaceCard>
+      ) : null}
 
       <div className="px-6 space-y-3 pb-4">
         {shouldShowLoadingCards
@@ -104,10 +173,18 @@ export function SearchResults() {
             icon={<SearchX size={28} />}
             eyebrow="Sin coincidencias por ahora"
             title="No encontramos changas con esos filtros"
-            description="Probá con otra categoría, ampliá la búsqueda o publicá una tarea para activar movimiento en tu zona."
-            note="Los resultados cambian rápido cuando entran nuevas publicaciones y respuestas cercanas."
-            actionLabel="Publicar una changa"
-            onAction={() => navigate("/publish")}
+            description={
+              isPreview
+                ? "Probá con otra categoría o limpiá la búsqueda para seguir recorriendo la vista previa local."
+                : "Probá con otra categoría, ampliá la búsqueda o publicá una tarea para activar movimiento en tu zona."
+            }
+            note={
+              isPreview
+                ? "Esta vista previa usa datos de muestra pensados para recorrer filtros, cards y detalle."
+                : "Los resultados cambian rápido cuando entran nuevas publicaciones y respuestas cercanas."
+            }
+            actionLabel={isPreview ? "Volver al inicio" : "Publicar una changa"}
+            onAction={() => navigate(isPreview ? "/home" : "/publish")}
             secondaryActionLabel="Limpiar búsqueda"
             onSecondaryAction={() => {
               setQuery("");

@@ -2,11 +2,21 @@
  * WHY: Use indexed full-text search and centralized query shaping so job reads scale better without changing UI contracts.
  * CHANGED: YYYY-MM-DD
  */
+import { getSampleJobById, getSampleJobs, getSampleMyJobs } from "../data/mockData";
 import { supabase } from "../lib/supabase";
 import { jobCreateSchema, jobSearchParamsSchema, parseWithValidation } from "../lib/validation/schemas";
 import { Job } from "../types/domain";
 import { JobsRow, mapJobRow } from "../types/supabase";
-import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldUseFallback, successResult, toSafeArray } from "./service.utils";
+import {
+  failureResult,
+  getFallbackActionMessage,
+  isNonEmptyString,
+  normalizeError,
+  ServiceResult,
+  shouldUseFallback,
+  successResult,
+  toSafeArray,
+} from "./service.utils";
 
 export interface SearchJobsParams {
   query?: string;
@@ -43,7 +53,8 @@ export async function searchJobs(params: SearchJobsParams): Promise<ServiceResul
   try {
     const validatedParams = parseWithValidation(jobSearchParamsSchema, params);
     if (shouldUseFallback()) {
-      return failureResult([], "Configurá Supabase para ver changas reales.");
+      // Keep public browsing useful in local preview without pretending writes or auth are live.
+      return successResult(getSampleJobs(validatedParams), "fallback");
     }
 
     let query = supabase!.from("jobs").select("*").eq("status", "publicado");
@@ -82,7 +93,8 @@ export async function getJobById(id: string): Promise<ServiceResult<Job | null>>
   }
 
   if (shouldUseFallback()) {
-    return failureResult(null, "Configurá Supabase para ver changas reales.");
+    // Preview mode still needs believable detail pages for demos and UI work.
+    return successResult(getSampleJobById(id), "fallback");
   }
 
   try {
@@ -106,7 +118,7 @@ export async function createJob(input: CreateJobInput): Promise<ServiceResult<Jo
       priceValue: Math.round(input.priceValue),
     });
     if (shouldUseFallback()) {
-      return failureResult(null, "Configurá Supabase para publicar changas reales.");
+      return failureResult(null, getFallbackActionMessage("Publicar una changa"));
     }
 
     const { data, error } = await supabase!
@@ -137,7 +149,9 @@ export async function createJob(input: CreateJobInput): Promise<ServiceResult<Jo
 
 export async function getMyJobs(userId: string): Promise<ServiceResult<Job[]>> {
   if (!isNonEmptyString(userId)) return successResult([], "fallback");
-  if (shouldUseFallback()) return successResult([], "fallback");
+  if (shouldUseFallback()) {
+    return successResult(getSampleMyJobs(userId), "fallback");
+  }
 
   try {
     const { data, error } = await supabase!

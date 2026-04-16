@@ -1,3 +1,4 @@
+import { getSamplePaymentMethods, getSampleTransactions } from "../data/mockData";
 import { supabase } from "../lib/supabase";
 import { PaymentMethod, Transaction } from "../types/domain";
 import { PaymentMethodsRow, TransactionsRow, mapPaymentMethodRow, mapTransactionRow } from "../types/supabase";
@@ -5,7 +6,7 @@ import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldU
 
 export async function getPaymentMethods(userId: string): Promise<ServiceResult<PaymentMethod[]>> {
   if (!isNonEmptyString(userId)) return successResult([], "fallback");
-  if (shouldUseFallback()) return successResult([], "fallback");
+  if (shouldUseFallback()) return successResult(getSamplePaymentMethods(userId), "fallback");
 
   try {
     const { data, error } = await supabase!
@@ -28,7 +29,7 @@ export async function getPaymentMethods(userId: string): Promise<ServiceResult<P
 
 export async function getTransactions(userId: string): Promise<ServiceResult<Transaction[]>> {
   if (!isNonEmptyString(userId)) return successResult([], "fallback");
-  if (shouldUseFallback()) return successResult([], "fallback");
+  if (shouldUseFallback()) return successResult(getSampleTransactions(userId), "fallback");
 
   try {
     const { data, error } = await supabase!

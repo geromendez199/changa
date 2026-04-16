@@ -1,31 +1,31 @@
 /**
- * WHY: Make payments feel more intentional with stronger copy and clearer feedback for saved payment methods.
+ * WHY: Make payments feel more intentional while being honest about which payment capabilities are already real and which are still in preparation.
  * CHANGED: YYYY-MM-DD
  */
-import { ArrowLeft, CreditCard, Shield, Lock, CheckCircle, Plus, Smartphone, X } from "lucide-react";
-import { useState } from "react";
+import { CreditCard, Shield, Lock, CheckCircle, Plus, Smartphone } from "lucide-react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Badge } from "../components/Badge";
-import { Input } from "../components/Input";
+import { Button } from "../components/Button";
+import { PreviewModeNotice } from "../components/PreviewModeNotice";
+import { ScreenHeader } from "../components/ScreenHeader";
+import { SectionHeader } from "../components/SectionHeader";
+import { SurfaceCard } from "../components/SurfaceCard";
 import { useAppState } from "../hooks/useAppState";
+import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 export function Payments() {
   const navigate = useNavigate();
-  const { paymentMethods, transactions, jobs, addPaymentMethod } = useAppState();
-  const [openAdd, setOpenAdd] = useState(false);
-  const [type, setType] = useState<"Visa" | "Mastercard" | "Mercado Pago">("Visa");
-  const [last4, setLast4] = useState("");
-  const [expiry, setExpiry] = useState("");
+  const { paymentMethods, transactions, jobs, dataSource } = useAppState();
+  const isPreview = dataSource === "fallback";
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-8 max-w-md mx-auto font-['Inter']">
-      <div className="bg-white px-6 pt-14 pb-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-2">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"><ArrowLeft size={24} className="text-[#111827]" /></button>
-          <div className="flex-1"><h1 className="text-xl font-bold text-[#111827]">Pagos seguros</h1><p className="text-sm text-gray-500 mt-0.5">Métodos guardados, movimientos y señales de protección.</p></div>
-        </div>
-      </div>
+    <div className="app-screen pb-8">
+      <ScreenHeader
+        title="Pagos seguros"
+        subtitle="Métodos guardados, movimientos y señales de protección."
+        onBack={() => navigate(-1)}
+      />
 
       <div className="px-6 py-6">
         <div className="bg-gradient-to-br from-[#0DAE79] via-[#0B9A6B] to-[#087A55] rounded-3xl p-6 text-white shadow-xl">
@@ -35,80 +35,120 @@ export function Payments() {
       </div>
 
       <div className="px-6 mb-6">
-        <div className="flex items-center justify-between mb-4"><div><h2 className="font-bold text-[#111827] text-lg">Tus métodos</h2><p className="text-sm text-gray-500 mt-0.5">Guardá opciones para pagar más rápido cuando cierres una changa.</p></div><button onClick={() => setOpenAdd(true)} className="text-[#0DAE79] text-sm font-semibold flex items-center gap-1.5 bg-green-50 px-4 py-2 rounded-full"><Plus size={16} />Agregar</button></div>
+        {isPreview ? (
+          <PreviewModeNotice
+            className="mb-4"
+            description={`${getFallbackPreviewMessage("pagos y movimientos")} Mostramos estructura y estados de ejemplo sin habilitar altas sensibles.`}
+          />
+        ) : null}
+
+        <SectionHeader
+          title="Tus métodos"
+          subtitle="Revisá los métodos sincronizados y el estado de tus movimientos."
+          action={
+            <Button
+              variant="soft"
+              size="sm"
+              onClick={() =>
+                toast("Alta manual en preparación", {
+                  description:
+                    "Estamos terminando el guardado seguro de nuevos métodos para que queden sincronizados con tu cuenta.",
+                })
+              }
+              icon={<Plus size={16} />}
+            >
+              Próximamente
+            </Button>
+          }
+          className="mb-4"
+        />
+        <SurfaceCard tone="soft" padding="sm" className="mb-4 text-sm leading-relaxed text-[var(--app-text-muted)] shadow-none">
+          Esta pantalla ya muestra movimientos y métodos sincronizados. El alta manual desde la app
+          todavía se está terminando para no guardar datos sensibles sin respaldo real.
+        </SurfaceCard>
         <div className="space-y-3">
           {paymentMethods.map((method) => (
-            <div key={method.id} className={`bg-gradient-to-br ${method.colorClass} rounded-3xl p-6 shadow-lg text-white`}>
-              <div className="flex items-start justify-between mb-8"><div>{method.isDefault ? <Badge variant="success" icon={<CheckCircle size={10} />}>Principal</Badge> : <p className="text-white/80 text-sm">Secundaria</p>}</div><CreditCard size={32} className="text-white/80" /></div>
-              <p className="text-2xl font-bold tracking-wider mb-2">•••• {method.last4}</p>
-              <div className="flex items-center justify-between text-sm"><p className="text-white/80">{method.type}</p><p className="font-semibold">{method.expiry}</p></div>
+            <div key={method.id} className={`rounded-[28px] bg-gradient-to-br ${method.colorClass} p-6 text-white shadow-[0_18px_36px_rgba(17,24,39,0.14)]`}>
+              <div className="mb-8 flex items-start justify-between">
+                <div>
+                  {method.isDefault ? (
+                    <Badge variant="success" icon={<CheckCircle size={10} />}>
+                      Principal
+                    </Badge>
+                  ) : (
+                    <p className="text-sm text-white/80">Secundaria</p>
+                  )}
+                </div>
+                <CreditCard size={32} className="text-white/80" />
+              </div>
+              <p className="mb-2 text-2xl font-bold tracking-wider">•••• {method.last4}</p>
+              <div className="flex items-center justify-between text-sm">
+                <p className="text-white/80">{method.type}</p>
+                <p className="font-semibold">{method.expiry}</p>
+              </div>
             </div>
           ))}
-          {paymentMethods.length === 0 && <div className="bg-white rounded-3xl p-6 border border-gray-100 text-center text-sm text-gray-500">Todavía no guardaste métodos. Sumá uno para tener una experiencia más rápida al cerrar una changa.</div>}
+          {paymentMethods.length === 0 ? (
+            <SurfaceCard className="text-center text-sm text-[var(--app-text-muted)]" padding="lg">
+              Todavía no tenés métodos sincronizados. Cuando el alta segura esté lista, también los
+              vas a poder agregar desde esta misma pantalla.
+            </SurfaceCard>
+          ) : null}
         </div>
       </div>
 
       <div className="px-6 mb-6">
-        <div className="bg-white rounded-3xl p-5 border border-gray-100 space-y-4">
-          <div className="flex items-start gap-4"><div className="bg-blue-50 p-3 rounded-2xl"><Lock size={24} className="text-blue-600" /></div><p className="text-sm text-gray-600">Encriptación SSL para proteger tus datos.</p></div>
-          <div className="flex items-start gap-4"><div className="bg-green-50 p-3 rounded-2xl"><Shield size={24} className="text-green-600" /></div><p className="text-sm text-gray-600">Garantía de devolución en casos cubiertos.</p></div>
-          <div className="flex items-start gap-4"><div className="bg-purple-50 p-3 rounded-2xl"><Smartphone size={24} className="text-purple-600" /></div><p className="text-sm text-gray-600">Verificación adicional en transacciones sensibles.</p></div>
-        </div>
+        <SurfaceCard padding="md" className="space-y-4">
+          <div className="flex items-start gap-4">
+            <div className="rounded-2xl bg-blue-50 p-3"><Lock size={24} className="text-blue-600" /></div>
+            <p className="text-sm text-[var(--app-text-muted)]">Encriptación SSL para proteger tus datos.</p>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="rounded-2xl bg-[var(--app-brand-soft)] p-3"><Shield size={24} className="text-[var(--app-brand)]" /></div>
+            <p className="text-sm text-[var(--app-text-muted)]">Garantía de devolución en casos cubiertos.</p>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="rounded-2xl bg-violet-50 p-3"><Smartphone size={24} className="text-violet-600" /></div>
+            <p className="text-sm text-[var(--app-text-muted)]">Verificación adicional en transacciones sensibles.</p>
+          </div>
+        </SurfaceCard>
       </div>
 
       <div className="px-6 space-y-3">
+        <SectionHeader title="Movimientos" subtitle="Historial de pagos y cobros recientes." className="mb-4" />
         {transactions.map((tx) => {
           const job = jobs.find((item) => item.id === tx.jobId);
+          const statusBadge =
+            tx.status === "pagado"
+              ? { variant: "success" as const, label: "Pagado" }
+              : tx.status === "pendiente"
+                ? { variant: "pending" as const, label: "Pendiente" }
+                : { variant: "info" as const, label: "Reintegrado" };
           return (
-            <div key={tx.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
-              <div className="flex items-start justify-between mb-3"><div className="flex-1"><h3 className="font-bold text-[#111827] text-base mb-1">{job?.title ?? "Trabajo"}</h3><p className="text-sm text-gray-500">{new Date(tx.createdAt).toLocaleString("es-AR")}</p></div><p className="font-bold text-[#111827] text-lg">{tx.amountLabel}</p></div>
-              <Badge variant="success" icon={<CheckCircle size={12} />}>Pagado</Badge>
-            </div>
+            <SurfaceCard key={tx.id} padding="md">
+              <div className="mb-3 flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="mb-1 text-base font-bold tracking-[-0.02em] text-[var(--app-text)]">
+                    {job?.title ?? "Trabajo"}
+                  </h3>
+                  <p className="text-sm text-[var(--app-text-muted)]">
+                    {new Date(tx.createdAt).toLocaleString("es-AR")}
+                  </p>
+                </div>
+                <p className="text-lg font-bold text-[var(--app-text)]">{tx.amountLabel}</p>
+              </div>
+              <Badge variant={statusBadge.variant} icon={<CheckCircle size={12} />}>
+                {statusBadge.label}
+              </Badge>
+            </SurfaceCard>
           );
         })}
-        {transactions.length === 0 && <div className="bg-white rounded-3xl p-6 border border-gray-100 text-center text-sm text-gray-500">Todavía no hay movimientos. Cuando empieces a cerrar changas y pagos, el historial va a aparecer acá.</div>}
+        {transactions.length === 0 ? (
+          <SurfaceCard className="text-center text-sm text-[var(--app-text-muted)]" padding="lg">
+            Todavía no hay movimientos. Cuando empieces a cerrar changas y pagos, el historial va a aparecer acá.
+          </SurfaceCard>
+        ) : null}
       </div>
-
-      {openAdd && (
-        <div className="fixed inset-0 bg-black/30 z-50 flex items-end max-w-md mx-auto">
-          <div className="bg-white w-full rounded-t-3xl p-6 space-y-3">
-            <div className="flex items-center justify-between"><h3 className="font-bold text-[#111827]">Agregar método</h3><button onClick={() => setOpenAdd(false)}><X size={18} /></button></div>
-            <select value={type} onChange={(e) => setType(e.target.value as typeof type)} className="w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3 px-4">
-              <option value="Visa">Visa</option><option value="Mastercard">Mastercard</option><option value="Mercado Pago">Mercado Pago</option>
-            </select>
-            <Input placeholder="Últimos 4 dígitos" value={last4} onChange={setLast4} />
-            <Input placeholder="Vencimiento (MM/AA)" value={expiry} onChange={setExpiry} />
-            <button
-              onClick={() => {
-                if (last4.length !== 4 || !expiry) {
-                  toast.error("Revisá los datos del método", {
-                    description: "Completá los últimos 4 dígitos y el vencimiento.",
-                  });
-                  return;
-                }
-
-                addPaymentMethod({
-                  type,
-                  last4,
-                  expiry,
-                  holderName: "GERONIMO MENDEZ",
-                  isDefault: paymentMethods.length === 0,
-                });
-                setOpenAdd(false);
-                setLast4("");
-                setExpiry("");
-                toast.success("Método guardado", {
-                  description: "Ya podés usarlo cuando cierres una changa.",
-                });
-              }}
-              className="w-full bg-[#0DAE79] text-white py-3 rounded-full font-semibold disabled:bg-gray-300"
-              disabled={last4.length !== 4 || !expiry}
-            >
-              Guardar
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

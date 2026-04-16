@@ -2,6 +2,7 @@
  * WHY: Route chat sends through a single RPC so message creation and conversation timestamp updates stay atomic.
  * CHANGED: YYYY-MM-DD
  */
+import { getSampleConversations, getSampleMessages } from "../data/mockData";
 import { supabase } from "../lib/supabase";
 import { chatMessageSchema, parseWithValidation } from "../lib/validation/schemas";
 import { Conversation, Message } from "../types/domain";
@@ -10,7 +11,7 @@ import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldU
 
 export async function getConversationList(currentUserId: string): Promise<ServiceResult<Conversation[]>> {
   if (!isNonEmptyString(currentUserId)) return successResult([], "fallback");
-  if (shouldUseFallback()) return successResult([], "fallback");
+  if (shouldUseFallback()) return successResult(getSampleConversations(currentUserId), "fallback");
 
   try {
     const { data, error } = await supabase!
@@ -33,7 +34,7 @@ export async function getConversationList(currentUserId: string): Promise<Servic
 
 export async function getConversationMessages(conversationId: string): Promise<ServiceResult<Message[]>> {
   if (!isNonEmptyString(conversationId)) return successResult([], "fallback");
-  if (shouldUseFallback()) return successResult([], "fallback");
+  if (shouldUseFallback()) return successResult(getSampleMessages(conversationId), "fallback");
 
   try {
     const { data, error } = await supabase!

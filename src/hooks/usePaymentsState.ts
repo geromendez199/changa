@@ -38,31 +38,6 @@ export function usePaymentsState({ userId, pushError }: UsePaymentsStateOptions)
     return { methodsResult, transactionsResult };
   }, [pushError, userId]);
 
-  const addPaymentMethod = useCallback(
-    (method: Omit<PaymentMethod, "id" | "colorClass">) => {
-      const colors = [
-        "from-indigo-500 to-indigo-600",
-        "from-emerald-500 to-emerald-600",
-        "from-rose-500 to-rose-600",
-      ];
-
-      const newMethod: PaymentMethod = {
-        ...method,
-        id: `pm-${Date.now()}`,
-        colorClass: colors[paymentMethods.length % colors.length],
-      };
-
-      setPaymentMethods((prev) => [
-        newMethod,
-        ...prev.map((item) => ({
-          ...item,
-          isDefault: method.isDefault ? false : item.isDefault,
-        })),
-      ]);
-    },
-    [paymentMethods.length],
-  );
-
   const resetPaymentsState = useCallback(() => {
     setPaymentMethods([]);
     setTransactions([]);
@@ -72,7 +47,6 @@ export function usePaymentsState({ userId, pushError }: UsePaymentsStateOptions)
     paymentMethods,
     transactions,
     loadPaymentsData,
-    addPaymentMethod,
     resetPaymentsState,
   };
 }

@@ -3,11 +3,21 @@
  * CHANGED: YYYY-MM-DD
  */
 import type { User } from "@supabase/supabase-js";
+import { getSampleProfileBundle, getSampleProfiles } from "../data/mockData";
 import { parseWithValidation, profileUpdateSchema } from "../lib/validation/schemas";
 import { supabase } from "../lib/supabase";
 import { Profile, Review } from "../types/domain";
 import { ProfilesRow, ReviewsRow, mapProfileRow, mapReviewRow } from "../types/supabase";
-import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldUseFallback, successResult, toSafeArray } from "./service.utils";
+import {
+  failureResult,
+  getFallbackActionMessage,
+  isNonEmptyString,
+  normalizeError,
+  ServiceResult,
+  shouldUseFallback,
+  successResult,
+  toSafeArray,
+} from "./service.utils";
 
 export interface ProfileBundle {
   profile: Profile;
@@ -83,7 +93,9 @@ export async function saveProfile(userId: string, input: SaveProfileInput): Prom
       location: input.location,
       bio: input.bio,
     });
-    if (shouldUseFallback()) return successResult(null, "fallback");
+    if (shouldUseFallback()) {
+      return failureResult(null, getFallbackActionMessage("Guardar tu perfil"));
+    }
 
     const trimmedName = validatedInput.fullName.trim();
     const trimmedLocation = validatedInput.location.trim();
@@ -136,7 +148,9 @@ export async function updateProfileLocation(userId: string, location: string): P
     const validatedInput = parseWithValidation(profileUpdateSchema.pick({ location: true }), {
       location,
     });
-    if (shouldUseFallback()) return successResult(null, "fallback");
+    if (shouldUseFallback()) {
+      return failureResult(null, getFallbackActionMessage("Guardar tu ubicación"));
+    }
 
     const { data, error } = await supabase!
       .from("profiles")
@@ -156,7 +170,10 @@ export async function updateProfileLocation(userId: string, location: string): P
 
 export async function getProfileBundle(userId: string): Promise<ServiceResult<ProfileBundle | null>> {
   if (!isNonEmptyString(userId)) return successResult(null, "fallback");
-  if (shouldUseFallback()) return successResult(null, "fallback");
+  if (shouldUseFallback()) {
+    // Reuse realistic sample trust data so preview job details do not collapse into blank posters.
+    return successResult(getSampleProfileBundle(userId), "fallback");
+  }
 
   try {
     const [{ data: profileRow, error: profileError }, { data: reviewsRows, error: reviewsError }] = await Promise.all([
@@ -181,7 +198,10 @@ export async function getProfileBundle(userId: string): Promise<ServiceResult<Pr
 }
 
 export async function getPublicProfiles(): Promise<ServiceResult<Profile[]>> {
-  if (shouldUseFallback()) return successResult([], "fallback");
+  if (shouldUseFallback()) {
+    // Public profile metadata powers trust cues across the preview experience.
+    return successResult(getSampleProfiles(), "fallback");
+  }
 
   try {
     const { data, error } = await supabase!.from("profiles").select("*").order("created_at", { ascending: false });

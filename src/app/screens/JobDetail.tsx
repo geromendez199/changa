@@ -2,22 +2,29 @@
  * WHY: Make job detail feel more credible with stronger poster trust signals and clear safety guidance around hiring.
  * CHANGED: YYYY-MM-DD
  */
-import { ArrowLeft, MapPin, Calendar, Star, Heart, Shield, Clock, CircleHelp, Flag, Phone } from "lucide-react";
+import { ArrowLeft, Calendar, CircleHelp, Clock, Flag, Heart, MapPin, Phone, Shield, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
+import { PreviewModeNotice } from "../components/PreviewModeNotice";
+import { SectionHeader } from "../components/SectionHeader";
+import { SkeletonBlock } from "../components/SkeletonBlock";
+import { SurfaceCard } from "../components/SurfaceCard";
+import { UserAvatar } from "../components/UserAvatar";
 import { useAppState } from "../hooks/useAppState";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
 import { Job } from "../types/domain";
+import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 export function JobDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { loadJobById, profiles } = useAppState();
+  const { loadJobById, profiles, dataSource } = useAppState();
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isPreview = dataSource === "fallback";
 
   useEffect(() => {
     async function load() {
@@ -32,23 +39,44 @@ export function JobDetail() {
   }, [id]);
 
   if (isLoading) {
-    return <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto font-['Inter'] text-gray-500">Cargando trabajo...</div>;
+    return (
+      <div className="app-screen px-6 pt-20 pb-12">
+        <SkeletonBlock className="h-[320px] rounded-[28px]" />
+        <div className="mt-6 space-y-4">
+          <SkeletonBlock className="h-7 w-4/5 rounded-full" />
+          <div className="grid grid-cols-2 gap-3">
+            <SkeletonBlock className="h-24 rounded-[24px]" />
+            <SkeletonBlock className="h-24 rounded-[24px]" />
+          </div>
+          <SkeletonBlock className="h-28 rounded-[28px]" />
+          <SkeletonBlock className="h-40 rounded-[28px]" />
+        </div>
+      </div>
+    );
   }
 
   if (!job) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto font-['Inter']">
-        <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeft size={24} className="text-[#111827]" />
+      <div className="app-screen px-6 pt-20">
+        <button onClick={() => navigate(-1)} className="app-icon-button">
+          <ArrowLeft size={24} className="text-[var(--app-text)]" />
         </button>
-        <div className="bg-white rounded-3xl border border-gray-100 p-8 mt-8 text-center">
-          <h1 className="text-xl font-bold text-[#111827] mb-2">Trabajo no encontrado</h1>
-          <p className="text-sm text-gray-500 mb-6">Esta changa no existe o fue eliminada.</p>
+        <SurfaceCard className="mt-8 text-center" padding="lg">
+          <h1 className="mb-2 text-xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+            Trabajo no encontrado
+          </h1>
+          <p className="mb-6 text-sm text-[var(--app-text-muted)]">
+            Esta changa no existe o fue eliminada.
+          </p>
           <div className="space-y-2">
-            <Button onClick={() => navigate("/search")} fullWidth>Ver otras changas</Button>
-            <button onClick={() => id && void loadJobById(id).then(setJob)} className="w-full border border-gray-200 rounded-full py-3 text-sm font-semibold text-[#111827]">Intentá nuevamente</button>
+            <Button onClick={() => navigate("/search")} fullWidth>
+              Ver otras changas
+            </Button>
+            <Button variant="secondary" onClick={() => id && void loadJobById(id).then(setJob)} fullWidth>
+              Intentá nuevamente
+            </Button>
           </div>
-        </div>
+        </SurfaceCard>
       </div>
     );
   }
@@ -78,39 +106,65 @@ export function JobDetail() {
     : [];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-32 max-w-md mx-auto font-['Inter']">
+    <div className="app-screen pb-32">
       <div className="relative">
         <img src={job.image} alt={job.title} className="w-full h-[320px] object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
 
-        <button onClick={() => navigate(-1)} className="absolute top-14 left-6 bg-white/95 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white transition-colors">
-          <ArrowLeft size={20} className="text-[#111827]" />
+        <button onClick={() => navigate(-1)} className="app-icon-button absolute top-14 left-6 bg-white/95">
+          <ArrowLeft size={20} className="text-[var(--app-text)]" />
         </button>
 
-        <button className="absolute top-14 right-6 bg-white/95 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white transition-colors">
-          <Heart size={20} className="text-[#111827]" />
+        <button
+          onClick={() =>
+            toast("Guardados en preparación", {
+              description: "La lista de favoritas se va a sumar en una próxima etapa.",
+            })
+          }
+          className="app-icon-button absolute top-14 right-6 bg-white/95"
+        >
+          <Heart size={20} className="text-[var(--app-text)]" />
         </button>
 
         <div className="absolute bottom-6 left-6 flex gap-2">
-          <Badge variant="default">{job.category}</Badge>
-          {job.urgency === "urgente" && <Badge variant="error">{formatUrgencyLabel(job.urgency)}</Badge>}
+          <Badge variant="accent">{job.category}</Badge>
+          {job.urgency === "urgente" ? (
+            <Badge variant="urgent">{formatUrgencyLabel(job.urgency)}</Badge>
+          ) : null}
         </div>
       </div>
 
       <div className="px-6 py-6">
-        <h1 className="text-2xl font-bold text-[#111827] mb-3 leading-tight">{job.title}</h1>
+        <h1 className="mb-3 text-2xl font-bold leading-tight tracking-[-0.03em] text-[var(--app-text)]">
+          {job.title}
+        </h1>
+
+        {isPreview ? (
+          <PreviewModeNotice
+            className="mb-6"
+            description={getFallbackPreviewMessage("esta publicación")}
+          />
+        ) : null}
 
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="bg-white rounded-2xl p-4 border border-gray-100">
-            <div className="flex items-center gap-2 text-gray-500 mb-1"><MapPin size={16} className="text-[#0DAE79]" /><span className="text-xs font-medium">Ubicación</span></div>
-            <p className="font-semibold text-[#111827] text-sm">{job.location}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{formatDistance(job.distanceKm)} de distancia</p>
-          </div>
-          <div className="bg-white rounded-2xl p-4 border border-gray-100">
-            <div className="flex items-center gap-2 text-gray-500 mb-1"><Calendar size={16} className="text-[#0DAE79]" /><span className="text-xs font-medium">Disponibilidad</span></div>
-            <p className="font-semibold text-[#111827] text-sm">{job.availability}</p>
-            <p className="text-xs text-gray-500 mt-0.5">Horario flexible</p>
-          </div>
+          <SurfaceCard tone="muted" padding="sm">
+            <div className="mb-1 flex items-center gap-2 text-[var(--app-text-muted)]">
+              <MapPin size={16} className="text-[var(--app-brand)]" />
+              <span className="text-xs font-medium">Ubicación</span>
+            </div>
+            <p className="text-sm font-semibold text-[var(--app-text)]">{job.location}</p>
+            <p className="mt-0.5 text-xs text-[var(--app-text-muted)]">
+              {formatDistance(job.distanceKm)} de distancia
+            </p>
+          </SurfaceCard>
+          <SurfaceCard tone="muted" padding="sm">
+            <div className="mb-1 flex items-center gap-2 text-[var(--app-text-muted)]">
+              <Calendar size={16} className="text-[var(--app-brand)]" />
+              <span className="text-xs font-medium">Disponibilidad</span>
+            </div>
+            <p className="text-sm font-semibold text-[var(--app-text)]">{job.availability}</p>
+            <p className="mt-0.5 text-xs text-[var(--app-text-muted)]">Horario flexible</p>
+          </SurfaceCard>
         </div>
 
         <div className="bg-gradient-to-br from-[#0DAE79] to-[#0B9A6B] rounded-3xl p-6 mb-6 shadow-xl shadow-[#0DAE79]/20">
@@ -120,29 +174,46 @@ export function JobDetail() {
               <p className="text-3xl font-bold text-white">{job.priceLabel}</p>
               <p className="text-white/70 text-xs mt-1">Pago al finalizar</p>
             </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3"><Shield size={32} className="text-white" /></div>
+            <div className="rounded-2xl bg-white/20 p-3 backdrop-blur-sm">
+              <Shield size={32} className="text-white" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl p-6 mb-6 border border-gray-100">
-          <h2 className="font-bold text-[#111827] mb-3 flex items-center gap-2"><div className="w-1 h-5 bg-[#0DAE79] rounded-full"></div>Descripción</h2>
-          <p className="text-gray-600 leading-relaxed">{job.description}</p>
-        </div>
+        <SurfaceCard className="mb-6" padding="lg">
+          <SectionHeader title="Descripción" />
+          <p className="mt-4 leading-relaxed text-[var(--app-text-muted)]">{job.description}</p>
+        </SurfaceCard>
 
         {publisher && (
-          <div className="bg-white rounded-3xl p-5 border border-gray-100">
-            <p className="text-xs text-gray-500 uppercase tracking-wide mb-4 font-semibold">Publicado por</p>
+          <SurfaceCard padding="md">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[var(--app-text-muted)]">
+              Publicado por
+            </p>
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-[#0DAE79] to-[#0B9A6B] rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">{publisher.avatarLetter}</div>
+              <UserAvatar
+                name={publisher.name}
+                avatarUrl={publisher.avatarUrl}
+                fallbackLetter={publisher.avatarLetter}
+                size="md"
+              />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-bold text-[#111827]">{publisher.name}</h3>
-                  {publisher.verified && <Badge variant="success" icon={<Shield size={10} />}>Verificado</Badge>}
+                  <h3 className="font-bold text-[var(--app-text)]">{publisher.name}</h3>
+                  {publisher.verified ? (
+                    <Badge variant="verified" icon={<Shield size={10} />}>
+                      Verificado
+                    </Badge>
+                  ) : null}
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <div className="flex items-center gap-1"><Star size={14} className="text-[#FBBF24] fill-[#FBBF24]" /><span className="font-semibold text-gray-700">{publisher.rating}</span><span className="text-gray-500">({publisher.totalReviews})</span></div>
-                  <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
-                  <span className="text-gray-600">{publisher.completedJobs} trabajos</span>
+                  <div className="flex items-center gap-1">
+                    <Star size={14} className="text-[#FBBF24] fill-[#FBBF24]" />
+                    <span className="font-semibold text-[var(--app-text)]">{publisher.rating}</span>
+                    <span className="text-[var(--app-text-muted)]">({publisher.totalReviews})</span>
+                  </div>
+                  <div className="h-1 w-1 rounded-full bg-[#cad4cf]"></div>
+                  <span className="text-[var(--app-text-muted)]">{publisher.completedJobs} trabajos</span>
                 </div>
               </div>
             </div>
@@ -150,7 +221,7 @@ export function JobDetail() {
             {publisher.trustIndicators.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-2">
                 {publisher.trustIndicators.map((indicator) => (
-                  <Badge key={indicator} variant="success">
+                  <Badge key={indicator} variant="verified">
                     {indicator}
                   </Badge>
                 ))}
@@ -159,65 +230,103 @@ export function JobDetail() {
 
             <div className="mt-4 grid grid-cols-3 gap-2">
               {trustSignals.map((signal) => (
-                <div key={signal.label} className="rounded-2xl border border-gray-100 bg-[#F8FAFC] p-3 text-center">
-                  <signal.icon size={16} className="mx-auto mb-2 text-[#0DAE79]" />
-                  <p className="text-[11px] font-semibold text-gray-500">{signal.label}</p>
-                  <p className="mt-1 text-xs font-bold text-[#111827]">{signal.value}</p>
-                </div>
+                <SurfaceCard key={signal.label} tone="muted" padding="sm" className="text-center">
+                  <signal.icon size={16} className="mx-auto mb-2 text-[var(--app-brand)]" />
+                  <p className="text-[11px] font-semibold text-[var(--app-text-muted)]">
+                    {signal.label}
+                  </p>
+                  <p className="mt-1 text-xs font-bold text-[var(--app-text)]">{signal.value}</p>
+                </SurfaceCard>
               ))}
             </div>
-          </div>
+          </SurfaceCard>
         )}
 
         <div className="grid grid-cols-3 gap-3 mt-6">
-          <div className="bg-blue-50 rounded-2xl p-3 text-center border border-blue-100"><Shield size={20} className="text-blue-600 mx-auto mb-1" /><p className="text-xs font-semibold text-blue-700">Pago protegido</p></div>
-          <div className="bg-green-50 rounded-2xl p-3 text-center border border-green-100"><Clock size={20} className="text-green-600 mx-auto mb-1" /><p className="text-xs font-semibold text-green-700">Contexto claro</p></div>
-          <div className="bg-purple-50 rounded-2xl p-3 text-center border border-purple-100"><Star size={20} className="text-purple-600 mx-auto mb-1" /><p className="text-xs font-semibold text-purple-700">Reputación visible</p></div>
+          <SurfaceCard tone="muted" padding="sm" className="text-center">
+            <Shield size={20} className="mx-auto mb-1 text-[var(--app-info-text)]" />
+            <p className="text-xs font-semibold text-[var(--app-info-text)]">Pago protegido</p>
+          </SurfaceCard>
+          <SurfaceCard tone="muted" padding="sm" className="text-center">
+            <Clock size={20} className="mx-auto mb-1 text-[var(--app-brand)]" />
+            <p className="text-xs font-semibold text-[var(--app-brand)]">Contexto claro</p>
+          </SurfaceCard>
+          <SurfaceCard tone="muted" padding="sm" className="text-center">
+            <Star size={20} className="mx-auto mb-1 text-[#b7791f]" />
+            <p className="text-xs font-semibold text-[#b7791f]">Reputación visible</p>
+          </SurfaceCard>
         </div>
 
-        <div className="mt-6 rounded-3xl border border-gray-100 bg-white p-5">
-          <h2 className="text-lg font-bold text-[#111827]">Antes de coordinar</h2>
-          <div className="mt-3 space-y-2 text-sm leading-relaxed text-gray-600">
+        <SurfaceCard className="mt-6" padding="md">
+          <h2 className="text-lg font-bold text-[var(--app-text)]">Antes de coordinar</h2>
+          <div className="mt-3 space-y-2 text-sm leading-relaxed text-[var(--app-text-muted)]">
             <p>1. Revisá el perfil, las reseñas y la tasa de cumplimiento de la otra persona.</p>
             <p>2. Confirmá detalles, tiempos y alcance por chat para que quede todo claro.</p>
             <p>3. Priorizá pagos y acuerdos dentro de Changa para mantener contexto y respaldo.</p>
           </div>
 
           <div className="mt-4 flex gap-2">
-            <button
+            <Button
               onClick={() =>
                 toast("Centro de ayuda", {
                   description: "La guía de seguridad se va a sumar en una próxima etapa.",
                 })
               }
-              className="flex-1 rounded-full border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm font-semibold text-[#111827]"
+              variant="secondary"
+              fullWidth
             >
               <span className="inline-flex items-center gap-2">
                 <CircleHelp size={16} />
                 Ayuda
               </span>
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() =>
                 toast("Reporte registrado", {
                   description: "El flujo completo para reportar publicaciones se va a sumar en una próxima etapa.",
                 })
               }
-              className="flex-1 rounded-full border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+              variant="danger"
+              fullWidth
             >
               <span className="inline-flex items-center gap-2">
                 <Flag size={16} />
                 Reportar
               </span>
-            </button>
+            </Button>
           </div>
-        </div>
+        </SurfaceCard>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-6 py-5 max-w-md mx-auto shadow-2xl">
+      <div className="app-floating-bar fixed bottom-0 left-0 right-0 mx-auto max-w-md px-6 py-5">
         <div className="flex items-center gap-3">
-          <button className="p-3 bg-[#F8FAFC] rounded-full border border-gray-200 hover:bg-gray-100 transition-colors flex-shrink-0"><Heart size={20} className="text-gray-600" /></button>
-          <Button variant="primary" size="lg" fullWidth>Me postulo</Button>
+          <button
+            onClick={() =>
+              toast("Guardados en preparación", {
+                description: "La lista de favoritas se va a sumar en una próxima etapa.",
+              })
+            }
+            className="app-icon-button shrink-0"
+          >
+            <Heart size={20} className="text-[var(--app-text-muted)]" />
+          </button>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            onClick={() =>
+              toast(
+                isPreview ? "Vista previa local" : "Postulación en preparación",
+                {
+                  description: isPreview
+                    ? "Esta changa usa datos de muestra. Para postularte con una cuenta real hace falta conectar Supabase."
+                    : "Estamos terminando el flujo completo de postulaciones y seguimiento dentro de la app.",
+                },
+              )
+            }
+          >
+            {isPreview ? "Postulación disponible en modo real" : "Postulación en preparación"}
+          </Button>
         </div>
       </div>
     </div>

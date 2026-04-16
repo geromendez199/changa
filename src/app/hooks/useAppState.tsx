@@ -4,6 +4,7 @@
  */
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { currentUserId as previewUserId } from "../../data/mockData";
 import { useChatState } from "../../hooks/useChatState";
 import { useJobsState, type NewJobInput } from "../../hooks/useJobsState";
 import { DEFAULT_LOCATION, useLocationState } from "../../hooks/useLocationState";
@@ -11,6 +12,7 @@ import { useNotificationsState } from "../../hooks/useNotificationsState";
 import { usePaymentsState } from "../../hooks/usePaymentsState";
 import { useProfileState, type SaveUserProfileInput } from "../../hooks/useProfileState";
 import { SearchJobsParams } from "../../services/jobs.service";
+import { IS_DEVELOPMENT_FALLBACK } from "../../services/service.utils";
 import {
   Application,
   Conversation,
@@ -46,9 +48,7 @@ interface AppStateValue {
   setManualLocation: (location: string) => Promise<void>;
   saveUserProfile: (input: SaveUserProfileInput) => Promise<{ ok: boolean; message: string }>;
   addPublishedJob: (input: NewJobInput) => Promise<Job | null>;
-  updateApplicationStatus: (applicationId: string, status: Application["status"]) => void;
   sendMessage: (conversationId: string, content: string) => Promise<{ ok: boolean; message?: string }>;
-  addPaymentMethod: (method: Omit<PaymentMethod, "id" | "colorClass">) => void;
   refreshJobs: (params?: SearchJobsParams) => Promise<void>;
   loadJobById: (id: string) => Promise<Job | null>;
   refreshProfile: (userId: string) => Promise<void>;
@@ -59,6 +59,7 @@ const AppStateContext = createContext<AppStateValue | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const { userId } = useAuth();
+  const effectiveUserId = userId ?? (IS_DEVELOPMENT_FALLBACK ? previewUserId : null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<"supabase" | "fallback">("supabase");
@@ -75,9 +76,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     loadJobById,
     loadAuthenticatedJobData,
     addPublishedJob,
-    updateApplicationStatus,
     resetUserJobState,
-  } = useJobsState({ userId, pushError });
+  } = useJobsState({ userId: effectiveUserId, pushError });
   const {
     profiles,
     reviews,
@@ -86,7 +86,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     saveUserProfile: saveUserProfileState,
     updateProfileInState,
     resetAuthenticatedProfileState,
-  } = useProfileState({ userId, pushError });
+  } = useProfileState({ userId: effectiveUserId, pushError });
   const {
     conversations,
     messages,
@@ -94,16 +94,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     refreshChatDetail,
     sendMessage,
     resetChatState,
-  } = useChatState({ userId, pushError });
+  } = useChatState({ userId: effectiveUserId, pushError });
   const {
     paymentMethods,
     transactions,
     loadPaymentsData,
-    addPaymentMethod,
     resetPaymentsState,
-  } = usePaymentsState({ userId, pushError });
+  } = usePaymentsState({ userId: effectiveUserId, pushError });
   const { notifications, loadNotifications, resetNotificationsState } = useNotificationsState({
-    userId,
+    userId: effectiveUserId,
     pushError,
   });
   const {
@@ -115,7 +114,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setManualLocation: setManualLocationState,
     syncSelectedLocation,
     resetSelectedLocation,
-  } = useLocationState({ userId, pushError });
+  } = useLocationState({ userId: effectiveUserId, pushError });
 
   const loadBaseData = useCallback(
     async (currentUserId: string | null) => {
@@ -216,8 +215,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    void loadBaseData(userId);
-  }, [loadBaseData, userId]);
+    void loadBaseData(effectiveUserId);
+  }, [effectiveUserId, loadBaseData]);
 
   const setManualLocation = useCallback(
     async (location: string) => {
@@ -263,7 +262,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
-      currentUserId: userId,
+      currentUserId: effectiveUserId,
       jobs,
       myJobs,
       applications,
@@ -285,16 +284,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setManualLocation,
       saveUserProfile,
       addPublishedJob,
-      updateApplicationStatus,
       sendMessage,
-      addPaymentMethod,
       refreshJobs,
       loadJobById,
       refreshProfile,
       refreshChatDetail,
     }),
     [
-      userId,
+      effectiveUserId,
       jobs,
       myJobs,
       applications,
@@ -316,9 +313,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setManualLocation,
       saveUserProfile,
       addPublishedJob,
-      updateApplicationStatus,
       sendMessage,
-      addPaymentMethod,
       refreshJobs,
       loadJobById,
       refreshProfile,

@@ -2,9 +2,10 @@
  * WHY: Isolate geolocation and selected-location state from broader app data orchestration.
  * CHANGED: YYYY-MM-DD
  */
+import { previewLocation } from "../data/mockData";
 import { useCallback, useState } from "react";
 import { updateProfileLocation } from "../services/profiles.service";
-import { failureResult, successResult } from "../services/service.utils";
+import { failureResult, IS_DEVELOPMENT_FALLBACK, successResult } from "../services/service.utils";
 import { Profile } from "../types/domain";
 import { useGeolocation } from "./useGeolocation";
 
@@ -13,7 +14,8 @@ interface UseLocationStateOptions {
   pushError: (message?: string) => void;
 }
 
-export const DEFAULT_LOCATION = "Ubicación pendiente";
+// A grounded preview location makes local demos feel intentional instead of half-configured.
+export const DEFAULT_LOCATION = IS_DEVELOPMENT_FALLBACK ? previewLocation : "Ubicación pendiente";
 
 export function useLocationState({ userId, pushError }: UseLocationStateOptions) {
   const { coords, status, errorMessage: locationError, requestLocation } = useGeolocation();

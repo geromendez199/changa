@@ -1,5 +1,11 @@
-import { ReactNode } from "react";
+/**
+ * WHY: Keep empty states visually consistent with the rest of the product using the same card, icon, and CTA hierarchy.
+ * CHANGED: YYYY-MM-DD
+ */
+import { type ReactNode } from "react";
 import { Button } from "./Button";
+import { SurfaceCard } from "./SurfaceCard";
+import { cn } from "./ui/utils";
 
 interface EmptyStateCardProps {
   icon: ReactNode;
@@ -11,6 +17,7 @@ interface EmptyStateCardProps {
   onAction?: () => void;
   secondaryActionLabel?: string;
   onSecondaryAction?: () => void;
+  className?: string;
 }
 
 export function EmptyStateCard({
@@ -23,20 +30,23 @@ export function EmptyStateCard({
   onAction,
   secondaryActionLabel,
   onSecondaryAction,
+  className,
 }: EmptyStateCardProps) {
   return (
-    <div className="rounded-[28px] border border-gray-100 bg-white p-6 text-center shadow-[0_18px_40px_rgba(17,24,39,0.06)]">
+    <SurfaceCard className={cn("text-center", className)} padding="lg">
       {eyebrow && (
-        <div className="mb-4 inline-flex items-center rounded-full bg-[#ECFDF5] px-3 py-1 text-xs font-semibold text-[#0DAE79]">
+        <div className="app-kicker mb-4">
           {eyebrow}
         </div>
       )}
-      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] text-[#0DAE79] shadow-sm">
+      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[22px] border border-[var(--app-border)] bg-[var(--app-surface-soft)] text-[var(--app-brand)]">
         {icon}
       </div>
-      <h3 className="mb-1 text-lg font-bold text-[#111827]">{title}</h3>
-      <p className="mb-4 text-sm leading-relaxed text-gray-500">{description}</p>
-      {note && <p className="mb-4 text-xs font-medium text-gray-400">{note}</p>}
+      <h3 className="mb-1 text-lg font-bold tracking-[-0.02em] text-[var(--app-text)]">{title}</h3>
+      <p className="mb-4 text-sm leading-relaxed text-[var(--app-text-muted)]">{description}</p>
+      {note ? (
+        <p className="mb-4 text-xs font-medium leading-relaxed text-[#8a9790]">{note}</p>
+      ) : null}
       {(actionLabel || secondaryActionLabel) && (
         <div className="flex flex-col gap-2">
           {actionLabel && (
@@ -51,6 +61,6 @@ export function EmptyStateCard({
           )}
         </div>
       )}
-    </div>
+    </SurfaceCard>
   );
 }

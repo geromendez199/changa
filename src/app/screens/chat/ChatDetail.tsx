@@ -2,20 +2,27 @@
  * WHY: Make chat feel more intentional with clearer context and reliable feedback after sending messages.
  * CHANGED: YYYY-MM-DD
  */
-import { ArrowLeft, CircleHelp, Flag, Send, Shield } from "lucide-react";
+import { CircleHelp, Flag, Send, Shield } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import { Badge } from "../../components/Badge";
 import { Input } from "../../components/Input";
+import { PreviewModeNotice } from "../../components/PreviewModeNotice";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { SurfaceCard } from "../../components/SurfaceCard";
+import { UserAvatar } from "../../components/UserAvatar";
 import { useAppState } from "../../hooks/useAppState";
 import { formatRelative } from "../../utils/format";
+import { getFallbackPreviewMessage } from "../../../services/service.utils";
 
 export function ChatDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { conversations, messages, currentUserId, sendMessage, jobs, profiles, refreshChatDetail } = useAppState();
+  const { conversations, messages, currentUserId, sendMessage, jobs, profiles, refreshChatDetail, dataSource } = useAppState();
   const [text, setText] = useState("");
   const [composerFeedback, setComposerFeedback] = useState<string | null>(null);
+  const isPreview = dataSource === "fallback";
 
   const conversation = conversations.find((item) => item.id === id);
 
@@ -32,9 +39,11 @@ export function ChatDetail() {
 
   if (!conversation) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto">
-        <p className="text-sm text-gray-500">No pudimos cargar esta conversación.</p>
-        <button onClick={() => navigate("/chat")} className="mt-3 text-[#0DAE79] font-semibold">Volver a mensajes</button>
+      <div className="app-screen px-6 pt-20">
+        <p className="text-sm text-[var(--app-text-muted)]">No pudimos cargar esta conversación.</p>
+        <button onClick={() => navigate("/chat")} className="mt-3 font-semibold text-[var(--app-brand)]">
+          Volver a mensajes
+        </button>
       </div>
     );
   }
@@ -44,34 +53,38 @@ export function ChatDetail() {
   const relatedJob = jobs.find((job) => job.id === conversation.jobId);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24 max-w-md mx-auto font-['Inter'] flex flex-col">
-      <div className="bg-white px-6 pt-14 pb-4 shadow-sm">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
-            <ArrowLeft size={24} className="text-[#111827]" />
-          </button>
-          <div>
+    <div className="app-screen flex min-h-screen flex-col pb-24">
+      <ScreenHeader
+        title={otherUser?.name ?? "Conversación"}
+        subtitle={relatedJob?.title}
+        onBack={() => navigate(-1)}
+      >
+        <div className="flex items-start gap-3">
+          <UserAvatar
+            name={otherUser?.name}
+            avatarUrl={otherUser?.avatarUrl}
+            fallbackLetter={otherUser?.avatarLetter ?? "?"}
+            size="md"
+          />
+          <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h1 className="font-bold text-[#111827]">{otherUser?.name}</h1>
-              {otherUser?.verified && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#ECFDF5] px-2 py-0.5 text-[11px] font-semibold text-[#0DAE79]">
-                  <Shield size={10} />
+              {otherUser?.verified ? (
+                <Badge variant="verified" size="sm" icon={<Shield size={10} />}>
                   Verificado
-                </span>
-              )}
+                </Badge>
+              ) : null}
+              <p className="text-[11px] font-semibold text-[var(--app-brand)]">
+                Coordiná por este chat para mantener el contexto de la changa.
+              </p>
             </div>
-            <p className="text-xs text-gray-500">{relatedJob?.title}</p>
-            <p className="mt-1 text-[11px] font-medium text-[#0DAE79]">
-              Coordiná por este chat para mantener el contexto de la changa.
-            </p>
-            <div className="mt-2 flex gap-2">
+            <div className="mt-3 flex gap-2">
               <button
                 onClick={() =>
                   toast("Centro de ayuda", {
                     description: "La guía de seguridad del chat se va a sumar en una próxima etapa.",
                   })
                 }
-                className="rounded-full bg-[#F8FAFC] px-3 py-1 text-[11px] font-semibold text-[#111827]"
+                className="rounded-full border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-1.5 text-[11px] font-semibold text-[var(--app-text)]"
               >
                 <span className="inline-flex items-center gap-1">
                   <CircleHelp size={12} />
@@ -84,7 +97,7 @@ export function ChatDetail() {
                     description: "El flujo completo para reportar conversaciones se va a sumar en una próxima etapa.",
                   })
                 }
-                className="rounded-full bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-700"
+                className="rounded-full bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-700"
               >
                 <span className="inline-flex items-center gap-1">
                   <Flag size={12} />
@@ -94,36 +107,62 @@ export function ChatDetail() {
             </div>
           </div>
         </div>
-      </div>
+      </ScreenHeader>
 
       <div className="flex-1 px-6 py-4 space-y-3 overflow-y-auto">
+        {isPreview ? (
+          <PreviewModeNotice
+            compact
+            description={`${getFallbackPreviewMessage("esta conversación")} El envío de mensajes reales sigue deshabilitado.`}
+          />
+        ) : null}
+
         {conversationMessages.map((message) => {
           const isOwn = message.senderUserId === currentUserId;
           return (
             <div key={message.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[78%] rounded-2xl px-4 py-3 ${isOwn ? "bg-[#0DAE79] text-white" : "bg-white text-[#111827] border border-gray-100"}`}>
+              <div
+                className={`max-w-[78%] rounded-[22px] px-4 py-3 shadow-sm ${
+                  isOwn
+                    ? "bg-[var(--app-brand)] text-white"
+                    : "border border-[var(--app-border)] bg-white text-[var(--app-text)]"
+                }`}
+              >
                 <p className="text-sm leading-relaxed">{message.content}</p>
-                <p className={`text-[10px] mt-1 ${isOwn ? "text-white/80" : "text-gray-400"}`}>{formatRelative(message.createdAt)}</p>
+                <p
+                  className={`mt-1 text-[10px] ${
+                    isOwn ? "text-white/80" : "text-[var(--app-text-muted)]"
+                  }`}
+                >
+                  {formatRelative(message.createdAt)}
+                </p>
               </div>
             </div>
           );
         })}
         {conversationMessages.length === 0 && (
-          <div className="py-10 text-center text-sm text-gray-500">
+          <SurfaceCard tone="muted" padding="md" className="py-10 text-center text-sm text-[var(--app-text-muted)] shadow-none">
             Todavía no empezaron a coordinar. El primer mensaje suele destrabar rápido una changa.
-          </div>
+          </SurfaceCard>
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 max-w-md mx-auto flex items-center gap-3">
+      <div className="app-floating-bar fixed bottom-0 left-0 right-0 mx-auto flex max-w-md items-center gap-3 px-6 py-4">
         <div className="flex-1">
-          <Input placeholder="Escribí un mensaje..." value={text} onChange={setText} />
+          <Input placeholder="Escribí un mensaje..." value={text} onChange={setText} size="lg" />
           {composerFeedback && (
-            <p className="mt-2 text-xs font-medium text-[#0DAE79]">{composerFeedback}</p>
+            <p className="mt-2 text-xs font-medium text-[var(--app-brand)]">{composerFeedback}</p>
           )}
         </div>
         <button
           onClick={async () => {
+            if (isPreview) {
+              toast("Envío real deshabilitado", {
+                description: "En la vista previa podés revisar la conversación, pero no enviar mensajes nuevos.",
+              });
+              return;
+            }
+
             const result = await sendMessage(conversation.id, text);
             if (!result.ok) {
               toast.error("No pudimos enviar el mensaje", {
@@ -136,8 +175,8 @@ export function ChatDetail() {
             setComposerFeedback("Mensaje enviado");
             window.setTimeout(() => setComposerFeedback(null), 2200);
           }}
-          disabled={!text.trim()}
-          className="bg-[#0DAE79] disabled:bg-gray-300 text-white p-3 rounded-full"
+          disabled={!text.trim() || isPreview}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--app-brand)] text-white disabled:bg-[#c9d3ce]"
         >
           <Send size={18} />
         </button>

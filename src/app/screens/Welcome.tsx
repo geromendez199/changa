@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { BrandLogo } from "../components/BrandLogo";
+import { PreviewModeNotice } from "../components/PreviewModeNotice";
 import { ROLE_INTENT_DETAILS, type RoleIntent, useRoleIntent } from "../../hooks/useRoleIntent";
+import { FALLBACK_PREVIEW_MESSAGE, IS_DEVELOPMENT_FALLBACK } from "../../services/service.utils";
 
 const trustHighlights = [
   { label: "Perfiles con reputación", icon: ShieldCheck },
@@ -46,7 +48,7 @@ export function Welcome() {
   };
 
   return (
-    <div className="relative mx-auto min-h-screen max-w-md overflow-hidden bg-gradient-to-br from-[#0DAE79] via-[#0B9A6B] to-[#087A55] px-6 py-8 font-['Inter']">
+    <div className="app-screen relative overflow-hidden bg-gradient-to-br from-[#0DAE79] via-[#0B9A6B] to-[#087A55] px-6 py-8">
       <div className="absolute right-0 top-16 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
       <div className="absolute bottom-28 left-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
 
@@ -84,7 +86,7 @@ export function Welcome() {
                 onClick={() => handleRoleSelection(card.role)}
                 className={`w-full rounded-[28px] border p-4 text-left transition-all duration-200 ${
                   isActive
-                    ? "border-white bg-white text-[#111827] shadow-[0_22px_48px_rgba(17,24,39,0.16)]"
+                    ? "border-white bg-white text-[var(--app-text)] shadow-[0_22px_48px_rgba(17,24,39,0.16)]"
                     : "border-white/25 bg-white/10 text-white backdrop-blur-sm"
                 }`}
               >
@@ -144,36 +146,76 @@ export function Welcome() {
         <div className="mt-6 rounded-[28px] border border-white/15 bg-white/10 p-5 text-white backdrop-blur-sm">
           <p className="text-sm font-semibold">Empezá en segundos</p>
           <div className="mt-3 space-y-2 text-sm text-white/85">
-            <p>1. Elegí cómo querés usar Changa hoy.</p>
-            <p>2. Creá tu cuenta y completá lo básico.</p>
-            <p>3. Publicá una changa o encontrá oportunidades cerca tuyo.</p>
+            {IS_DEVELOPMENT_FALLBACK ? (
+              <>
+                <p>1. Elegí cómo querés usar Changa hoy.</p>
+                <p>2. Explorá changas y perfiles de muestra con una experiencia realista.</p>
+                <p>3. Conectá Supabase cuando quieras probar cuentas y datos reales.</p>
+              </>
+            ) : (
+              <>
+                <p>1. Elegí cómo querés usar Changa hoy.</p>
+                <p>2. Creá tu cuenta y completá lo básico.</p>
+                <p>3. Publicá una changa o encontrá oportunidades cerca tuyo.</p>
+              </>
+            )}
           </div>
         </div>
 
+        {IS_DEVELOPMENT_FALLBACK ? (
+          <PreviewModeNotice
+            className="mt-5"
+            compact
+            title="Modo vista previa"
+            description={`${FALLBACK_PREVIEW_MESSAGE} En este entorno podés recorrer la app, pero las cuentas reales están desactivadas.`}
+          />
+        ) : null}
+
         <div className="mt-auto space-y-3 pt-8">
-          <button
-            onClick={() => navigate(`/signup?role=${activeRole}`)}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-4 text-base font-bold text-[#0B8A61] shadow-[0_18px_40px_rgba(17,24,39,0.16)] transition-all duration-200 active:scale-[0.98]"
-          >
-            {activeRole === "help"
-              ? "Crear cuenta para pedir ayuda"
-              : "Crear cuenta para encontrar changas"}
-            <ArrowRight size={18} />
-          </button>
+          {IS_DEVELOPMENT_FALLBACK ? (
+            <>
+              <button
+                onClick={() => navigate("/home")}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-4 text-base font-bold text-[var(--app-brand-strong)] shadow-[0_18px_40px_rgba(17,24,39,0.16)] transition-all duration-200 active:scale-[0.98]"
+              >
+                Explorar vista previa
+                <ArrowRight size={18} />
+              </button>
 
-          <button
-            onClick={() => navigate(`/login?role=${activeRole}`)}
-            className="w-full rounded-full border-2 border-white/80 bg-white/10 px-6 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all duration-200 active:scale-[0.98]"
-          >
-            Ya tengo cuenta
-          </button>
+              <button
+                onClick={() => navigate(`/login?role=${activeRole}`)}
+                className="w-full rounded-full border-2 border-white/80 bg-white/10 px-6 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all duration-200 active:scale-[0.98]"
+              >
+                Ver acceso
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate(`/signup?role=${activeRole}`)}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-4 text-base font-bold text-[var(--app-brand-strong)] shadow-[0_18px_40px_rgba(17,24,39,0.16)] transition-all duration-200 active:scale-[0.98]"
+              >
+                {activeRole === "help"
+                  ? "Crear cuenta para pedir ayuda"
+                  : "Crear cuenta para encontrar changas"}
+                <ArrowRight size={18} />
+              </button>
 
-          <button
-            onClick={() => navigate("/home")}
-            className="w-full rounded-full px-4 py-2 text-sm font-semibold text-white/82 transition-colors hover:text-white"
-          >
-            Explorar primero
-          </button>
+              <button
+                onClick={() => navigate(`/login?role=${activeRole}`)}
+                className="w-full rounded-full border-2 border-white/80 bg-white/10 px-6 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all duration-200 active:scale-[0.98]"
+              >
+                Ya tengo cuenta
+              </button>
+
+              <button
+                onClick={() => navigate("/home")}
+                className="w-full rounded-full px-4 py-2 text-sm font-semibold text-white/82 transition-colors hover:text-white"
+              >
+                Explorar primero
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

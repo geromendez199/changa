@@ -1,13 +1,18 @@
-import { ReactNode } from "react";
+/**
+ * WHY: Standardize CTA hierarchy, sizing, and interaction states across the mobile product.
+ * CHANGED: YYYY-MM-DD
+ */
+import { type ButtonHTMLAttributes, type ReactNode } from "react";
+import { cn } from "./ui/utils";
 
-interface ButtonProps {
+interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> {
   children: ReactNode;
   onClick?: () => void;
-  variant?: "primary" | "secondary" | "outline" | "ghost";
-  size?: "sm" | "md" | "lg";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "soft" | "danger";
+  size?: "sm" | "md" | "lg" | "icon";
   fullWidth?: boolean;
-  disabled?: boolean;
   icon?: ReactNode;
+  className?: string;
 }
 
 export function Button({
@@ -18,34 +23,42 @@ export function Button({
   fullWidth = false,
   disabled = false,
   icon,
+  className,
+  type = "button",
+  ...props
 }: ButtonProps) {
-  const baseStyles = "font-semibold rounded-full transition-all duration-200 flex items-center justify-center gap-2";
-  
+  const baseStyles =
+    "inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-[-0.01em] transition-[transform,background-color,border-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0DAE79]/12 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.99]";
+
   const variants = {
-    primary: "bg-[#0DAE79] text-white shadow-lg shadow-[#0DAE79]/25 hover:bg-[#0B9A6B] active:scale-[0.98] disabled:bg-gray-300 disabled:shadow-none disabled:cursor-not-allowed",
-    secondary: "bg-[#F8FAFC] text-[#111827] border border-gray-200 hover:bg-gray-100 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed",
-    outline: "bg-transparent text-[#0DAE79] border-2 border-[#0DAE79] hover:bg-[#0DAE79]/5 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed",
-    ghost: "bg-transparent text-gray-600 hover:bg-gray-100 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed",
+    primary:
+      "bg-[var(--app-brand)] text-white shadow-[0_16px_30px_rgba(13,174,121,0.22)] hover:bg-[var(--app-brand-strong)]",
+    secondary:
+      "border border-[var(--app-border)] bg-white text-[var(--app-text)] shadow-[0_8px_20px_rgba(17,24,39,0.04)] hover:bg-[var(--app-surface-muted)]",
+    outline:
+      "border border-[var(--app-border-strong)] bg-transparent text-[var(--app-brand)] hover:border-[var(--app-brand)] hover:bg-[var(--app-brand-soft)]",
+    ghost: "bg-transparent text-[var(--app-text-muted)] hover:bg-[var(--app-surface-muted)] hover:text-[var(--app-text)]",
+    soft: "bg-[var(--app-brand-soft)] text-[var(--app-brand)] hover:bg-[#ddf8eb]",
+    danger:
+      "bg-[var(--app-danger-soft)] text-[var(--app-danger-text)] border border-red-100 hover:bg-red-100",
   };
 
   const sizes = {
-    sm: "px-4 py-2 text-sm",
-    md: "px-6 py-3 text-base",
-    lg: "px-8 py-4 text-lg",
+    sm: "min-h-10 px-4 text-sm",
+    md: "min-h-[52px] px-5 text-[15px]",
+    lg: "min-h-[56px] px-6 text-base",
+    icon: "h-11 w-11 p-0",
   };
 
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`
-        ${baseStyles}
-        ${variants[variant]}
-        ${sizes[size]}
-        ${fullWidth ? "w-full" : ""}
-      `}
+      className={cn(baseStyles, variants[variant], sizes[size], fullWidth && "w-full", className)}
+      {...props}
     >
-      {icon && <span>{icon}</span>}
+      {icon && <span className="shrink-0">{icon}</span>}
       {children}
     </button>
   );

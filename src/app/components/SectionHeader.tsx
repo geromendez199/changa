@@ -1,0 +1,44 @@
+/**
+ * WHY: Give screen sections a single typography and action pattern so hierarchy feels consistent and easy to scan.
+ * CHANGED: YYYY-MM-DD
+ */
+import { type ReactNode } from "react";
+import { cn } from "./ui/utils";
+
+interface SectionHeaderProps {
+  title: string;
+  subtitle?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  action?: ReactNode;
+  className?: string;
+}
+
+export function SectionHeader({
+  title,
+  subtitle,
+  actionLabel,
+  onAction,
+  action,
+  className,
+}: SectionHeaderProps) {
+  return (
+    <div className={cn("flex items-end justify-between gap-3", className)}>
+      <div className="min-w-0">
+        <h2 className="text-lg font-bold tracking-[-0.02em] text-[var(--app-text)]">{title}</h2>
+        {subtitle ? (
+          <p className="mt-1 text-sm leading-relaxed text-[var(--app-text-muted)]">{subtitle}</p>
+        ) : null}
+      </div>
+
+      {action ?? (actionLabel && onAction ? (
+        <button
+          onClick={onAction}
+          className="shrink-0 text-sm font-semibold text-[var(--app-brand)] transition-colors hover:text-[var(--app-brand-strong)]"
+        >
+          {actionLabel}
+        </button>
+      ) : null)}
+    </div>
+  );
+}

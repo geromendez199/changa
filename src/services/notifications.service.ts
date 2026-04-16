@@ -1,3 +1,4 @@
+import { getSampleNotifications } from "../data/mockData";
 import { supabase } from "../lib/supabase";
 import { Notification } from "../types/domain";
 import { NotificationsRow, mapNotificationRow } from "../types/supabase";
@@ -5,7 +6,7 @@ import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldU
 
 export async function getMyNotifications(userId: string): Promise<ServiceResult<Notification[]>> {
   if (!isNonEmptyString(userId)) return successResult([], "fallback");
-  if (shouldUseFallback()) return successResult([], "fallback");
+  if (shouldUseFallback()) return successResult(getSampleNotifications(userId), "fallback");
 
   try {
     const { data, error } = await supabase!

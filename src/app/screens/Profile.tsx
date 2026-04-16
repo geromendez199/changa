@@ -8,15 +8,22 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Badge } from "../components/Badge";
+import { Button } from "../components/Button";
 import { useAppState, useCurrentUser } from "../hooks/useAppState";
 import { useAuth } from "../../context/AuthContext";
 import { EmptyStateCard } from "../components/EmptyStateCard";
+import { PreviewModeNotice } from "../components/PreviewModeNotice";
+import { SectionHeader } from "../components/SectionHeader";
+import { SurfaceCard } from "../components/SurfaceCard";
+import { UserAvatar } from "../components/UserAvatar";
+import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 export function Profile() {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
-  const { profiles, reviews, refreshProfile, isLoading } = useAppState();
-  const { signOut } = useAuth();
+  const { profiles, reviews, refreshProfile, isLoading, dataSource } = useAppState();
+  const { signOut, userId: authUserId } = useAuth();
+  const isPreview = dataSource === "fallback";
 
   useEffect(() => {
     if (currentUser?.id) void refreshProfile(currentUser.id);
@@ -74,100 +81,179 @@ export function Profile() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
-      <div className="bg-gradient-to-br from-[#0DAE79] via-[#0B9A6B] to-[#087A55] px-6 pt-14 pb-14 rounded-b-[40px] relative overflow-hidden">
-        <div className="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-10 left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+    <div className="app-screen pb-28">
+      <div className="relative overflow-hidden rounded-b-[36px] bg-[linear-gradient(135deg,#0DAE79_0%,#0B9A6B_55%,#087A55_100%)] px-6 pt-14 pb-12">
+        <div className="absolute right-10 top-10 h-32 w-32 rounded-full bg-white/10 blur-3xl"></div>
+        <div className="absolute bottom-8 left-8 h-36 w-36 rounded-full bg-white/10 blur-3xl"></div>
 
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-6">
-            <button onClick={() => navigate("/profile/edit")} className="p-2 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"><Pencil size={20} className="text-white" /></button>
+          <div className="mb-6 flex items-center justify-between">
+            <button onClick={() => navigate("/profile/edit")} className="rounded-full bg-white/12 p-2.5 backdrop-blur-sm transition-colors hover:bg-white/20">
+              <Pencil size={20} className="text-white" />
+            </button>
             <div className="w-10" />
-            <button onClick={() => navigate("/notifications")} className="p-2 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"><Bell size={20} className="text-white" /></button>
+            <button onClick={() => navigate("/notifications")} className="rounded-full bg-white/12 p-2.5 backdrop-blur-sm transition-colors hover:bg-white/20">
+              <Bell size={20} className="text-white" />
+            </button>
           </div>
 
           <div className="flex flex-col items-center text-center">
-            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center overflow-hidden text-[#0DAE79] font-bold text-3xl mb-4 shadow-2xl">
-              {profile.avatarUrl ? (
-                <img src={profile.avatarUrl} alt={profile.name} className="h-full w-full object-cover" />
-              ) : (
-                profile.avatarLetter
-              )}
-            </div>
-            <h1 className="text-2xl font-bold text-white mb-1">{profile.name}</h1>
+            <UserAvatar
+              name={profile.name}
+              avatarUrl={profile.avatarUrl}
+              fallbackLetter={profile.avatarLetter}
+              size="xl"
+              tone="surface"
+              className="mb-4"
+            />
+            <h1 className="mb-1 text-2xl font-bold tracking-[-0.02em] text-white">{profile.name}</h1>
             <p className="text-white/80 text-sm">Miembro desde {profile.memberSince}</p>
-            <div className="mt-4">{profile.verified && <Badge variant="success" icon={<Shield size={12} />}>Verificado</Badge>}</div>
+            <div className="mt-4">
+              {profile.verified ? (
+                <Badge variant="verified" icon={<Shield size={12} />}>
+                  Verificado
+                </Badge>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="px-6 -mt-10 mb-6 relative z-10">
-        <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
+      <div className="relative z-10 -mt-8 mb-6 px-6">
+        <SurfaceCard className="shadow-[var(--app-shadow-lg)]" padding="lg">
           <div className="grid grid-cols-3 gap-6">
-            <div className="text-center"><div className="flex items-center justify-center mb-2"><div className="bg-yellow-50 p-2 rounded-xl"><Star size={20} className="text-[#FBBF24]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{profile.rating}</p><p className="text-xs text-gray-500 font-medium">Rating</p></div>
-            <div className="text-center border-x border-gray-100"><div className="flex items-center justify-center mb-2"><div className="bg-green-50 p-2 rounded-xl"><Briefcase size={20} className="text-[#0DAE79]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{profile.completedJobs}</p><p className="text-xs text-gray-500 font-medium">Completados</p></div>
-            <div className="text-center"><div className="flex items-center justify-center mb-2"><div className="bg-blue-50 p-2 rounded-xl"><TrendingUp size={20} className="text-blue-500" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{profile.successRate}%</p><p className="text-xs text-gray-500 font-medium">Éxito</p></div>
+            <div className="text-center">
+              <div className="mb-2 flex items-center justify-center">
+                <div className="rounded-xl bg-yellow-50 p-2">
+                  <Star size={20} className="text-[#FBBF24]" />
+                </div>
+              </div>
+              <p className="mb-0.5 text-2xl font-bold text-[var(--app-text)]">{profile.rating}</p>
+              <p className="text-xs font-medium text-[var(--app-text-muted)]">Rating</p>
+            </div>
+            <div className="text-center border-x border-[var(--app-border)]">
+              <div className="mb-2 flex items-center justify-center">
+                <div className="rounded-xl bg-[var(--app-brand-soft)] p-2">
+                  <Briefcase size={20} className="text-[var(--app-brand)]" />
+                </div>
+              </div>
+              <p className="mb-0.5 text-2xl font-bold text-[var(--app-text)]">{profile.completedJobs}</p>
+              <p className="text-xs font-medium text-[var(--app-text-muted)]">Completados</p>
+            </div>
+            <div className="text-center">
+              <div className="mb-2 flex items-center justify-center">
+                <div className="rounded-xl bg-blue-50 p-2">
+                  <TrendingUp size={20} className="text-blue-500" />
+                </div>
+              </div>
+              <p className="mb-0.5 text-2xl font-bold text-[var(--app-text)]">{profile.successRate}%</p>
+              <p className="text-xs font-medium text-[var(--app-text-muted)]">Éxito</p>
+            </div>
           </div>
-        </div>
+        </SurfaceCard>
       </div>
 
       <div className="px-6 mb-6">
-        <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-[#111827]">Confianza y seguridad</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Estas señales ayudan a otras personas a entender rápido con quién están tratando.
-            </p>
-          </div>
+        <SurfaceCard padding="md">
+          {isPreview ? (
+            <PreviewModeNotice
+              className="mb-4"
+              description={`${getFallbackPreviewMessage("este perfil")} Las señales visibles son de ejemplo y la edición real sigue protegida.`}
+            />
+          ) : null}
+
+          <SectionHeader
+            title="Confianza y seguridad"
+            subtitle="Estas señales ayudan a otras personas a entender rápido con quién están tratando."
+            className="mb-4"
+          />
 
           <div className="space-y-3">
             {trustRows.map((item) => (
-              <div key={item.label} className="rounded-2xl border border-gray-100 bg-[#F8FAFC] p-4">
+              <SurfaceCard key={item.label} tone="muted" padding="sm">
                 <div className="flex items-start gap-3">
                   <div className={`rounded-2xl p-3 ${item.surfaceClassName}`}>
                     <item.icon size={18} className={item.iconClassName} />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="font-semibold text-[#111827]">{item.label}</p>
-                      <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#111827]">
-                        {item.value}
-                      </span>
+                      <p className="font-semibold text-[var(--app-text)]">{item.label}</p>
+                      <Badge variant="default" size="sm">{item.value}</Badge>
                     </div>
-                    <p className="mt-1 text-sm leading-relaxed text-gray-500">{item.description}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-[var(--app-text-muted)]">{item.description}</p>
                   </div>
                 </div>
-              </div>
+              </SurfaceCard>
             ))}
           </div>
 
           {profile.trustIndicators.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {profile.trustIndicators.map((indicator) => (
-                <Badge key={indicator} variant="success">
+                <Badge key={indicator} variant="verified">
                   {indicator}
                 </Badge>
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       </div>
 
       <div className="px-6 space-y-3 mb-6">
-        <button onClick={() => navigate("/payments")} className="w-full bg-white rounded-3xl p-5 shadow-sm flex items-center gap-4 border border-gray-100"><div className="bg-green-50 p-3 rounded-2xl"><CreditCard size={24} className="text-[#0DAE79]" /></div><div className="flex-1 text-left"><h3 className="font-bold text-[#111827] text-base">Pagos</h3><p className="text-sm text-gray-500">Métodos y movimientos</p></div><ChevronRight size={20} className="text-gray-400" /></button>
-        <button onClick={() => navigate("/profile/edit")} className="w-full bg-white rounded-3xl p-5 shadow-sm flex items-center gap-4 border border-gray-100"><div className="bg-gray-50 p-3 rounded-2xl"><Settings size={24} className="text-gray-600" /></div><div className="flex-1 text-left"><h3 className="font-bold text-[#111827] text-base">Configuración</h3><p className="text-sm text-gray-500">Datos personales y privacidad</p></div><ChevronRight size={20} className="text-gray-400" /></button>
+        <button onClick={() => navigate("/payments")} className="app-surface flex w-full items-center gap-4 p-5 text-left transition-transform duration-200 hover:translate-y-[-2px]">
+          <div className="rounded-2xl bg-[var(--app-brand-soft)] p-3">
+            <CreditCard size={24} className="text-[var(--app-brand)]" />
+          </div>
+          <div className="flex-1 text-left">
+            <h3 className="text-base font-bold text-[var(--app-text)]">Pagos</h3>
+            <p className="text-sm text-[var(--app-text-muted)]">Métodos y movimientos</p>
+          </div>
+          <ChevronRight size={20} className="text-[#9aa7a0]" />
+        </button>
+        <button onClick={() => navigate("/profile/edit")} className="app-surface flex w-full items-center gap-4 p-5 text-left transition-transform duration-200 hover:translate-y-[-2px]">
+          <div className="rounded-2xl bg-[var(--app-surface-muted)] p-3">
+            <Settings size={24} className="text-[var(--app-text-muted)]" />
+          </div>
+          <div className="flex-1 text-left">
+            <h3 className="text-base font-bold text-[var(--app-text)]">Configuración</h3>
+            <p className="text-sm text-[var(--app-text-muted)]">Datos personales y privacidad</p>
+          </div>
+          <ChevronRight size={20} className="text-[#9aa7a0]" />
+        </button>
       </div>
 
       <div className="px-6">
-        <div className="flex items-center justify-between mb-4"><div><h2 className="font-bold text-[#111827] text-lg">Reseñas</h2><p className="text-sm text-gray-500">Últimas calificaciones</p></div></div>
+        <SectionHeader
+          title="Reseñas"
+          subtitle="Últimas calificaciones recibidas"
+          className="mb-4"
+        />
         <div className="space-y-3">
           {myReviews.map((review) => {
             const reviewer = profiles.find((u) => u.id === review.reviewerUserId);
             return (
-              <div key={review.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
-                <div className="flex items-start justify-between mb-3"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl flex items-center justify-center text-white font-bold">{reviewer?.avatarLetter ?? "?"}</div><div><h3 className="font-bold text-[#111827] text-sm">{reviewer?.name ?? "Usuario"}</h3><div className="flex items-center gap-1 mt-0.5">{[...Array(5)].map((_, i) => <Star key={i} size={12} className={i < review.rating ? "text-[#FBBF24] fill-[#FBBF24]" : "text-gray-300"} />)}</div></div></div></div>
-                <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
-              </div>
+              <SurfaceCard key={review.id} padding="md">
+                <div className="mb-3 flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <UserAvatar
+                      name={reviewer?.name}
+                      avatarUrl={reviewer?.avatarUrl}
+                      fallbackLetter={reviewer?.avatarLetter ?? "?"}
+                      size="sm"
+                      tone="brand"
+                    />
+                    <div>
+                      <h3 className="text-sm font-bold text-[var(--app-text)]">{reviewer?.name ?? "Usuario"}</h3>
+                      <div className="mt-0.5 flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} size={12} className={i < review.rating ? "text-[#FBBF24] fill-[#FBBF24]" : "text-gray-300"} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm leading-relaxed text-[var(--app-text-muted)]">{review.comment}</p>
+              </SurfaceCard>
             );
           })}
         </div>
@@ -185,44 +271,62 @@ export function Profile() {
       </div>
 
       <div className="px-6 mb-6">
-        <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-bold text-[#111827]">Ayuda y seguridad</h2>
-          <p className="mt-1 text-sm text-gray-500">
+        <SurfaceCard padding="md">
+          <h2 className="text-lg font-bold text-[var(--app-text)]">Ayuda y seguridad</h2>
+          <p className="mt-1 text-sm text-[var(--app-text-muted)]">
             Si algo te genera dudas, dejalo registrado y priorizá siempre la coordinación dentro de Changa.
           </p>
 
           <div className="mt-4 flex gap-2">
-            <button
+            <Button
               onClick={() =>
                 toast("Centro de ayuda", {
                   description: "La guía de seguridad y ayuda se va a sumar en una próxima etapa.",
                 })
               }
-              className="flex-1 rounded-full border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm font-semibold text-[#111827]"
+              variant="secondary"
+              fullWidth
             >
               <span className="inline-flex items-center gap-2">
                 <CircleHelp size={16} />
                 Centro de ayuda
               </span>
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() =>
                 toast("Reporte recibido", {
                   description: "Cuando esté listo el flujo completo, vas a poder reportar desde acá.",
                 })
               }
-              className="flex-1 rounded-full border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+              variant="danger"
+              fullWidth
             >
               <span className="inline-flex items-center gap-2">
                 <Flag size={16} />
                 Reportar
               </span>
-            </button>
+            </Button>
           </div>
-        </div>
+        </SurfaceCard>
       </div>
 
-      <div className="px-6 mt-8 mb-4"><button onClick={async () => { await signOut(); navigate("/login"); }} className="w-full text-red-600 font-semibold text-sm py-3 flex items-center justify-center gap-2 hover:bg-red-50 rounded-2xl transition-colors"><LogOut size={18} />Cerrar sesión</button></div>
+      <div className="mb-4 mt-8 px-6">
+        <button
+          onClick={async () => {
+            if (isPreview && !authUserId) {
+              navigate("/home");
+              return;
+            }
+
+            await signOut();
+            navigate("/login");
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+        >
+          <LogOut size={18} />
+          {isPreview && !authUserId ? "Salir de la vista previa" : "Cerrar sesión"}
+        </button>
+      </div>
       <BottomNav />
     </div>
   );

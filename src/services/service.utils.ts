@@ -29,6 +29,9 @@ export function failureResult<T>(data: T, error: string, source: "supabase" | "f
  * surface a clear message instead of pretending production data loaded successfully.
  */
 export const FALLBACK_MODE = !isSupabaseEnabled || !supabase;
+export const IS_DEVELOPMENT_FALLBACK = FALLBACK_MODE && import.meta.env.DEV;
+export const FALLBACK_PREVIEW_MESSAGE =
+  "Estás viendo una vista previa local con datos de muestra. Conectá Supabase para usar cuentas e información reales.";
 
 export function normalizeError(error: unknown, fallbackMessage = "Error inesperado al consultar datos."): string {
   if (!error) return fallbackMessage;
@@ -48,6 +51,14 @@ export function normalizeError(error: unknown, fallbackMessage = "Error inespera
 
 export function shouldUseFallback() {
   return FALLBACK_MODE;
+}
+
+export function getFallbackPreviewMessage(scope = "esta sección") {
+  return `Estás viendo ${scope} con datos de muestra en un entorno local. Conectá Supabase para trabajar con información real.`;
+}
+
+export function getFallbackActionMessage(action: string) {
+  return `${action} necesita Supabase configurado para funcionar con datos reales.`;
 }
 
 export function isNonEmptyString(value: unknown): value is string {

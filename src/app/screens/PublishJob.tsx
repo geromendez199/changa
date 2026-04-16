@@ -2,20 +2,26 @@
  * WHY: Reframe publishing as posting a local task request, with clearer Spanish copy, correct step count, and polished confirmations.
  * CHANGED: YYYY-MM-DD
  */
-import { ArrowLeft, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
+import { PreviewModeNotice } from "../components/PreviewModeNotice";
+import { ScreenHeader } from "../components/ScreenHeader";
+import { SurfaceCard } from "../components/SurfaceCard";
+import { Textarea } from "../components/Textarea";
 import { jobCategories } from "../constants/catalog";
 import { useAppState } from "../hooks/useAppState";
+import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 const totalSteps = 4;
 
 export function PublishJob() {
   const navigate = useNavigate();
-  const { addPublishedJob } = useAppState();
+  const { addPublishedJob, dataSource } = useAppState();
+  const isPreview = dataSource === "fallback";
 
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState<string[]>([]);
@@ -101,38 +107,41 @@ export function PublishJob() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-32 max-w-md mx-auto font-['Inter']">
-      <div className="bg-white px-6 pt-14 pb-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => (step === 1 ? navigate(-1) : setStep((prev) => prev - 1))} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
-            <ArrowLeft size={24} className="text-[#111827]" />
-          </button>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold text-[#111827]">Publicá una changa</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Contá qué necesitás resolver y dejalo visible en minutos.
-            </p>
-          </div>
-        </div>
-
+    <div className="app-screen pb-32">
+      <ScreenHeader
+        title="Publicá una changa"
+        subtitle="Contá qué necesitás resolver y dejalo visible en minutos."
+        onBack={() => (step === 1 ? navigate(-1) : setStep((prev) => prev - 1))}
+      >
         <div className="space-y-2">
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-[#0DAE79] transition-all" style={{ width: `${progressPct}%` }}></div>
+          <div className="h-2 overflow-hidden rounded-full bg-[#dce6e0]">
+            <div
+              className="h-full rounded-full bg-[var(--app-brand)] transition-all"
+              style={{ width: `${progressPct}%` }}
+            />
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="text-[#0DAE79] font-semibold">Paso {step} de {totalSteps}</span>
-            <span className="text-gray-500">{progressPct}% completado</span>
+            <span className="font-semibold text-[var(--app-brand)]">
+              Paso {step} de {totalSteps}
+            </span>
+            <span className="text-[var(--app-text-muted)]">{progressPct}% completado</span>
           </div>
         </div>
-      </div>
+      </ScreenHeader>
 
-      <div className="px-6 py-8 space-y-6">
+      <div className="space-y-6 px-6 py-8">
+        {isPreview ? (
+          <PreviewModeNotice
+            description={`${getFallbackPreviewMessage("este formulario de publicación")} Podés recorrer los pasos, pero la publicación real necesita Supabase.`}
+          />
+        ) : null}
+
         {step === 1 && (
-          <div>
-            <h2 className="text-2xl font-bold text-[#111827] mb-2">
+          <SurfaceCard padding="lg">
+            <h2 className="mb-2 text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
               ¿Qué tipo de ayuda necesitás?
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="mb-4 text-[var(--app-text-muted)]">
               Elegí la categoría que mejor describa la tarea que querés resolver.
             </p>
             <div className="grid grid-cols-2 gap-3">
@@ -140,88 +149,117 @@ export function PublishJob() {
                 <button
                   key={category}
                   onClick={() => setForm((prev) => ({ ...prev, category }))}
-                  className={`rounded-3xl p-5 border text-left transition-all ${form.category === category ? "border-[#0DAE79] shadow-lg" : "bg-white border-gray-100"}`}
+                  className={`rounded-[24px] border p-5 text-left transition-all ${
+                    form.category === category
+                      ? "border-[var(--app-brand)] bg-[var(--app-brand-soft)] shadow-[0_12px_28px_rgba(13,174,121,0.12)]"
+                      : "border-[var(--app-border)] bg-[var(--app-surface-muted)]"
+                  }`}
                 >
-                  <p className="font-bold text-[#111827]">{category}</p>
-                  {form.category === category && <p className="text-sm text-[#0DAE79] mt-1">Seleccionado</p>}
+                  <p className="font-bold text-[var(--app-text)]">{category}</p>
+                  {form.category === category ? (
+                    <p className="mt-1 text-sm text-[var(--app-brand)]">Seleccionado</p>
+                  ) : null}
                 </button>
               ))}
             </div>
-          </div>
+          </SurfaceCard>
         )}
 
         {step === 2 && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#111827]">Contanos qué necesitás</h2>
-            <p className="text-gray-600">
+          <SurfaceCard padding="lg" className="space-y-4">
+            <h2 className="text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+              Contanos qué necesitás
+            </h2>
+            <p className="text-[var(--app-text-muted)]">
               Un buen título y una descripción clara te ayudan a recibir respuestas más útiles.
             </p>
             <Input
               placeholder="Ej: Arreglar una pérdida en la cocina"
               value={form.title}
               onChange={(value) => setForm((prev) => ({ ...prev, title: value }))}
+              size="lg"
             />
-            <textarea
+            <Textarea
               value={form.description}
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
               placeholder="Explicá qué necesitás, si hay urgencia, materiales o algún detalle importante."
-              className="w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3.5 px-4 min-h-36 focus:outline-none focus:ring-2 focus:ring-[#0DAE79]"
             />
-          </div>
+          </SurfaceCard>
         )}
 
         {step === 3 && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#111827]">Ubicación, presupuesto y tiempos</h2>
-            <p className="text-gray-600">
+          <SurfaceCard padding="lg" className="space-y-4">
+            <h2 className="text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+              Ubicación, presupuesto y tiempos
+            </h2>
+            <p className="text-[var(--app-text-muted)]">
               Mientras más claro seas con la zona, el presupuesto y el momento ideal, mejores respuestas vas a recibir.
             </p>
-            <Input placeholder="Ubicación (ej: Palermo, CABA)" value={form.location} onChange={(value) => setForm((prev) => ({ ...prev, location: value }))} />
-            <Input placeholder="Presupuesto estimado en ARS" type="number" value={form.price} onChange={(value) => setForm((prev) => ({ ...prev, price: value }))} />
-            <Input placeholder="¿Cuándo lo necesitás? (ej: mañana por la tarde)" value={form.availability} onChange={(value) => setForm((prev) => ({ ...prev, availability: value }))} />
-            <div className="bg-white rounded-2xl p-4 border border-gray-100">
-              <p className="text-sm font-semibold text-[#111827] mb-2">Urgencia</p>
+            <Input placeholder="Ubicación (ej: Rafaela, Santa Fe)" value={form.location} onChange={(value) => setForm((prev) => ({ ...prev, location: value }))} size="lg" />
+            <Input placeholder="Presupuesto estimado en ARS" type="number" value={form.price} onChange={(value) => setForm((prev) => ({ ...prev, price: value }))} size="lg" />
+            <Input placeholder="¿Cuándo lo necesitás? (ej: mañana por la tarde)" value={form.availability} onChange={(value) => setForm((prev) => ({ ...prev, availability: value }))} size="lg" />
+            <SurfaceCard tone="muted" padding="sm">
+              <p className="mb-2 text-sm font-semibold text-[var(--app-text)]">Urgencia</p>
               <div className="flex gap-2">
                 {[
                   { label: "Normal", value: "normal" },
                   { label: "Urgente", value: "urgente" },
                 ].map((item) => (
-                  <button key={item.value} onClick={() => setForm((prev) => ({ ...prev, urgency: item.value as "normal" | "urgente" }))} className={`px-4 py-2 rounded-full text-sm ${form.urgency === item.value ? "bg-[#0DAE79] text-white" : "bg-[#F8FAFC] border border-gray-200"}`}>
+                  <button
+                    key={item.value}
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        urgency: item.value as "normal" | "urgente",
+                      }))
+                    }
+                    className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                      form.urgency === item.value
+                        ? "bg-[var(--app-brand)] text-white"
+                        : "border border-[var(--app-border)] bg-white text-[var(--app-text-muted)]"
+                    }`}
+                  >
                     {item.label}
                   </button>
                 ))}
               </div>
-            </div>
-          </div>
+            </SurfaceCard>
+          </SurfaceCard>
         )}
 
         {step === 4 && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#111827]">Confirmá tu publicación</h2>
-            <p className="text-gray-600">
+          <SurfaceCard padding="lg" className="space-y-4">
+            <h2 className="text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+              Confirmá tu publicación
+            </h2>
+            <p className="text-[var(--app-text-muted)]">
               Podés sumar una foto para dar más contexto. Si no tenés una, igual podés publicar.
             </p>
-            <Input placeholder="URL de imagen opcional" value={form.image} onChange={(value) => setForm((prev) => ({ ...prev, image: value }))} />
-            <div className="bg-white rounded-3xl p-5 border border-gray-100">
-              <h3 className="font-bold text-[#111827] mb-3">Así se va a ver tu changa</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
+            <Input placeholder="URL de imagen opcional" value={form.image} onChange={(value) => setForm((prev) => ({ ...prev, image: value }))} size="lg" />
+            <SurfaceCard tone="muted" padding="md">
+              <h3 className="mb-3 font-bold text-[var(--app-text)]">Así se va a ver tu changa</h3>
+              <ul className="space-y-2 text-sm text-[var(--app-text-muted)]">
                 <li><strong>Categoría:</strong> {form.category}</li>
                 <li><strong>Título:</strong> {form.title}</li>
                 <li><strong>Ubicación:</strong> {form.location}</li>
                 <li><strong>Presupuesto:</strong> ${Number(form.price || 0).toLocaleString("es-AR")}</li>
                 <li><strong>Cuándo lo necesitás:</strong> {form.availability}</li>
               </ul>
-              <div className="mt-4 rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] p-3 text-sm text-gray-600">
+              <div className="mt-4 rounded-[18px] border border-[var(--app-border)] bg-white p-3 text-sm text-[var(--app-text-muted)]">
                 Las personas van a ver tu descripción, la zona general y el presupuesto para responderte con más claridad.
               </div>
-            </div>
-          </div>
+            </SurfaceCard>
+          </SurfaceCard>
         )}
 
-        {submitError && <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-sm text-red-700">{submitError}</div>}
+        {submitError ? (
+          <div className="rounded-[20px] border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+            {submitError}
+          </div>
+        ) : null}
 
         {errors.length > 0 && (
-          <div className="bg-red-50 border border-red-100 rounded-2xl p-4">
+          <div className="rounded-[20px] border border-red-100 bg-red-50 p-4">
             {errors.map((error) => (
               <p key={error} className="text-sm text-red-700">• {error}</p>
             ))}
@@ -229,9 +267,22 @@ export function PublishJob() {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-6 py-5 max-w-md mx-auto shadow-2xl">
-        <Button variant="primary" size="lg" fullWidth disabled={!canProceed || publishing} onClick={() => void onContinue()} icon={step === totalSteps ? <Check size={18} /> : undefined}>
-          {step === totalSteps ? (publishing ? "Publicando..." : "Publicar changa") : "Continuar"}
+      <div className="app-floating-bar fixed bottom-0 left-0 right-0 mx-auto max-w-md px-6 py-5">
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          disabled={!canProceed || publishing || (isPreview && step === totalSteps)}
+          onClick={() => void onContinue()}
+          icon={step === totalSteps ? <Check size={18} /> : undefined}
+        >
+          {step === totalSteps
+            ? isPreview
+              ? "Publicación real con Supabase"
+              : publishing
+                ? "Publicando..."
+                : "Publicar changa"
+            : "Continuar"}
         </Button>
       </div>
     </div>

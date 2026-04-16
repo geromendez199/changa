@@ -1,6 +1,11 @@
+/**
+ * WHY: Make publish confirmation feel like a polished completion state instead of a generic success message.
+ * CHANGED: YYYY-MM-DD
+ */
 import { CheckCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { Button } from "../../components/Button";
+import { SurfaceCard } from "../../components/SurfaceCard";
 import { useAppState } from "../../hooks/useAppState";
 
 export function PublishConfirmation() {
@@ -10,14 +15,20 @@ export function PublishConfirmation() {
   const job = jobs.find((item) => item.id === id);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto font-['Inter']">
-      <div className="bg-white rounded-3xl border border-gray-100 p-8 text-center">
-        <CheckCircle className="text-[#0DAE79] mx-auto mb-4" size={56} />
-        <h1 className="text-2xl font-bold text-[#111827] mb-2">¡Publicación creada!</h1>
-        <p className="text-sm text-gray-500 mb-6">
-          {job ? `Tu changa "${job.title}" ya está visible para personas de tu zona.` : "Tu changa fue publicada correctamente."}
+    <div className="app-screen px-6 pt-20">
+      <SurfaceCard className="text-center" padding="lg">
+        <div className="mx-auto mb-4 flex h-18 w-18 items-center justify-center rounded-[24px] bg-[var(--app-brand-soft)] text-[var(--app-brand)]">
+          <CheckCircle size={56} />
+        </div>
+        <h1 className="mb-2 text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+          ¡Publicación creada!
+        </h1>
+        <p className="mb-6 text-sm leading-relaxed text-[var(--app-text-muted)]">
+          {job
+            ? `Tu changa "${job.title}" ya está visible para personas de tu zona.`
+            : "Tu changa fue publicada correctamente."}
         </p>
-        <div className="mb-6 rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] p-3 text-sm text-gray-600">
+        <div className="mb-6 rounded-[22px] border border-[var(--app-border)] bg-[var(--app-surface-soft)] p-4 text-sm leading-relaxed text-[var(--app-text-muted)]">
           Ahora quienes estén disponibles pueden verla, entender el contexto y responderte desde Changa.
         </div>
         <div className="space-y-3">
@@ -26,9 +37,11 @@ export function PublishConfirmation() {
               Ver publicación
             </Button>
           )}
-          <Button fullWidth variant="secondary" onClick={() => navigate("/my-jobs")}>Ir a mis trabajos</Button>
+          <Button fullWidth variant="secondary" onClick={() => navigate("/my-jobs")}>
+            Ir a mis trabajos
+          </Button>
         </div>
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

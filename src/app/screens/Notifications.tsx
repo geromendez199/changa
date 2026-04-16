@@ -1,27 +1,58 @@
+/**
+ * WHY: Make notifications feel like a real activity center with clearer hierarchy, type cues, and calmer card treatment.
+ * CHANGED: YYYY-MM-DD
+ */
 import { Bell } from "lucide-react";
 import { useNavigate } from "react-router";
 import { BottomNav } from "../components/BottomNav";
+import { Badge } from "../components/Badge";
 import { EmptyStateCard } from "../components/EmptyStateCard";
 import { useAppState } from "../hooks/useAppState";
 import { BrandLogo } from "../components/BrandLogo";
+import { PreviewModeNotice } from "../components/PreviewModeNotice";
+import { ScreenHeader } from "../components/ScreenHeader";
+import { SurfaceCard } from "../components/SurfaceCard";
+import { formatRelative } from "../utils/format";
+import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 export function Notifications() {
   const navigate = useNavigate();
-  const { notifications } = useAppState();
+  const { notifications, dataSource } = useAppState();
+  const isPreview = dataSource === "fallback";
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
-      <div className="bg-white px-6 pt-14 pb-6 shadow-sm">
-        <div className="flex items-center justify-between mb-2"><h1 className="text-2xl font-bold text-[#111827]">Notificaciones</h1><BrandLogo imageClassName="h-12 w-auto object-contain" fallbackClassName="text-lg font-bold" /></div>
-        <p className="text-sm text-gray-500">Alertas sobre tus changas y mensajes</p>
-      </div>
+    <div className="app-screen pb-28">
+      <ScreenHeader
+        title="Notificaciones"
+        subtitle="Alertas sobre tus changas, mensajes y movimientos importantes."
+        action={
+          <BrandLogo imageClassName="h-12 w-auto object-contain" fallbackClassName="text-lg font-bold" />
+        }
+      />
 
-      <div className="px-6 py-6 space-y-3">
+      <div className="space-y-3 px-6 py-6">
+        {isPreview ? (
+          <PreviewModeNotice
+            description={`${getFallbackPreviewMessage("las notificaciones")} Este centro de actividad usa eventos de ejemplo para recorrer la experiencia.`}
+          />
+        ) : null}
+
         {notifications.map((item) => (
-          <div key={item.id} className="bg-white rounded-3xl border border-gray-100 p-4">
-            <p className="font-semibold text-[#111827]">{item.title}</p>
-            <p className="text-sm text-gray-500">{item.description}</p>
-          </div>
+          <SurfaceCard key={item.id} padding="md">
+            <div className="mb-2 flex items-start justify-between gap-3">
+              <p className="font-semibold tracking-[-0.02em] text-[var(--app-text)]">{item.title}</p>
+              <Badge
+                variant={
+                  item.type === "mensaje" ? "accent" : item.type === "pago" ? "info" : "published"
+                }
+                size="sm"
+              >
+                {item.type}
+              </Badge>
+            </div>
+            <p className="text-sm leading-relaxed text-[var(--app-text-muted)]">{item.description}</p>
+            <p className="mt-3 text-xs font-medium text-[#8a9790]">{formatRelative(item.createdAt)}</p>
+          </SurfaceCard>
         ))}
 
         {notifications.length === 0 && (

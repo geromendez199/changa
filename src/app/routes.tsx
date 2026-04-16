@@ -18,6 +18,7 @@ import { Signup } from "./screens/auth/Signup";
 import { useAuth } from "../context/AuthContext";
 import { Notifications } from "./screens/Notifications";
 import { BrandLogo } from "./components/BrandLogo";
+import { IS_DEVELOPMENT_FALLBACK } from "../services/service.utils";
 
 function RequireAuth({ children }: { children: ReactElement }) {
   const { userId, isLoading } = useAuth();
@@ -35,6 +36,10 @@ function RequireAuth({ children }: { children: ReactElement }) {
   }
 
   if (!userId) {
+    if (IS_DEVELOPMENT_FALLBACK) {
+      return children;
+    }
+
     const redirect = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/login?redirect=${redirect}`} replace />;
   }

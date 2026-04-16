@@ -1,3 +1,4 @@
+import { getSampleApplications } from "../data/mockData";
 import { supabase } from "../lib/supabase";
 import { Application } from "../types/domain";
 import { ApplicationsRow, mapApplicationRow } from "../types/supabase";
@@ -5,7 +6,7 @@ import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldU
 
 export async function getMyApplications(userId: string): Promise<ServiceResult<Application[]>> {
   if (!isNonEmptyString(userId)) return successResult([], "fallback");
-  if (shouldUseFallback()) return successResult([], "fallback");
+  if (shouldUseFallback()) return successResult(getSampleApplications(userId), "fallback");
 
   try {
     const { data, error } = await supabase!

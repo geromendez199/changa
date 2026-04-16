@@ -39,6 +39,32 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --app-bg: #f4f8f6;
+  --app-surface: #ffffff;
+  --app-surface-muted: #f7faf8;
+  --app-surface-soft: #eef7f1;
+  --app-border: #e3ebe6;
+  --app-border-strong: #d2ddd6;
+  --app-text: #14211c;
+  --app-text-muted: #66776f;
+  --app-brand: #0dae79;
+  --app-brand-strong: #0b9a6b;
+  --app-brand-pressed: #087a55;
+  --app-brand-soft: #ecfdf5;
+  --app-info-soft: #eff6ff;
+  --app-info-text: #2563eb;
+  --app-warning-soft: #fff7e8;
+  --app-warning-text: #a16207;
+  --app-danger-soft: #fef2f2;
+  --app-danger-text: #b42318;
+  --app-success-soft: #ecfdf5;
+  --app-success-text: #0b8a61;
+  --app-shadow-sm: 0 10px 26px rgba(17, 24, 39, 0.05);
+  --app-shadow-md: 0 18px 40px rgba(17, 24, 39, 0.08);
+  --app-shadow-lg: 0 24px 48px rgba(17, 24, 39, 0.12);
+  --app-radius-panel: 28px;
+  --app-radius-card: 24px;
+  --app-radius-control: 18px;
 }
 
 .dark {
@@ -127,6 +153,8 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--app-bg);
+    color: var(--app-text);
   }
 
   /**
@@ -193,5 +221,113 @@
   /* Safe area for mobile devices */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@layer components {
+  .app-screen {
+    @apply mx-auto min-h-screen max-w-md;
+    background: var(--app-bg);
+    color: var(--app-text);
+  }
+
+  .app-header-shell {
+    @apply bg-white px-6 pt-14 pb-6;
+    border-bottom: 1px solid var(--app-border);
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.04);
+  }
+
+  .app-surface {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-panel);
+    box-shadow: var(--app-shadow-sm);
+  }
+
+  .app-surface-muted {
+    background: var(--app-surface-muted);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-card);
+  }
+
+  .app-surface-soft {
+    background: var(--app-surface-soft);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-card);
+  }
+
+  .app-floating-bar {
+    background: rgba(255, 255, 255, 0.94);
+    border-top: 1px solid var(--app-border);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 -10px 30px rgba(17, 24, 39, 0.08);
+  }
+
+  .app-icon-button {
+    @apply inline-flex items-center justify-center rounded-full transition-all duration-200;
+    width: 44px;
+    height: 44px;
+    background: var(--app-surface-muted);
+    border: 1px solid var(--app-border);
+    color: var(--app-text);
+  }
+
+  .app-icon-button:hover {
+    background: #eef3ef;
+  }
+
+  .app-kicker {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
+    background: var(--app-brand-soft);
+    color: var(--app-brand);
+  }
+
+  .app-field {
+    width: 100%;
+    background: var(--app-surface-muted);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-control);
+    color: var(--app-text);
+    min-height: 54px;
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .app-field::placeholder {
+    color: #98a4a0;
+  }
+
+  .app-field:focus,
+  .app-field:focus-visible {
+    outline: none;
+    border-color: rgba(13, 174, 121, 0.45);
+    box-shadow: 0 0 0 4px rgba(13, 174, 121, 0.1);
+    background: #fbfdfb;
+  }
+
+  .app-field[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .app-skeleton {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(90deg, #edf2ef 0%, #f8faf9 48%, #edf2ef 100%);
+    background-size: 200% 100%;
+    animation: app-shimmer 1.3s ease-in-out infinite;
+  }
+}
+
+@keyframes app-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
   }
 }

@@ -106,14 +106,6 @@ export function useJobsState({ userId, pushError }: UseJobsStateOptions) {
     [pushError, userId],
   );
 
-  const updateApplicationStatus = useCallback((applicationId: string, status: Application["status"]) => {
-    setApplications((prev) =>
-      prev.map((application) =>
-        application.id === applicationId ? { ...application, status } : application,
-      ),
-    );
-  }, []);
-
   const resetUserJobState = useCallback(() => {
     setMyJobs([]);
     setApplications([]);
@@ -127,7 +119,6 @@ export function useJobsState({ userId, pushError }: UseJobsStateOptions) {
     loadJobById,
     loadAuthenticatedJobData,
     addPublishedJob,
-    updateApplicationStatus,
     resetUserJobState,
   };
 }

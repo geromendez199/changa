@@ -1,3 +1,7 @@
+/**
+ * WHY: Standardize job management screens with clearer tabs, consistent status badges, and calmer card hierarchy.
+ * CHANGED: YYYY-MM-DD
+ */
 import { BottomNav } from "../components/BottomNav";
 import { MapPin, Clock, CheckCircle, AlertCircle, Star, BriefcaseBusiness, Send } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -5,11 +9,16 @@ import { Badge } from "../components/Badge";
 import { useAppState } from "../hooks/useAppState";
 import { EmptyStateCard } from "../components/EmptyStateCard";
 import { useNavigate } from "react-router";
+import { PreviewModeNotice } from "../components/PreviewModeNotice";
+import { ScreenHeader } from "../components/ScreenHeader";
+import { SurfaceCard } from "../components/SurfaceCard";
+import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 export function MyJobs() {
   const navigate = useNavigate();
-  const { myJobs, applications, jobs, updateApplicationStatus } = useAppState();
+  const { myJobs, applications, jobs, dataSource } = useAppState();
   const [activeTab, setActiveTab] = useState<"publicados" | "postulados" | "completados">("publicados");
+  const isPreview = dataSource === "fallback";
 
   const appliedRows = useMemo(
     () => applications.map((application) => ({ application, job: jobs.find((j) => j.id === application.jobId) })).filter((item) => item.job),
@@ -20,51 +29,121 @@ export function MyJobs() {
   const tabData = { publicados: myJobs, postulados: appliedRows, completados: completed } as const;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
-      <div className="bg-white px-6 pt-14 pb-6 shadow-sm">
-        <div className="mb-6"><h1 className="text-2xl font-bold text-[#111827] mb-1">Mis trabajos</h1><p className="text-sm text-gray-500">Gestioná tus publicaciones y postulaciones</p></div>
-
-        <div className="flex gap-2 bg-[#F8FAFC] p-1 rounded-2xl">
+    <div className="app-screen pb-28">
+      <ScreenHeader
+        title="Mis trabajos"
+        subtitle="Gestioná tus publicaciones, postulaciones y trabajos completados."
+      >
+        <div className="flex gap-2 rounded-[22px] bg-[var(--app-surface-muted)] p-1">
           {([
             ["publicados", "Publicados", myJobs.length],
             ["postulados", "Postulados", appliedRows.length],
             ["completados", "Hechos", completed.length],
           ] as const).map(([key, label, count]) => (
-            <button key={key} onClick={() => setActiveTab(key)} className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all ${activeTab === key ? "bg-white text-[#0DAE79] shadow-sm" : "text-gray-600"}`}>
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex-1 rounded-[18px] py-2.5 text-sm font-semibold transition-all ${
+                activeTab === key
+                  ? "bg-white text-[var(--app-brand)] shadow-[0_8px_20px_rgba(17,24,39,0.06)]"
+                  : "text-[var(--app-text-muted)]"
+              }`}
+            >
               {label}
-              <span className={`ml-1.5 px-2 py-0.5 rounded-full text-xs ${activeTab === key ? "bg-[#0DAE79] text-white" : "bg-gray-200 text-gray-600"}`}>{count}</span>
+              <span
+                className={`ml-1.5 rounded-full px-2 py-0.5 text-xs ${
+                  activeTab === key
+                    ? "bg-[var(--app-brand)] text-white"
+                    : "bg-[#dce5e0] text-[var(--app-text-muted)]"
+                }`}
+              >
+                {count}
+              </span>
             </button>
           ))}
         </div>
-      </div>
+      </ScreenHeader>
 
       <div className="px-6 py-6 space-y-3">
+        {isPreview ? (
+          <PreviewModeNotice
+            description={`${getFallbackPreviewMessage("mis trabajos")} El historial y los estados visibles son de ejemplo y las acciones sensibles siguen deshabilitadas.`}
+          />
+        ) : null}
+
+        {activeTab === "postulados" && appliedRows.length > 0 ? (
+          <SurfaceCard tone="soft" padding="sm" className="text-sm leading-relaxed text-[var(--app-text-muted)] shadow-none">
+            El seguimiento completo de postulaciones dentro de la app todavía se está terminando.
+            Por ahora mostramos el estado disponible sin simular cambios manuales.
+          </SurfaceCard>
+        ) : null}
+
         {activeTab === "publicados" && myJobs.map((job) => (
-          <div key={job.id} className="bg-white rounded-3xl overflow-hidden border border-gray-100">
+          <SurfaceCard key={job.id} padding="none" className="overflow-hidden">
             <div className="flex gap-4 p-4">
-              <img src={job.image} alt={job.title} className="w-20 h-20 object-cover rounded-2xl" />
-              <div className="flex-1 min-w-0"><h3 className="font-bold text-[#111827] mb-2 line-clamp-1 text-base">{job.title}</h3><Badge variant="info" icon={<AlertCircle size={12} />}>Publicado</Badge><div className="flex items-center gap-2 mt-3 text-xs text-gray-500"><MapPin size={12} /><span>{job.location}</span></div></div>
-              <p className="text-[#0DAE79] font-bold text-base">{job.priceLabel}</p>
+              <img src={job.image} alt={job.title} className="h-20 w-20 rounded-[20px] object-cover" />
+              <div className="min-w-0 flex-1">
+                <h3 className="mb-2 line-clamp-1 text-base font-bold tracking-[-0.02em] text-[var(--app-text)]">
+                  {job.title}
+                </h3>
+                <Badge variant="published" icon={<AlertCircle size={12} />}>
+                  Publicado
+                </Badge>
+                <div className="mt-3 flex items-center gap-2 text-xs text-[var(--app-text-muted)]">
+                  <MapPin size={12} />
+                  <span>{job.location}</span>
+                </div>
+              </div>
+              <p className="text-base font-bold text-[var(--app-brand)]">{job.priceLabel}</p>
             </div>
-          </div>
+          </SurfaceCard>
         ))}
 
         {activeTab === "postulados" && appliedRows.map(({ application, job }) => (
-          <div key={application.id} className="bg-white rounded-3xl overflow-hidden border border-gray-100 p-4">
-            <h3 className="font-bold text-[#111827] mb-1">{job!.title}</h3>
-            <p className="text-sm text-gray-500 mb-3">{application.coverMessage}</p>
+          <SurfaceCard key={application.id} padding="md">
+            <h3 className="mb-1 font-bold tracking-[-0.02em] text-[var(--app-text)]">{job!.title}</h3>
+            <p className="mb-3 text-sm leading-relaxed text-[var(--app-text-muted)]">{application.coverMessage}</p>
             <div className="flex items-center justify-between">
-              <Badge variant={application.status === "aceptada" ? "success" : "warning"}>{application.status === "aceptada" ? "Aceptada" : application.status === "rechazada" ? "Rechazada" : "Enviada"}</Badge>
-              {application.status === "enviada" && <button onClick={() => updateApplicationStatus(application.id, "aceptada")} className="text-xs text-[#0DAE79] font-semibold bg-green-50 px-3 py-1.5 rounded-full">Marcar aceptada</button>}
+              <Badge
+                variant={
+                  application.status === "aceptada"
+                    ? "accepted"
+                    : application.status === "rechazada"
+                      ? "error"
+                      : "pending"
+                }
+              >
+                {application.status === "aceptada"
+                  ? "Aceptada"
+                  : application.status === "rechazada"
+                    ? "Rechazada"
+                    : "Enviada"}
+              </Badge>
+              {application.status === "enviada" ? (
+                <p className="text-right text-xs font-medium leading-relaxed text-[var(--app-text-muted)]">
+                  La actualización manual del estado se suma en una próxima etapa.
+                </p>
+              ) : null}
             </div>
-          </div>
+          </SurfaceCard>
         ))}
 
         {activeTab === "completados" && completed.map((job) => (
-          <div key={job.id} className="bg-white rounded-3xl p-4 border border-gray-100 flex items-center justify-between">
-            <div><h3 className="font-bold text-[#111827]">{job.title}</h3><div className="flex items-center gap-2 mt-2 text-xs text-gray-500"><Clock size={12} /><span>Trabajo finalizado</span></div></div>
-            <div className="flex items-center gap-1"><Star size={12} className="text-[#FBBF24] fill-[#FBBF24]" /><span className="text-xs text-gray-500">Calificado</span></div>
-          </div>
+          <SurfaceCard key={job.id} padding="md" className="flex items-center justify-between">
+            <div>
+              <h3 className="font-bold tracking-[-0.02em] text-[var(--app-text)]">{job.title}</h3>
+              <div className="mt-2 flex items-center gap-2 text-xs text-[var(--app-text-muted)]">
+                <Clock size={12} />
+                <span>Trabajo finalizado</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <Star size={12} className="text-[#FBBF24] fill-[#FBBF24]" />
+              <Badge variant="completed" size="sm">
+                Calificado
+              </Badge>
+            </div>
+          </SurfaceCard>
         ))}
 
         {tabData[activeTab].length === 0 && (

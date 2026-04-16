@@ -1,17 +1,26 @@
+/**
+ * WHY: Bring the fallback route into the same premium surface system as the rest of the app.
+ * CHANGED: YYYY-MM-DD
+ */
 import { useNavigate } from "react-router";
 import { Button } from "../components/Button";
+import { SurfaceCard } from "../components/SurfaceCard";
 
 export function NotFound() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto font-['Inter']">
-      <div className="bg-white rounded-3xl border border-gray-100 p-8 text-center">
-        <p className="text-sm font-semibold text-[#0DAE79] mb-2">404</p>
-        <h1 className="text-2xl font-bold text-[#111827] mb-2">Ruta inválida</h1>
-        <p className="text-sm text-gray-500 mb-6">La pantalla que buscás no existe o fue movida.</p>
+    <div className="app-screen px-6 pt-20">
+      <SurfaceCard className="text-center" padding="lg">
+        <p className="mb-2 text-sm font-semibold text-[var(--app-brand)]">404</p>
+        <h1 className="mb-2 text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+          Ruta inválida
+        </h1>
+        <p className="mb-6 text-sm text-[var(--app-text-muted)]">
+          La pantalla que buscás no existe o fue movida.
+        </p>
         <Button fullWidth onClick={() => navigate("/home")}>Ir al inicio</Button>
-      </div>
+      </SurfaceCard>
     </div>
   );
 }
