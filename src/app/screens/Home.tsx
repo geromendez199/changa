@@ -36,14 +36,16 @@ export function Home() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
       <div className="bg-white px-6 pt-14 pb-8 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex-1">
+        <div className="mb-6">
+          <div className="relative flex items-center justify-center">
             <BrandLogo imageClassName="h-16 w-auto object-contain" fallbackClassName="text-2xl font-bold tracking-tight text-[#111827]" />
-            <p className="text-sm text-gray-500 mt-2">Bienvenido{currentUserId ? " 👋" : ""}</p>
+            <button onClick={() => navigate(currentUserId ? "/notifications" : "/login")} className="absolute right-0 top-1/2 -translate-y-1/2 relative p-3 bg-[#F8FAFC] rounded-full hover:bg-gray-100 transition-colors">
+              <Bell size={20} className="text-gray-600" />
+            </button>
           </div>
-          <button onClick={() => navigate(currentUserId ? "/notifications" : "/login")} className="relative p-3 bg-[#F8FAFC] rounded-full hover:bg-gray-100 transition-colors">
-            <Bell size={20} className="text-gray-600" />
-          </button>
+          <div className="mt-2">
+            <p className="text-sm text-gray-500">Bienvenido{currentUserId ? " 👋" : ""}</p>
+          </div>
         </div>
 
         <Input placeholder="Buscar servicios..." icon={<Search size={20} />} onChange={(value) => navigate(`/search?q=${encodeURIComponent(value)}`)} />
