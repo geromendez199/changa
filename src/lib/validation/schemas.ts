@@ -38,7 +38,7 @@ export const profileUpdateSchema = z.object({
   location: trimmedRequiredString("Ingresá una ubicación válida."),
   bio: z.string().trim().max(500, "La biografía es demasiado larga.").optional(),
   avatarUrl: z
-    .union([z.string().trim().url("Ingresá una URL válida para la foto de perfil."), z.literal("")])
+    .union([z.string().trim().url("Ingresá una URL válida para la foto de perfil."), z.literal(""), z.null()])
     .optional(),
 });
 

@@ -28,19 +28,31 @@ export interface SaveProfileInput {
   fullName: string;
   location: string;
   bio?: string | null;
+  avatarUrl?: string | null;
 }
 
 const defaultTrust = [];
+const PROFILE_AVATAR_BUCKET = "profile-avatars";
+
+const getProfileAvatarPath = (userId: string) => `${userId}/avatar.jpg`;
+const getVersionedAvatarUrl = (publicUrl: string) => `${publicUrl}?updated=${Date.now()}`;
 
 const mapReviews = (rows: unknown): Review[] =>
   toSafeArray<Partial<ReviewsRow>>(rows)
     .map(mapReviewRow)
     .filter((review) => isNonEmptyString(review.id));
 
-const buildDefaultProfilePayload = (userId: string, fullName: string, location: string, bio?: string | null) => ({
+const buildDefaultProfilePayload = (
+  userId: string,
+  fullName: string,
+  location: string,
+  bio?: string | null,
+  avatarUrl?: string | null,
+) => ({
   id: userId,
   full_name: fullName,
   avatar_letter: fullName.trim().charAt(0).toUpperCase() || "U",
+  avatar_url: isNonEmptyString(avatarUrl) ? avatarUrl.trim() : null,
   location,
   member_since: new Date().toLocaleString("es-AR", { month: "long", year: "numeric" }),
   trust_indicators: defaultTrust,
@@ -92,6 +104,7 @@ export async function saveProfile(userId: string, input: SaveProfileInput): Prom
       fullName: input.fullName,
       location: input.location,
       bio: input.bio,
+      avatarUrl: input.avatarUrl,
     });
     if (shouldUseFallback()) {
       return failureResult(null, getFallbackActionMessage("Guardar tu perfil"));
@@ -100,6 +113,12 @@ export async function saveProfile(userId: string, input: SaveProfileInput): Prom
     const trimmedName = validatedInput.fullName.trim();
     const trimmedLocation = validatedInput.location.trim();
     const trimmedBio = isNonEmptyString(validatedInput.bio) ? validatedInput.bio.trim() : null;
+    const normalizedAvatarUrl =
+      typeof validatedInput.avatarUrl === "undefined"
+        ? undefined
+        : isNonEmptyString(validatedInput.avatarUrl)
+          ? validatedInput.avatarUrl.trim()
+          : null;
 
     const { data: existingProfile, error: existingError } = await supabase!
       .from("profiles")
@@ -110,7 +129,13 @@ export async function saveProfile(userId: string, input: SaveProfileInput): Prom
     if (existingError) throw existingError;
 
     if (!existingProfile) {
-      const payload = buildDefaultProfilePayload(userId, trimmedName, trimmedLocation, trimmedBio);
+      const payload = buildDefaultProfilePayload(
+        userId,
+        trimmedName,
+        trimmedLocation,
+        trimmedBio,
+        normalizedAvatarUrl,
+      );
       const { data: insertedProfile, error: insertError } = await supabase!
         .from("profiles")
         .insert(payload)
@@ -121,14 +146,17 @@ export async function saveProfile(userId: string, input: SaveProfileInput): Prom
       return successResult(mapProfileRow(insertedProfile));
     }
 
+    const profileUpdatePayload = {
+      full_name: trimmedName,
+      avatar_letter: trimmedName.charAt(0).toUpperCase() || "U",
+      location: trimmedLocation,
+      bio: trimmedBio,
+      ...(typeof normalizedAvatarUrl !== "undefined" ? { avatar_url: normalizedAvatarUrl } : {}),
+    };
+
     const { data, error } = await supabase!
       .from("profiles")
-      .update({
-        full_name: trimmedName,
-        avatar_letter: trimmedName.charAt(0).toUpperCase() || "U",
-        location: trimmedLocation,
-        bio: trimmedBio,
-      })
+      .update(profileUpdatePayload)
       .eq("id", userId)
       .select("*")
       .single<ProfilesRow>();
@@ -138,6 +166,54 @@ export async function saveProfile(userId: string, input: SaveProfileInput): Prom
     return successResult(mapProfileRow(data));
   } catch (error) {
     return failureResult(null, normalizeError(error, "No pudimos guardar tus datos."));
+  }
+}
+
+export async function uploadProfileAvatar(userId: string, file: File): Promise<ServiceResult<string | null>> {
+  try {
+    if (!isNonEmptyString(userId)) return failureResult(null, "No pudimos identificar tu perfil.");
+    if (!(file instanceof File)) return failureResult(null, "Elegí una imagen válida para tu perfil.");
+    if (shouldUseFallback()) {
+      return failureResult(null, getFallbackActionMessage("Subir tu foto de perfil"));
+    }
+
+    const avatarPath = getProfileAvatarPath(userId);
+    const fileBuffer = await file.arrayBuffer();
+    const { error: uploadError } = await supabase!.storage
+      .from(PROFILE_AVATAR_BUCKET)
+      .upload(avatarPath, fileBuffer, {
+        upsert: true,
+        contentType: file.type || "image/jpeg",
+        cacheControl: "3600",
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase!.storage.from(PROFILE_AVATAR_BUCKET).getPublicUrl(avatarPath);
+    if (!isNonEmptyString(data.publicUrl)) {
+      return failureResult(null, "No pudimos obtener la foto subida.");
+    }
+
+    return successResult(getVersionedAvatarUrl(data.publicUrl));
+  } catch (error) {
+    return failureResult(null, normalizeError(error, "No pudimos subir tu foto de perfil."));
+  }
+}
+
+export async function removeProfileAvatar(userId: string): Promise<ServiceResult<null>> {
+  try {
+    if (!isNonEmptyString(userId)) return failureResult(null, "No pudimos identificar tu perfil.");
+    if (shouldUseFallback()) {
+      return failureResult(null, getFallbackActionMessage("Eliminar tu foto de perfil"));
+    }
+
+    const avatarPath = getProfileAvatarPath(userId);
+    const { error } = await supabase!.storage.from(PROFILE_AVATAR_BUCKET).remove([avatarPath]);
+    if (error && !error.message.toLowerCase().includes("not found")) throw error;
+
+    return successResult(null);
+  } catch (error) {
+    return failureResult(null, normalizeError(error, "No pudimos eliminar tu foto de perfil."));
   }
 }
 

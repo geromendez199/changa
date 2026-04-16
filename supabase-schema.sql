@@ -31,6 +31,7 @@ create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null,
   avatar_letter text not null check (char_length(avatar_letter) <= 2),
+  avatar_url text,
   location text not null,
   member_since text not null,
   verified boolean not null default false,
@@ -42,6 +43,9 @@ create table if not exists profiles (
   trust_indicators text[] not null default '{}',
   created_at timestamptz not null default now()
 );
+
+alter table profiles
+add column if not exists avatar_url text;
 
 create table if not exists jobs (
   id uuid primary key default gen_random_uuid(),
@@ -210,6 +214,44 @@ create policy "payment methods owner write" on payment_methods for all using (au
 
 -- transactions: owner read
 create policy "transactions owner read" on transactions for select using (auth.uid() = user_id);
+
+-- storage: profile avatars
+insert into storage.buckets (id, name, public)
+values ('profile-avatars', 'profile-avatars', true)
+on conflict (id) do update set public = true;
+
+create policy "profile avatars public read"
+on storage.objects
+for select
+using (bucket_id = 'profile-avatars');
+
+create policy "profile avatars owner insert"
+on storage.objects
+for insert
+with check (
+  bucket_id = 'profile-avatars'
+  and auth.uid()::text = (storage.foldername(name))[1]
+);
+
+create policy "profile avatars owner update"
+on storage.objects
+for update
+using (
+  bucket_id = 'profile-avatars'
+  and auth.uid()::text = (storage.foldername(name))[1]
+)
+with check (
+  bucket_id = 'profile-avatars'
+  and auth.uid()::text = (storage.foldername(name))[1]
+);
+
+create policy "profile avatars owner delete"
+on storage.objects
+for delete
+using (
+  bucket_id = 'profile-avatars'
+  and auth.uid()::text = (storage.foldername(name))[1]
+);
 
 -- ============================================================
 -- PERFORMANCE INDEXES (added Phase 3 refactor)

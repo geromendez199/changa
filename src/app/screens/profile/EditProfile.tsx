@@ -43,7 +43,19 @@ const loadImage = (src: string) =>
     image.src = src;
   });
 
-const buildAvatarPreview = async (file: File) => {
+const canvasToBlob = (canvas: HTMLCanvasElement) =>
+  new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("No pudimos preparar la foto de perfil."));
+        return;
+      }
+
+      resolve(blob);
+    }, "image/jpeg", AVATAR_OUTPUT_QUALITY);
+  });
+
+const buildAvatarAsset = async (file: File) => {
   const sourceDataUrl = await readFileAsDataUrl(file);
   const image = await loadImage(sourceDataUrl);
   const canvas = document.createElement("canvas");
@@ -60,7 +72,15 @@ const buildAvatarPreview = async (file: File) => {
   }
 
   context.drawImage(image, 0, 0, targetWidth, targetHeight);
-  return canvas.toDataURL("image/jpeg", AVATAR_OUTPUT_QUALITY);
+  const blob = await canvasToBlob(canvas);
+
+  return {
+    previewUrl: canvas.toDataURL("image/jpeg", AVATAR_OUTPUT_QUALITY),
+    uploadFile: new File([blob], "avatar.jpg", {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    }),
+  };
 };
 
 export function EditProfile() {
@@ -72,7 +92,9 @@ export function EditProfile() {
   const [location, setLocation] = useState(user?.location || "");
   const [bio, setBio] = useState(user?.bio || "");
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarFileName, setAvatarFileName] = useState("");
+  const [removeAvatar, setRemoveAvatar] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isProcessingAvatar, setIsProcessingAvatar] = useState(false);
@@ -84,7 +106,9 @@ export function EditProfile() {
     setLocation(user.location || "");
     setBio(user.bio || "");
     setAvatarUrl(user.avatarUrl || "");
+    setAvatarFile(null);
     setAvatarFileName("");
+    setRemoveAvatar(false);
   }, [user]);
 
   if (!user) return null;
@@ -110,12 +134,14 @@ export function EditProfile() {
     setIsProcessingAvatar(true);
 
     try {
-      const previewUrl = await buildAvatarPreview(file);
+      const { previewUrl, uploadFile } = await buildAvatarAsset(file);
       setAvatarUrl(previewUrl);
+      setAvatarFile(uploadFile);
       setAvatarFileName(file.name);
+      setRemoveAvatar(false);
       event.target.value = "";
       toast.success("Foto lista", {
-        description: "La imagen ya está cargada y lista para guardarse en este dispositivo.",
+        description: "La imagen ya está lista para guardarse y sincronizarse entre tus dispositivos.",
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "No pudimos procesar la imagen.";
@@ -128,7 +154,9 @@ export function EditProfile() {
 
   const onRemoveAvatar = () => {
     setAvatarUrl("");
+    setAvatarFile(null);
     setAvatarFileName("");
+    setRemoveAvatar(true);
     setFeedback(null);
 
     if (fileInputRef.current) {
@@ -157,7 +185,8 @@ export function EditProfile() {
       fullName: trimmedName,
       location: trimmedLocation,
       bio,
-      avatarUrl,
+      avatarFile,
+      removeAvatar,
     });
     setIsSaving(false);
 
@@ -172,8 +201,8 @@ export function EditProfile() {
 
     setFeedback({ type: "success", message: "Perfil guardado correctamente" });
     toast.success("Perfil actualizado", {
-      description: avatarUrl.trim()
-        ? "Los datos principales ya se actualizaron. La foto queda guardada en este dispositivo."
+      description: avatarUrl.trim() || removeAvatar
+        ? "Tus cambios ya quedaron sincronizados con tu cuenta."
         : "Tus cambios principales ya están visibles en Changa.",
     });
     setTimeout(() => navigate("/profile"), 900);
@@ -200,18 +229,18 @@ export function EditProfile() {
         </SurfaceCard>
 
         <SurfaceCard tone="soft" padding="sm" className="text-sm leading-relaxed text-[var(--app-text-muted)] shadow-none">
-          La foto se carga desde tu dispositivo y, por ahora, queda guardada en este equipo o
-          celular mientras terminamos la sincronización segura entre sesiones.
+          La foto se carga desde tu dispositivo, se sube a tu cuenta y después se ve igual en tu
+          compu, tu celular y cualquier otra sesión iniciada.
         </SurfaceCard>
 
         <SurfaceCard padding="lg" className="space-y-4">
           <div className="flex items-center gap-4">
             <UserAvatar
               name={name || user.name}
-              avatarUrl={avatarUrl || user.avatarUrl}
+              avatarUrl={removeAvatar ? undefined : avatarUrl || user.avatarUrl}
               fallbackLetter={user.avatarLetter}
               size="lg"
-              tone={avatarUrl ? "surface" : "soft"}
+              tone={!removeAvatar && (avatarUrl || user.avatarUrl) ? "surface" : "soft"}
             />
             <div>
               <p className="text-sm font-semibold text-[var(--app-text)]">Vista previa del perfil</p>

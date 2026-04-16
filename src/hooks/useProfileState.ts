@@ -3,7 +3,13 @@
  * CHANGED: YYYY-MM-DD
  */
 import { useCallback, useState } from "react";
-import { getProfileBundle, getPublicProfiles, saveProfile } from "../services/profiles.service";
+import {
+  getProfileBundle,
+  getPublicProfiles,
+  removeProfileAvatar,
+  saveProfile,
+  uploadProfileAvatar,
+} from "../services/profiles.service";
 import { isNonEmptyString, successResult } from "../services/service.utils";
 import { Profile, Review } from "../types/domain";
 
@@ -11,7 +17,8 @@ export interface SaveUserProfileInput {
   fullName: string;
   location: string;
   bio?: string;
-  avatarUrl?: string;
+  avatarFile?: File | null;
+  removeAvatar?: boolean;
 }
 
 interface UseProfileStateOptions {
@@ -19,60 +26,18 @@ interface UseProfileStateOptions {
   pushError: (message?: string) => void;
 }
 
-const PROFILE_AVATAR_STORAGE_KEY = "changa-profile-avatar-urls";
-
-const readPersistedAvatarUrls = (): Record<string, string> => {
-  if (typeof window === "undefined") return {};
-
-  try {
-    const rawValue = window.localStorage.getItem(PROFILE_AVATAR_STORAGE_KEY);
-    if (!rawValue) return {};
-
-    const parsed = JSON.parse(rawValue);
-    if (!parsed || typeof parsed !== "object") return {};
-
-    return Object.entries(parsed).reduce<Record<string, string>>((acc, [key, value]) => {
-      if (typeof value === "string" && value.trim()) {
-        acc[key] = value.trim();
-      }
-      return acc;
-    }, {});
-  } catch {
-    return {};
-  }
-};
-
-const writePersistedAvatarUrl = (profileUserId: string, avatarUrl?: string) => {
-  if (typeof window === "undefined" || !profileUserId) return;
-
-  const current = readPersistedAvatarUrls();
-  if (avatarUrl?.trim()) {
-    current[profileUserId] = avatarUrl.trim();
-  } else {
-    delete current[profileUserId];
-  }
-
-  window.localStorage.setItem(PROFILE_AVATAR_STORAGE_KEY, JSON.stringify(current));
-};
-
-const applyPersistedAvatar = (profile: Profile): Profile => {
-  const persisted = readPersistedAvatarUrls()[profile.id];
-  return persisted ? { ...profile, avatarUrl: persisted } : profile;
-};
-
 export function useProfileState({ userId, pushError }: UseProfileStateOptions) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
 
   const updateProfileInState = useCallback((profile: Profile) => {
-    const nextProfile = applyPersistedAvatar(profile);
-    setProfiles((prev) => [nextProfile, ...prev.filter((item) => item.id !== nextProfile.id)]);
-    return nextProfile;
+    setProfiles((prev) => [profile, ...prev.filter((item) => item.id !== profile.id)]);
+    return profile;
   }, []);
 
   const loadPublicProfiles = useCallback(async () => {
     const result = await getPublicProfiles();
-    setProfiles(result.data.map(applyPersistedAvatar));
+    setProfiles(result.data);
     pushError(result.error);
     return result;
   }, [pushError]);
@@ -99,10 +64,30 @@ export function useProfileState({ userId, pushError }: UseProfileStateOptions) {
         return { ok: false, message: "Necesitás iniciar sesión para editar tu perfil." };
       }
 
+      let nextAvatarUrl: string | null | undefined;
+
+      if (input.removeAvatar) {
+        const removeResult = await removeProfileAvatar(userId);
+        if (removeResult.error) {
+          pushError(removeResult.error);
+          return { ok: false, message: removeResult.error };
+        }
+        nextAvatarUrl = null;
+      } else if (input.avatarFile) {
+        const uploadResult = await uploadProfileAvatar(userId, input.avatarFile);
+        if (!uploadResult.data) {
+          const message = uploadResult.error ?? "No pudimos subir tu foto de perfil.";
+          pushError(message);
+          return { ok: false, message };
+        }
+        nextAvatarUrl = uploadResult.data;
+      }
+
       const result = await saveProfile(userId, {
         fullName: input.fullName,
         location: input.location,
         bio: input.bio,
+        avatarUrl: nextAvatarUrl,
       });
 
       if (!result.data) {
@@ -111,15 +96,9 @@ export function useProfileState({ userId, pushError }: UseProfileStateOptions) {
         return { ok: false, message };
       }
 
-      writePersistedAvatarUrl(userId, input.avatarUrl);
-      const immediateProfile = updateProfileInState({
-        ...result.data,
-        avatarUrl: input.avatarUrl?.trim() || undefined,
-      });
+      const immediateProfile = updateProfileInState(result.data);
       const refreshResult = await refreshProfile(userId);
-      const refreshedProfile = refreshResult.data?.profile
-        ? applyPersistedAvatar(refreshResult.data.profile)
-        : immediateProfile;
+      const refreshedProfile = refreshResult.data?.profile ?? immediateProfile;
 
       return { ok: true, message: "Perfil guardado correctamente", profile: refreshedProfile };
     },

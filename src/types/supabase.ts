@@ -5,6 +5,7 @@ export interface ProfilesRow {
   id: string;
   full_name: string;
   avatar_letter: string;
+  avatar_url: string | null;
   location: string;
   member_since: string;
   verified: boolean;
@@ -116,6 +117,7 @@ export const mapProfileRow = (row: Partial<ProfilesRow>): Profile => {
     name: fullName,
     fullName,
     avatarLetter,
+    avatarUrl: isNonEmptyString(row.avatar_url) ? row.avatar_url : undefined,
     location: isNonEmptyString(row.location) ? row.location : "Ubicación pendiente",
     memberSince: isNonEmptyString(row.member_since) ? row.member_since : "Reciente",
     verified: Boolean(row.verified),
