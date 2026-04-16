@@ -12,19 +12,17 @@ export function Welcome() {
 
       <div className="flex-1 flex flex-col items-center justify-center relative z-10">
         <div className="mb-12 text-center">
-          <div className="relative inline-flex items-center justify-center min-w-72 min-h-28 rounded-[2rem] mb-6 px-8 py-5 bg-white/28 border border-white/30 shadow-[0_24px_60px_rgba(8,122,85,0.28)] backdrop-blur-md">
-            <div className="pointer-events-none absolute inset-[10px] rounded-[1.4rem] border border-white/18 bg-white/12" />
+          <div className="inline-flex items-center justify-center min-w-72 min-h-28 rounded-[2rem] mb-6 px-8 py-5 bg-white border border-white/80 shadow-[0_18px_40px_rgba(8,122,85,0.18)]">
             <BrandLogo
-              className="relative z-10"
-              imageClassName="h-20 w-auto object-contain drop-shadow-[0_8px_18px_rgba(8,122,85,0.18)]"
+              imageClassName="h-20 w-auto object-contain"
               fallbackClassName="text-4xl font-bold tracking-tight text-white"
               alt="Changa"
             />
           </div>
           <div className="flex items-center justify-center gap-2">
-            <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-            <p className="text-white/90 font-medium">Tu marketplace local</p>
-            <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+            <div className="w-2 h-2 bg-white/45 rounded-full"></div>
+            <p className="text-white/88 font-medium">Tu marketplace local</p>
+            <div className="w-2 h-2 bg-white/45 rounded-full"></div>
           </div>
         </div>
 
