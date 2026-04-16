@@ -1,22 +1,65 @@
-# Changa mobile app design
+<!--
+WHY: Replace the legacy design-export README with product and architecture documentation for the real app.
+CHANGED: YYYY-MM-DD
+-->
 
-This is a code bundle for Changa mobile app design. The original project is available at https://www.figma.com/design/mOeFw661DR382ufJThUfbS/Changa-mobile-app-design.
+# Changa
 
-## Running the code
+## What this is
 
-Run `npm i` to install the dependencies.
+Changa is a React 18 + Vite SPA with direct Supabase access using a BaaS model.
+Auth, data access, and row-level security are currently managed through Supabase.
+Business logic that should be server-side will incrementally move to Supabase Edge Functions.
 
-Run `npm run dev` to start the development server.
+## Architecture
 
-## Supabase setup
+- Browser: React 18 / Vite 6 / react-router
+- Data: Supabase Postgres accessed directly from the browser via `@supabase/supabase-js`
+- Auth: Supabase Auth
+- Hosting: Vercel static deployment
+- Server-side boundary: Supabase Edge Functions, incrementally introduced for sensitive and transactional flows
 
-1. Copy `.env.example` to `.env`.
-2. In your Supabase project dashboard, go to **Project Settings → API** and copy:
-   - `Project URL` into `VITE_SUPABASE_URL`
-   - `anon public` key into `VITE_SUPABASE_ANON_KEY`
-3. Open the Supabase SQL editor and run `supabase-schema.sql`.
+## Local setup
 
-### Security note
+1. Clone the repository.
+2. Copy `.env.example` to `.env`.
+3. Fill in the Supabase environment variables from your Supabase project dashboard.
+4. Install dependencies with `npm install`.
+5. Run the app locally with `npm run dev`.
 
-- Never put the **service_role** key in frontend code.
-- This app only uses the **anon** key in Vite env vars.
+If you want the real database-backed experience, run the SQL in `supabase-schema.sql` inside the Supabase SQL editor before using the app.
+
+## Scripts
+
+- `npm run dev`: start the Vite development server
+- `npm run build`: create a production build
+- `npm run lint`: lint all TypeScript and TSX files under `src`
+- `npm run typecheck`: run the TypeScript compiler in no-emit mode
+- `npm run format`: format the `src` tree with Prettier
+- `npm run test`: run the Vitest test suite once
+- `npm run test:watch`: run Vitest in watch mode
+- `npm run check`: run typecheck, lint, and tests in sequence
+
+## Known architectural limitations (intentional for now)
+
+- Business logic partially lives in the browser, especially in `src/app/hooks/useAppState.tsx`
+- No centralized input validation yet; Zod is planned as part of the refactor roadmap
+- No test coverage yet; Vitest setup is being introduced incrementally
+- Avatar persistence is localStorage-only for now and is tracked for a future DB-backed migration
+
+## Deployment
+
+The app is deployed as a static Vercel site and connects to Supabase at runtime.
+
+Required environment variables:
+
+- `VITE_SUPABASE_URL`: Supabase project URL
+- `VITE_SUPABASE_ANON_KEY`: Supabase anon public key
+
+These variables must be set in both local development and Vercel production environments.
+
+## Supabase notes
+
+- Never expose the Supabase `service_role` key in frontend code.
+- The current app only uses the anon key in Vite environment variables.
+- Production should not rely on fallback mode. Missing Supabase variables in production are treated as a startup error.

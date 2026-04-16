@@ -1,11 +1,22 @@
 {
-  "name": "@figma/my-make-file",
+  "name": "changa",
   "private": true,
   "version": "0.0.1",
+  "x-maintainer-notes": {
+    "WHY": "Add baseline quality gates and local tooling for Phase 3A without changing the runtime architecture.",
+    "CHANGED": "YYYY-MM-DD",
+    "DEPENDENCY_JUSTIFICATION": "eslint, @typescript-eslint, prettier, vitest, and typescript are added to support linting, formatting, testing, and the new typecheck script."
+  },
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "lint": "eslint src --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write src",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm run lint && npm run test"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
@@ -67,9 +78,15 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.1.12",
+    "@typescript-eslint/eslint-plugin": "^8.25.0",
+    "@typescript-eslint/parser": "^8.25.0",
     "@vitejs/plugin-react": "4.7.0",
+    "eslint": "^8.57.1",
+    "prettier": "^3.5.3",
     "tailwindcss": "4.1.12",
-    "vite": "6.3.5"
+    "typescript": "^5.8.2",
+    "vite": "6.3.5",
+    "vitest": "^3.0.8"
   },
   "peerDependencies": {
     "react": "18.3.1",

@@ -1,3 +1,7 @@
+/**
+ * WHY: Centralize error normalization and clearly define when local fallback mode is acceptable.
+ * CHANGED: YYYY-MM-DD
+ */
 import { PostgrestError } from "@supabase/supabase-js";
 import { isSupabaseEnabled, supabase } from "../lib/supabase";
 
@@ -15,6 +19,16 @@ export function failureResult<T>(data: T, error: string, source: "supabase" | "f
   return { data, source, error };
 }
 
+/*
+ * Fallback mode means the SPA is running without a configured Supabase client.
+ * It is acceptable for local development when a contributor wants to inspect UI flows
+ * without provisioning a Supabase project yet.
+ * It is not acceptable in production, where missing environment variables must stop boot.
+ * UI code can detect fallback mode through the returned ServiceResult.source value and
+ * surface a clear message instead of pretending production data loaded successfully.
+ */
+export const FALLBACK_MODE = !isSupabaseEnabled || !supabase;
+
 export function normalizeError(error: unknown, fallbackMessage = "Error inesperado al consultar datos."): string {
   if (!error) return fallbackMessage;
   if (typeof error === "string") return error;
@@ -31,7 +45,7 @@ export function normalizeError(error: unknown, fallbackMessage = "Error inespera
 }
 
 export function shouldUseFallback() {
-  return !isSupabaseEnabled || !supabase;
+  return FALLBACK_MODE;
 }
 
 export function isNonEmptyString(value: unknown): value is string {

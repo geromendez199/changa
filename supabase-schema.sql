@@ -1,3 +1,7 @@
+-- ============================================================
+-- WHY: Add baseline schema and performance indexes for Supabase-backed reads.
+-- CHANGED: YYYY-MM-DD
+-- ============================================================
 -- Changa MVP schema + RLS
 create extension if not exists "pgcrypto";
 
@@ -176,3 +180,27 @@ create policy "payment methods owner write" on payment_methods for all using (au
 
 -- transactions: owner read
 create policy "transactions owner read" on transactions for select using (auth.uid() = user_id);
+
+-- ============================================================
+-- PERFORMANCE INDEXES (added Phase 3 refactor)
+-- ============================================================
+create index if not exists idx_jobs_status_posted_at on jobs (status, posted_at desc);
+create index if not exists idx_jobs_status_distance_posted_at on jobs (status, distance_km asc, posted_at desc);
+create index if not exists idx_jobs_posted_by_user_id_posted_at on jobs (posted_by_user_id, posted_at desc);
+create index if not exists idx_jobs_category_status_posted_at on jobs (category, status, posted_at desc);
+create index if not exists idx_jobs_urgency_status_posted_at on jobs (urgency, status, posted_at desc);
+
+create index if not exists idx_applications_applicant_created_at on applications (applicant_user_id, created_at desc);
+create index if not exists idx_applications_job_id on applications (job_id);
+
+create index if not exists idx_conversations_participant_1_last_message_at on conversations (participant_1_id, last_message_at desc);
+create index if not exists idx_conversations_participant_2_last_message_at on conversations (participant_2_id, last_message_at desc);
+create index if not exists idx_conversations_job_id on conversations (job_id);
+
+create index if not exists idx_messages_conversation_created_at on messages (conversation_id, created_at asc);
+create index if not exists idx_messages_sender_user_id on messages (sender_user_id);
+
+create index if not exists idx_reviews_reviewed_user_created_at on reviews (reviewed_user_id, created_at desc);
+create index if not exists idx_notifications_user_created_at on notifications (user_id, created_at desc);
+create index if not exists idx_payment_methods_user_created_at on payment_methods (user_id, created_at desc);
+create index if not exists idx_transactions_user_created_at on transactions (user_id, created_at desc);

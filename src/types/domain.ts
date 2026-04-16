@@ -1,3 +1,8 @@
+/**
+ * WHY: Keep a single canonical source of shared domain types after removing duplicate app-level shims.
+ * CHANGED: YYYY-MM-DD
+ */
+// Canonical domain model definitions for the SPA and service layer.
 export type UUID = string;
 
 export type JobCategory =
