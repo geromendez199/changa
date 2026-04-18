@@ -189,6 +189,7 @@ export function Profile() {
 
       <div className="mb-4 mt-8 px-6">
         <button
+          data-testid="profile-logout-button"
           onClick={async () => {
             if (isPreview && !authUserId) {
               navigate("/home");

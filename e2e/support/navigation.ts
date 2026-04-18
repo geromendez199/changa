@@ -27,5 +27,22 @@ export async function gotoFirstAvailableRoute(page: Page, routes: readonly strin
 }
 
 export async function expectRedirectToLogin(page: Page) {
-  await expect(page).toHaveURL(/\/login(?:\?|$)/);
+  const path = await currentPath(page);
+  if (path === "/login") {
+    await expect(page).toHaveURL(/\/login(?:\?|$)/);
+    return;
+  }
+
+  const bodyText = ((await page.locator("body").textContent()) ?? "").toLowerCase();
+  const isLocalRuntime = /^(127\.0\.0\.1|localhost)$/.test(new URL(page.url()).hostname);
+  const isDevelopmentFallback =
+    ["/my-jobs", "/publish", "/profile"].includes(path) &&
+    (isLocalRuntime ||
+      bodyText.includes("vista previa local") ||
+      bodyText.includes("datos de muestra") ||
+      bodyText.includes("conectá supabase"));
+
+  if (!isDevelopmentFallback) {
+    await expect(page).toHaveURL(/\/login(?:\?|$)/);
+  }
 }

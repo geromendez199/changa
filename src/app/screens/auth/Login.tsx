@@ -56,24 +56,35 @@ export function Login() {
         </h1>
 
         <div className="space-y-3">
-          <Input placeholder="Email" value={email} onChange={setEmail} type="email" size="lg" />
+          <Input
+            placeholder="Email"
+            value={email}
+            onChange={setEmail}
+            type="email"
+            size="lg"
+            data-testid="login-email-input"
+          />
           <Input
             placeholder="Contraseña"
             value={password}
             onChange={setPassword}
             type="password"
             size="lg"
+            data-testid="login-password-input"
           />
         </div>
 
         {error ? (
-          <p className="mt-4 rounded-[18px] border border-red-100 bg-red-50 p-3 text-sm text-red-600">
+          <p
+            data-testid="login-error-message"
+            className="mt-4 rounded-[18px] border border-red-100 bg-red-50 p-3 text-sm text-red-600"
+          >
             {error}
           </p>
         ) : null}
 
         <div className="mt-6">
-          <Button fullWidth onClick={onSubmit} disabled={loading}>
+          <Button fullWidth onClick={onSubmit} disabled={loading} data-testid="login-submit-button">
             {loading ? "Ingresando..." : "Entrar"}
           </Button>
         </div>

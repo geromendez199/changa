@@ -17,6 +17,7 @@ interface JobCardProps {
   featured?: boolean;
   urgency?: string;
   description?: string;
+  testId?: string;
 }
 
 export function JobCard({
@@ -30,6 +31,7 @@ export function JobCard({
   featured = false,
   urgency,
   description,
+  testId,
 }: JobCardProps) {
   const navigate = useNavigate();
 
@@ -38,6 +40,7 @@ export function JobCard({
       <button
         type="button"
         onClick={() => navigate(`/job/${id}`)}
+        data-testid={testId}
         className="app-surface min-w-[280px] cursor-pointer overflow-hidden text-left transition-[transform,box-shadow] duration-200 hover:translate-y-[-2px] hover:shadow-[var(--app-shadow-md)] lg:min-w-0"
       >
         <div className="relative">
@@ -86,6 +89,7 @@ export function JobCard({
     <button
       type="button"
       onClick={() => navigate(`/job/${id}`)}
+      data-testid={testId}
       className="app-surface cursor-pointer overflow-hidden text-left transition-[transform,box-shadow] duration-200 hover:translate-y-[-2px] hover:shadow-[var(--app-shadow-md)]"
     >
       <div className="flex gap-4 p-4">

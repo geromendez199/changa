@@ -52,16 +52,18 @@ test("@smoke No broken images on /home", async ({ page }) => {
   const homePage = new HomePage(page);
   await homePage.goto();
 
-  const srcs = (await page.locator("img").evaluateAll((images) =>
-    images
-      .map((image) => image.getAttribute("src"))
-      .filter((src): src is string => Boolean(src && !src.startsWith("data:"))),
-  )) as string[];
+  const imageDiagnostics = await page.locator("img").evaluateAll((images) =>
+    images.map((image) => ({
+      src: image.getAttribute("src") ?? "",
+      complete: image.complete,
+      naturalWidth: image.naturalWidth,
+    })),
+  );
 
-  expect(srcs.length).toBeGreaterThan(0);
+  expect(imageDiagnostics.length).toBeGreaterThan(0);
 
-  for (const src of srcs) {
-    const response = await page.context().request.get(new URL(src, page.url()).toString());
-    expect(response.status(), `Broken image: ${src}`).toBeLessThan(400);
-  }
+  const brokenImages = imageDiagnostics.filter(
+    (image) => !image.src.startsWith("data:") && (!image.complete || image.naturalWidth === 0),
+  );
+  expect(brokenImages, JSON.stringify(brokenImages, null, 2)).toEqual([]);
 });
