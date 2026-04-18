@@ -1,8 +1,9 @@
 import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.BASE_URL ?? "https://changa-three.vercel.app";
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? process.env.BASE_URL ?? "http://127.0.0.1:4173";
 const includeOptionalBrowsers = process.env.PW_OPTIONAL_BROWSERS === "1";
+const shouldBootLocalServer = /^(http:\/\/127\.0\.0\.1|http:\/\/localhost)/.test(baseURL);
 
 export default defineConfig({
   testDir: "./e2e",
@@ -22,6 +23,14 @@ export default defineConfig({
     video: "retain-on-failure",
     ignoreHTTPSErrors: true,
   },
+  webServer: shouldBootLocalServer
+    ? {
+        command: "npm run dev -- --host 127.0.0.1 --port 4173",
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      }
+    : undefined,
   projects: [
     {
       name: "chromium",

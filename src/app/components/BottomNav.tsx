@@ -39,6 +39,7 @@ export function BottomNav() {
                 key={item.path}
                 type="button"
                 onClick={() => navigateItem(item.path, item.requiresAuth)}
+                data-testid={`bottom-nav-${item.label.toLowerCase()}`}
                 className="flex -mt-8 flex-col items-center justify-center"
               >
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0DAE79_0%,#0B9A6B_100%)] shadow-[0_16px_32px_rgba(13,174,121,0.28)] transition-all duration-200 active:scale-95">
@@ -56,6 +57,7 @@ export function BottomNav() {
               key={item.path}
               type="button"
               onClick={() => navigateItem(item.path, item.requiresAuth)}
+              data-testid={`bottom-nav-${item.label.toLowerCase()}`}
               aria-current={isActive(item.path) ? "page" : undefined}
               className={`flex min-w-[68px] flex-col items-center justify-center gap-1 rounded-[20px] px-3 py-2 transition-all duration-200 ${
                 isActive(item.path) ? "bg-[var(--app-brand-soft)]" : "bg-transparent"

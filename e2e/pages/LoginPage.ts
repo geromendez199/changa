@@ -13,6 +13,7 @@ export class LoginPage {
   async fillEmail(email: string) {
     await fillFirstVisible(
       [
+        this.page.getByTestId("login-email-input"),
         this.page.locator('input[type="email"]'),
         this.page.locator('input[placeholder*="Email" i]'),
         this.page.locator('input[aria-label*="email" i]'),
@@ -25,6 +26,7 @@ export class LoginPage {
   async fillPassword(password: string) {
     await fillFirstVisible(
       [
+        this.page.getByTestId("login-password-input"),
         this.page.locator('input[type="password"]'),
         this.page.locator('input[placeholder*="Contraseña" i]'),
         this.page.locator('input[placeholder*="Password" i]'),
@@ -37,6 +39,7 @@ export class LoginPage {
   async submit() {
     await clickFirstVisible(
       [
+        this.page.getByTestId("login-submit-button"),
         this.page.getByRole("button", { name: /entrar|iniciar sesi[oó]n|ingresar/i }),
         this.page.locator('button:has-text("Entrar")'),
       ],
@@ -46,6 +49,7 @@ export class LoginPage {
 
   async getErrorMessage() {
     const locator = await resolveVisibleLocator([
+      this.page.getByTestId("login-error-message"),
       this.page.locator(
         "text=/incorrect|v[aá]lido|no se pudo|contrase[aá]a|registrado|coinciden|6 caracteres|error/i",
       ),

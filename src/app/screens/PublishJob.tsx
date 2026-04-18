@@ -194,6 +194,7 @@ export function PublishJob() {
                 <button
                   key={category}
                   onClick={() => setForm((prev) => ({ ...prev, category }))}
+                  data-testid={`publish-category-${category.toLowerCase().replace(/\s+/g, "-")}`}
                   className={`rounded-[24px] border p-5 text-left transition-all ${
                     form.category === category
                       ? "border-[var(--app-brand)] bg-[var(--app-brand-soft)] shadow-[0_12px_28px_rgba(13,174,121,0.12)]"
@@ -223,11 +224,13 @@ export function PublishJob() {
               value={form.title}
               onChange={(value) => setForm((prev) => ({ ...prev, title: value }))}
               size="lg"
+              data-testid="publish-title-input"
             />
             <Textarea
               value={form.description}
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
               placeholder="Explicá qué necesitás, si hay urgencia, materiales o algún detalle importante."
+              data-testid="publish-description-input"
             />
           </SurfaceCard>
         )}
@@ -240,9 +243,28 @@ export function PublishJob() {
             <p className="text-[var(--app-text-muted)]">
               Mientras más claro seas con la zona, el presupuesto y el momento ideal, mejores respuestas vas a recibir.
             </p>
-            <Input placeholder="Ubicación (ej: Rafaela, Santa Fe)" value={form.location} onChange={(value) => setForm((prev) => ({ ...prev, location: value }))} size="lg" />
-            <Input placeholder="Presupuesto estimado en ARS" type="number" value={form.price} onChange={(value) => setForm((prev) => ({ ...prev, price: value }))} size="lg" />
-            <Input placeholder="¿Cuándo lo necesitás? (ej: mañana por la tarde)" value={form.availability} onChange={(value) => setForm((prev) => ({ ...prev, availability: value }))} size="lg" />
+            <Input
+              placeholder="Ubicación (ej: Rafaela, Santa Fe)"
+              value={form.location}
+              onChange={(value) => setForm((prev) => ({ ...prev, location: value }))}
+              size="lg"
+              data-testid="publish-location-input"
+            />
+            <Input
+              placeholder="Presupuesto estimado en ARS"
+              type="number"
+              value={form.price}
+              onChange={(value) => setForm((prev) => ({ ...prev, price: value }))}
+              size="lg"
+              data-testid="publish-price-input"
+            />
+            <Input
+              placeholder="¿Cuándo lo necesitás? (ej: mañana por la tarde)"
+              value={form.availability}
+              onChange={(value) => setForm((prev) => ({ ...prev, availability: value }))}
+              size="lg"
+              data-testid="publish-availability-input"
+            />
             <SurfaceCard tone="muted" padding="sm">
               <p className="mb-2 text-sm font-semibold text-[var(--app-text)]">Urgencia</p>
               <div className="flex gap-2">
@@ -280,7 +302,13 @@ export function PublishJob() {
             <p className="text-[var(--app-text-muted)]">
               Podés sumar una foto para dar más contexto. Si no tenés una, igual podés publicar.
             </p>
-            <Input placeholder="URL de imagen opcional" value={form.image} onChange={(value) => setForm((prev) => ({ ...prev, image: value }))} size="lg" />
+            <Input
+              placeholder="URL de imagen opcional"
+              value={form.image}
+              onChange={(value) => setForm((prev) => ({ ...prev, image: value }))}
+              size="lg"
+              data-testid="publish-image-input"
+            />
             <SurfaceCard tone="muted" padding="md">
               <h3 className="mb-3 font-bold text-[var(--app-text)]">Así se va a ver tu changa</h3>
               <ul className="space-y-2 text-sm text-[var(--app-text-muted)]">
@@ -321,6 +349,7 @@ export function PublishJob() {
             disabled={!canProceed || publishing || (isPreview && step === totalSteps)}
             onClick={() => void onContinue()}
             icon={step === totalSteps ? <Check size={18} /> : undefined}
+            data-testid="publish-continue-button"
           >
             {step === totalSteps
               ? isPreview

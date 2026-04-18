@@ -51,6 +51,7 @@ export function Home() {
               onClick={() => navigate(currentUserId ? "/notifications" : "/login")}
               className="app-icon-button"
               aria-label="Abrir notificaciones"
+              data-testid="home-notifications-button"
             >
               <Bell size={20} className="text-[var(--app-text-muted)]" />
             </button>
@@ -62,6 +63,7 @@ export function Home() {
               icon={<Search size={20} />}
               size="lg"
               onChange={(value) => navigate(`/search?q=${encodeURIComponent(value)}`)}
+              data-testid="home-search-input"
             />
 
             <SurfaceCard tone="muted" padding="sm" className="lg:mt-0">
@@ -90,6 +92,7 @@ export function Home() {
             <button
               key={cat}
               onClick={() => navigate(`/search?category=${encodeURIComponent(cat)}`)}
+              data-testid={`home-category-${cat.toLowerCase().replace(/\s+/g, "-")}`}
               className={`flex items-center gap-2 rounded-full px-5 py-3 whitespace-nowrap transition-all duration-200 ${
                 idx === 0
                   ? "bg-[var(--app-brand)] text-white shadow-[0_16px_30px_rgba(13,174,121,0.2)]"
@@ -101,6 +104,7 @@ export function Home() {
           ))}
           <button
             onClick={() => navigate("/search")}
+            data-testid="home-category-see-more"
             className="border border-[var(--app-border)] bg-white text-[var(--app-text-muted)] flex items-center gap-2 rounded-full px-5 py-3 whitespace-nowrap transition-all duration-200"
           >
             <span className="font-semibold text-sm">Ver más</span>
@@ -148,6 +152,7 @@ export function Home() {
                     distance={formatDistance(job.distanceKm)}
                     urgency={formatUrgencyLabel(job.urgency)}
                     featured
+                    testId="home-featured-job-card"
                   />
                 ))}
             </div>
@@ -189,6 +194,7 @@ export function Home() {
                 rating={job.rating}
                 distance={formatDistance(job.distanceKm)}
                 urgency={formatUrgencyLabel(job.urgency)}
+                testId="home-nearby-job-card"
               />
             ))}
           </div>

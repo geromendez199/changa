@@ -11,14 +11,19 @@ export class HomePage {
   }
 
   getServiceCards(): Locator {
-    return this.page.locator("button").filter({
-      has: this.page.locator("img[alt]"),
-    });
+    return this.page
+      .getByTestId(/home-(featured|nearby)-job-card/)
+      .or(
+        this.page.locator("button").filter({
+          has: this.page.locator("img[alt]"),
+        }),
+      );
   }
 
   async filterByCategory(category: string) {
     await clickFirstVisible(
       [
+        this.page.getByTestId(`home-category-${category.toLowerCase().replace(/\s+/g, "-")}`),
         this.page.getByRole("button", { name: new RegExp(`^${category}$`, "i") }),
         this.page.getByText(new RegExp(`^${category}$`, "i")).locator(".."),
       ],
@@ -29,6 +34,7 @@ export class HomePage {
   async searchService(text: string) {
     await fillFirstVisible(
       [
+        this.page.getByTestId("home-search-input"),
         this.page.locator('input[placeholder*="Buscar" i]'),
         this.page.locator('input[type="search"]'),
       ],

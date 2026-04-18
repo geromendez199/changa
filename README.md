@@ -37,8 +37,14 @@ If you want the real database-backed experience, run the SQL in `supabase-schema
 - `npm run typecheck`: run the TypeScript compiler in no-emit mode
 - `npm run format`: format the `src` tree with Prettier
 - `npm run test`: run the Vitest test suite once
+- `npm run test:e2e`: run Playwright E2E suite
+- `npm run test:e2e:headed`: run E2E suite with browser UI
+- `npm run test:e2e:smoke`: run smoke subset tagged with `@smoke`
+- `npm run test:e2e:auth`: run authentication subset tagged with `@auth`
 - `npm run test:watch`: run Vitest in watch mode
 - `npm run check`: run typecheck, lint, and tests in sequence
+
+For E2E setup details, see `e2e/README.md`.
 
 ## Known architectural limitations (intentional for now)
 

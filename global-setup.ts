@@ -51,7 +51,7 @@ async function loginAndSaveState(
   }
 
   const browser = await chromium.launch();
-  const context = await browser.newContext({ baseURL: browserBaseURL });
+  const context = await browser.newContext({ baseURL: browserBaseURL, ignoreHTTPSErrors: true });
   const page = await context.newPage();
 
   try {
