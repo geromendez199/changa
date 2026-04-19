@@ -12,6 +12,7 @@ test("@core Home pública carga correctamente", async ({ page }) => {
 });
 
 test("@core Sin sesión, rutas privadas redirigen a login", async ({ page }) => {
+  test.skip(!hasSupabaseRuntimeConfig(), "Requiere Supabase configurado para validar redirecciones de auth reales.");
   await page.goto("/publish", { waitUntil: "domcontentloaded" });
 
   const stayedInPublish = /\/publish(?:\?|$)/.test(page.url());

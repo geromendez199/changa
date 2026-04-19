@@ -1,8 +1,14 @@
-import "dotenv/config";
+import "./e2e/support/load-env";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { chromium, type FullConfig, type Page } from "@playwright/test";
-import { getBaseUrl, getProviderCredentials, getUserCredentials } from "./e2e/support/env";
+import {
+  getBaseUrl,
+  getMissingAuthEnvVars,
+  getProviderCredentials,
+  getUserCredentials,
+  requiresAuthCredentials,
+} from "./e2e/support/env";
 
 const DEFAULT_BASE_URL = "https://changa-three.vercel.app";
 const AUTH_DIR = path.resolve(process.cwd(), "auth");
@@ -107,6 +113,13 @@ export default async function globalSetup(config: FullConfig) {
   const baseURL = config.projects[0]?.use?.baseURL?.toString() ?? getBaseUrl() ?? DEFAULT_BASE_URL;
   const userCredentials = getUserCredentials();
   const providerCredentials = getProviderCredentials();
+
+  const missingAuthEnvVars = getMissingAuthEnvVars();
+  if (requiresAuthCredentials() && missingAuthEnvVars.length > 0) {
+    throw new Error(
+      `[global-setup] REQUIRE_AUTH_CREDENTIALS=1 but these variables are missing: ${missingAuthEnvVars.join(", ")}`,
+    );
+  }
 
   await fs.mkdir(AUTH_DIR, { recursive: true });
   await Promise.all([
