@@ -2,7 +2,7 @@ import { test, expect } from "./support/test-base";
 import { LoginPage } from "./pages/LoginPage";
 import { HomePage } from "./pages/HomePage";
 import { AUTH_PATHS, hasSupabaseSession } from "./support/auth";
-import { getEnv, hasClientCredentials } from "./support/env";
+import { getEnv, hasClientCredentials, hasSupabaseRuntimeConfig } from "./support/env";
 import { uniqueValue } from "./support/scenarios";
 
 test("@core Home pública carga correctamente", async ({ page }) => {
@@ -42,6 +42,7 @@ test("@core Navegación principal permite ir a búsqueda", async ({ page }) => {
 
 test("@core Login exitoso con usuario de prueba", async ({ page }) => {
   test.skip(!hasClientCredentials(), "Requiere TEST_EMAIL y TEST_PASSWORD.");
+  test.skip(!hasSupabaseRuntimeConfig(), "Requiere VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.");
 
   const loginPage = new LoginPage(page);
   await loginPage.goto();
@@ -55,6 +56,7 @@ test("@core Login exitoso con usuario de prueba", async ({ page }) => {
 
 test("@core Login fallido mantiene al usuario en /login", async ({ page }) => {
   test.skip(!hasClientCredentials(), "Requiere TEST_EMAIL para probar contraseña incorrecta.");
+  test.skip(!hasSupabaseRuntimeConfig(), "Requiere VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.");
 
   const loginPage = new LoginPage(page);
   await loginPage.goto();
@@ -70,6 +72,7 @@ test.describe.serial("@core autenticado", () => {
   test.use({ storageState: AUTH_PATHS.user });
 
   test("@core Usuario autenticado puede hacer logout", async ({ page }) => {
+    test.skip(!hasSupabaseRuntimeConfig(), "Requiere VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.");
     await page.goto("/profile", { waitUntil: "domcontentloaded" });
     test.skip(!(await hasSupabaseSession(page)), "Requiere storage state autenticado.");
 
@@ -80,6 +83,7 @@ test.describe.serial("@core autenticado", () => {
   });
 
   test("@core Usuario autenticado puede publicar una changa", async ({ page }) => {
+    test.skip(!hasSupabaseRuntimeConfig(), "Requiere VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.");
     await page.goto("/publish", { waitUntil: "domcontentloaded" });
     test.skip(!(await hasSupabaseSession(page)), "Requiere storage state autenticado.");
 
@@ -100,6 +104,7 @@ test.describe.serial("@core autenticado", () => {
   });
 
   test("@core Usuario puede buscar y abrir detalle de changa", async ({ page }) => {
+    test.skip(!hasSupabaseRuntimeConfig(), "Requiere VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.");
     const homePage = new HomePage(page);
     await homePage.goto();
     test.skip(!(await hasSupabaseSession(page)), "Requiere storage state autenticado.");
