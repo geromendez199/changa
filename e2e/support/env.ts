@@ -1,3 +1,5 @@
+import "./load-env";
+
 export function getEnv(name: string, fallback = "") {
   return process.env[name]?.trim() || fallback;
 }
@@ -40,4 +42,17 @@ export function hasClientCredentials() {
 
 export function hasProviderCredentials() {
   return Boolean(getProviderCredentials());
+}
+
+export function requiresAuthCredentials() {
+  return getEnv("REQUIRE_AUTH_CREDENTIALS") === "1";
+}
+
+export function getMissingAuthEnvVars() {
+  const missing: string[] = [];
+  if (!getEnv("VITE_SUPABASE_URL")) missing.push("VITE_SUPABASE_URL");
+  if (!getEnv("VITE_SUPABASE_ANON_KEY")) missing.push("VITE_SUPABASE_ANON_KEY");
+  if (!getEnv("TEST_EMAIL")) missing.push("TEST_EMAIL");
+  if (!getEnv("TEST_PASSWORD")) missing.push("TEST_PASSWORD");
+  return missing;
 }

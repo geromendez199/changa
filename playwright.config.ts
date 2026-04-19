@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./e2e/support/load-env";
 import { defineConfig, devices } from "@playwright/test";
 import { getBaseUrl } from "./e2e/support/env";
 

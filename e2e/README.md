@@ -40,3 +40,30 @@ npm run test:e2e:report
 - `e2e/pages/`: page objects reutilizables.
 - `e2e/support/`: helpers, auth/session setup y utilidades.
 
+
+## Variables para flujos autenticados reales
+
+El runner carga variables en este orden (sin pisar valores ya exportados):
+
+1. `.env.e2e.local`
+2. `.env.e2e`
+3. `.env.local`
+4. `.env`
+
+Para forzar que la corrida falle (en vez de saltear auth bootstrap) cuando faltan credenciales, definir:
+
+```bash
+REQUIRE_AUTH_CREDENTIALS=1
+```
+
+Variables mínimas para validar auth real:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `TEST_EMAIL`
+- `TEST_PASSWORD`
+
+Opcional para segundo actor (prestador):
+
+- `TEST_PROVIDER_EMAIL`
+- `TEST_PROVIDER_PASSWORD`
