@@ -2,7 +2,7 @@
  * WHY: Turn job detail into a complete marketplace flow where workers can apply and clients can manage applicants with chat continuity.
  * CHANGED: YYYY-MM-DD
  */
-import { ArrowLeft, Calendar, Clock, MapPin, Shield, Star } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Shield, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ import { SurfaceCard } from "../components/SurfaceCard";
 import { Textarea } from "../components/Textarea";
 import { UserAvatar } from "../components/UserAvatar";
 import { useAppState } from "../hooks/useAppState";
-import { Application, Job } from "../types/domain";
+import { Application, Job } from "../../types/domain";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
 import { getFallbackPreviewMessage } from "../../services/service.utils";
 

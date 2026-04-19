@@ -1,4 +1,4 @@
-import { Job } from "../types/domain";
+import { Job } from "../../types/domain";
 
 export type JobSort = "distance" | "precio_asc" | "precio_desc" | "rating";
 

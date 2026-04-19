@@ -2,6 +2,7 @@ import "dotenv/config";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { chromium, type FullConfig, type Page } from "@playwright/test";
+import { getBaseUrl, getProviderCredentials, getUserCredentials } from "./e2e/support/env";
 
 const DEFAULT_BASE_URL = "https://changa-three.vercel.app";
 const AUTH_DIR = path.resolve(process.cwd(), "auth");
@@ -103,13 +104,13 @@ async function loginAndSaveState(
 }
 
 export default async function globalSetup(config: FullConfig) {
-  const baseURL = config.projects[0]?.use?.baseURL?.toString() ?? process.env.BASE_URL ?? DEFAULT_BASE_URL;
-  const providerEmail = process.env.TEST_PROVIDER_EMAIL ?? process.env.TEST_EMAIL;
-  const providerPassword = process.env.TEST_PROVIDER_PASSWORD ?? process.env.TEST_PASSWORD;
+  const baseURL = config.projects[0]?.use?.baseURL?.toString() ?? getBaseUrl() ?? DEFAULT_BASE_URL;
+  const userCredentials = getUserCredentials();
+  const providerCredentials = getProviderCredentials();
 
   await fs.mkdir(AUTH_DIR, { recursive: true });
   await Promise.all([
-    loginAndSaveState(baseURL, USER_STATE_PATH, process.env.TEST_EMAIL, process.env.TEST_PASSWORD),
-    loginAndSaveState(baseURL, PROVIDER_STATE_PATH, providerEmail, providerPassword),
+    loginAndSaveState(baseURL, USER_STATE_PATH, userCredentials?.email, userCredentials?.password),
+    loginAndSaveState(baseURL, PROVIDER_STATE_PATH, providerCredentials?.email, providerCredentials?.password),
   ]);
 }

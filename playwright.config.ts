@@ -1,7 +1,8 @@
 import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
+import { getBaseUrl } from "./e2e/support/env";
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? process.env.BASE_URL ?? "http://127.0.0.1:4173";
+const baseURL = getBaseUrl();
 const includeOptionalBrowsers = process.env.PW_OPTIONAL_BROWSERS === "1";
 const shouldBootLocalServer = /^(http:\/\/127\.0\.0\.1|http:\/\/localhost)/.test(baseURL);
 

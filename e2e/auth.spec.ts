@@ -4,7 +4,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { ROUTES } from "./support/constants";
 import { gotoFirstAvailableRoute } from "./support/navigation";
 import { hasSupabaseSession } from "./support/auth";
-import { getEnv, hasClientCredentials } from "./support/env";
+import { getEnv, hasClientCredentials, hasSupabaseRuntimeConfig } from "./support/env";
 
 async function openProfileFromHome(page: Page) {
   await page.waitForTimeout(1500);
@@ -21,6 +21,7 @@ async function openProfileFromHome(page: Page) {
 
 test("@auth Login with valid credentials lands on /home and sees user content", async ({ page }) => {
   test.skip(!hasClientCredentials(), "Requires TEST_EMAIL and TEST_PASSWORD for a real Supabase-backed login.");
+  test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
 
   const loginPage = new LoginPage(page);
   await loginPage.goto();
@@ -34,6 +35,7 @@ test("@auth Login with valid credentials lands on /home and sees user content", 
 
 test("@auth Login with wrong password shows error message and does not redirect", async ({ page }) => {
   test.skip(!hasClientCredentials(), "Requires a known valid TEST_EMAIL to verify wrong-password handling.");
+  test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
 
   const loginPage = new LoginPage(page);
   await loginPage.goto();
@@ -76,6 +78,7 @@ test("@auth Login with non-existent email shows error and does not crash", async
 
 test("@auth Register with already-used email shows appropriate error", async ({ page }) => {
   test.skip(!hasClientCredentials(), "Requires TEST_EMAIL to already exist in Supabase.");
+  test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
 
   await gotoFirstAvailableRoute(page, ROUTES.register);
   await page.locator('input[type="email"], input[placeholder*="Email" i]').first().fill(getEnv("TEST_EMAIL"));
@@ -111,6 +114,7 @@ test("@auth Register with mismatched passwords shows error when confirmation exi
 
 test("@auth After login, clicking logout redirects to /login and clears session", async ({ page }) => {
   test.skip(!hasClientCredentials(), "Requires TEST_EMAIL and TEST_PASSWORD for a real logout assertion.");
+  test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
 
   const loginPage = new LoginPage(page);
   await loginPage.goto();
@@ -128,6 +132,7 @@ test("@auth After login, clicking logout redirects to /login and clears session"
 
 test("@auth After logout, accessing /home with browser back button keeps the session cleared", async ({ page }) => {
   test.skip(!hasClientCredentials(), "Requires TEST_EMAIL and TEST_PASSWORD for a real logout/back-navigation assertion.");
+  test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
 
   const loginPage = new LoginPage(page);
   await loginPage.goto();

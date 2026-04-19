@@ -31,7 +31,7 @@ export interface SaveProfileInput {
   avatarUrl?: string | null;
 }
 
-const defaultTrust = [];
+const defaultTrust: string[] = [];
 const PROFILE_AVATAR_BUCKET = "profile-avatars";
 
 const getProfileAvatarPath = (userId: string) => `${userId}/avatar.jpg`;

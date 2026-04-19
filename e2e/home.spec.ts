@@ -3,18 +3,21 @@ import { AUTH_PATHS, hasSupabaseSession } from "./support/auth";
 import { HomePage } from "./pages/HomePage";
 import { FALLBACK_CATEGORY_LABELS } from "./support/constants";
 import { attemptCreateOrderFromHome, ensurePublishedJob } from "./support/scenarios";
+import { hasSupabaseRuntimeConfig } from "./support/env";
 import { resolveVisibleLocator } from "./support/ui";
 
 test.describe.serial("@home", () => {
   test.use({ storageState: AUTH_PATHS.user });
 
   test.beforeAll(async ({ browser }) => {
+    if (!hasSupabaseRuntimeConfig()) return;
     const page = await browser.newPage({ storageState: AUTH_PATHS.user });
     await ensurePublishedJob(page);
     await page.close();
   });
 
   test("@home /home shows at least 1 service card after loading", async ({ page }) => {
+    test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
     const homePage = new HomePage(page);
     await homePage.goto();
     test.skip(
@@ -26,6 +29,7 @@ test.describe.serial("@home", () => {
   });
 
   test("@home Each service card has title and category label, and opens a meaningful detail state", async ({ page }) => {
+    test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
     const homePage = new HomePage(page);
     await homePage.goto();
     test.skip(
@@ -46,6 +50,7 @@ test.describe.serial("@home", () => {
   });
 
   test("@home Category filter buttons are visible", async ({ page }) => {
+    test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
     const homePage = new HomePage(page);
     await homePage.goto();
     test.skip(
@@ -59,6 +64,7 @@ test.describe.serial("@home", () => {
   });
 
   test("@home Clicking a category filter only shows services of that category", async ({ page }) => {
+    test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
     const homePage = new HomePage(page);
     await homePage.goto();
     test.skip(
@@ -76,6 +82,7 @@ test.describe.serial("@home", () => {
   });
 
   test("@home Clicking All or resetting the filter shows all services again", async ({ page }) => {
+    test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
     const homePage = new HomePage(page);
     await homePage.goto();
     test.skip(
@@ -92,6 +99,7 @@ test.describe.serial("@home", () => {
   });
 
   test("@home Clicking a service card opens its detail or a hire modal", async ({ page }) => {
+    test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
     const homePage = new HomePage(page);
     await homePage.goto();
     test.skip(
@@ -110,6 +118,7 @@ test.describe.serial("@home", () => {
   });
 
   test("@home Hiring a service creates an order or shows a success message", async ({ page }) => {
+    test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
     test.skip(
       !(await hasSupabaseSession(page)),
       "Requires an authenticated client session and a real Supabase backend to create an order/application.",
@@ -127,6 +136,7 @@ test.describe.serial("@home", () => {
   });
 
   test("@home Reloading the page makes services appear again", async ({ page }) => {
+    test.skip(!hasSupabaseRuntimeConfig(), "Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
     const homePage = new HomePage(page);
     await homePage.goto();
     test.skip(
