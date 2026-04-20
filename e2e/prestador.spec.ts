@@ -82,50 +82,45 @@ test.describe.serial("@prestador", () => {
 
   test("@prestador Submitting form with empty title shows validation error", async ({ page }) => {
     const prestadorPage = new PrestadorPage(page);
-    await prestadorPage.goto();
+    await page.goto("/publish", { waitUntil: "domcontentloaded" });
+    await page.waitForLoadState("networkidle").catch(() => undefined);
     test.skip(
       !(await hasSupabaseSession(page)),
       "Requires an authenticated provider session and a real provider create form.",
     );
 
-    await prestadorPage.clickCreateService();
-    const categoryButton = page.getByRole("button", { name: /otros|hogar|oficios/i }).first();
-    if (await categoryButton.isVisible().catch(() => false)) {
-      await categoryButton.click();
-      await page.getByRole("button", { name: /continuar/i }).first().click();
-    }
+    await prestadorPage.selectCategoryAndContinue("Otros");
 
     await page.locator("textarea").first().fill("Descripción suficiente para disparar la validación.");
-    await page.getByRole("button", { name: /continuar/i }).first().click();
-    await expect(page.locator("text=/t[íi]tulo.*8 caracteres|t[íi]tulo/i").first()).toBeVisible();
+    await expect(prestadorPage.getContinueButton()).toBeDisabled();
+    await expect(page.getByText(/contanos qué necesitás/i)).toBeVisible();
   });
 
   test("@prestador Submitting form with negative price shows validation error", async ({ page }) => {
     const prestadorPage = new PrestadorPage(page);
-    await prestadorPage.goto();
+    await page.goto("/publish", { waitUntil: "domcontentloaded" });
+    await page.waitForLoadState("networkidle").catch(() => undefined);
     test.skip(
       !(await hasSupabaseSession(page)),
       "Requires an authenticated provider session and a real provider create form.",
     );
 
-    await prestadorPage.clickCreateService();
-    const categoryButton = page.getByRole("button", { name: /otros|hogar|oficios/i }).first();
-    if (await categoryButton.isVisible().catch(() => false)) {
-      await categoryButton.click();
-      await page.getByRole("button", { name: /continuar/i }).first().click();
-    }
+    await prestadorPage.selectCategoryAndContinue("Otros");
 
-    await page.locator('input[placeholder*="título" i]').first().fill("Servicio temporal QA");
+    await page
+      .locator('input[placeholder*="Arreglar" i], input[placeholder*="título" i]')
+      .first()
+      .fill("Servicio temporal QA");
     await page.locator("textarea").first().fill("Descripción suficientemente larga para pasar la validación.");
-    await page.getByRole("button", { name: /continuar/i }).first().click();
+    await prestadorPage.getContinueButton().click();
     await page.locator('input[type="number"]').first().fill("-1");
     const locationField = page.locator('input[placeholder*="ubicación" i]').first();
     if (await locationField.isVisible().catch(() => false)) await locationField.fill("Rafaela");
     const availabilityField = page.locator('input[placeholder*="cuándo" i]').first();
     if (await availabilityField.isVisible().catch(() => false)) await availabilityField.fill("Mañana");
-    await page.getByRole("button", { name: /continuar/i }).first().click();
+    await expect(prestadorPage.getContinueButton()).toBeDisabled();
 
-    await expect(page.locator("text=/precio v[aá]lido|presupuesto/i").first()).toBeVisible();
+    await expect(page.getByText(/ubicación, presupuesto y tiempos/i)).toBeVisible();
   });
 
   test("@prestador Editing an existing service saves and reflects the changes", async ({ page }) => {

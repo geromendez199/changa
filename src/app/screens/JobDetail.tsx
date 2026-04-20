@@ -197,7 +197,14 @@ export function JobDetail() {
 
     setJobApplications((prev) =>
       prev.map((item) =>
-        item.id === application.id ? { ...item, status, coverMessage: item.coverMessage, proposedAmount: item.proposedAmount } : item,
+        item.id === application.id
+          ? {
+              ...item,
+              status,
+              coverMessage: item.coverMessage,
+              proposedAmount: item.proposedAmount,
+            }
+          : item,
       ),
     );
 

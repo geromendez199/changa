@@ -18,24 +18,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const ensureProfile = async (nextSession: Session | null) => {
+    if (!nextSession?.user) return;
+
+    await ensureProfileForUser(nextSession.user);
+  };
+
   useEffect(() => {
     let mounted = true;
 
     const bootstrap = async () => {
       const currentSession = await getCurrentSession();
       if (!mounted) return;
+
       setSession(currentSession);
-      if (currentSession?.user) await ensureProfileForUser(currentSession.user);
       setIsLoading(false);
+      void ensureProfile(currentSession);
     };
 
     void bootstrap();
 
-    const subscription = onAuthStateChange(async (_event, nextSession) => {
+    const subscription = onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
-      if (nextSession?.user) {
-        await ensureProfileForUser(nextSession.user);
-      }
+      void ensureProfile(nextSession);
     });
 
     return () => {
@@ -55,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (result.ok) {
           const nextSession = await getCurrentSession();
           setSession(nextSession);
-          if (nextSession?.user) await ensureProfileForUser(nextSession.user);
+          void ensureProfile(nextSession);
         }
         return result;
       },

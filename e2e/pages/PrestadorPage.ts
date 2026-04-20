@@ -3,6 +3,10 @@ import { ROUTES } from "../support/constants";
 import { gotoFirstAvailableRoute } from "../support/navigation";
 import { clickFirstVisible, fillFirstVisible, resolveVisibleLocator } from "../support/ui";
 
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export class PrestadorPage {
   constructor(private readonly page: Page) {}
 
@@ -30,18 +34,25 @@ export class PrestadorPage {
     await gotoFirstAvailableRoute(this.page, ["/prestador", "/publish"]);
   }
 
-  async fillServiceForm(title: string, description: string, price: number, category: string) {
+  getContinueButton(): Locator {
+    return this.page.getByRole("button", { name: /continuar/i }).first();
+  }
+
+  async selectCategoryAndContinue(category: string) {
     const categoryButton = await resolveVisibleLocator([
-      this.page.getByRole("button", { name: new RegExp(`^${category}$`, "i") }),
+      this.page.getByRole("button", { name: new RegExp(`^${escapeRegex(category)}$`, "i") }),
     ]);
 
-    if (categoryButton) {
-      await categoryButton.click();
-      const continueButton = await resolveVisibleLocator([
-        this.page.getByRole("button", { name: /continuar/i }),
-      ]);
-      if (continueButton) await continueButton.click();
+    if (!categoryButton) {
+      throw new Error(`Could not find the category button for: ${category}`);
     }
+
+    await categoryButton.click();
+    await this.getContinueButton().click();
+  }
+
+  async fillServiceForm(title: string, description: string, price: number, category: string) {
+    await this.selectCategoryAndContinue(category);
 
     await fillFirstVisible(
       [
@@ -64,7 +75,7 @@ export class PrestadorPage {
     );
 
     const continueAfterDetails = await resolveVisibleLocator([
-      this.page.getByRole("button", { name: /continuar/i }),
+      this.getContinueButton(),
     ]);
     if (continueAfterDetails) await continueAfterDetails.click();
 
@@ -91,7 +102,7 @@ export class PrestadorPage {
     if (availabilityField) await availabilityField.fill("Mañana por la mañana");
 
     const finalContinue = await resolveVisibleLocator([
-      this.page.getByRole("button", { name: /continuar/i }),
+      this.getContinueButton(),
     ]);
     if (finalContinue) await finalContinue.click();
   }

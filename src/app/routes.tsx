@@ -1,50 +1,68 @@
-import { lazy, Suspense, type ComponentType, type ReactElement } from "react";
+import {
+  Suspense,
+  lazy,
+  type ComponentType,
+  type LazyExoticComponent,
+  type ReactElement,
+} from "react";
 import { createBrowserRouter, Navigate, useLocation } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { IS_DEVELOPMENT_FALLBACK } from "../services/service.utils";
 import { BrandLogo } from "./components/BrandLogo";
+import { NotFound } from "./screens/NotFound";
 
-const Welcome = lazy(() => import("./screens/Welcome").then((module) => ({ default: module.Welcome })));
-const Home = lazy(() => import("./screens/Home").then((module) => ({ default: module.Home })));
-const SearchResults = lazy(() =>
+type RouteComponent = LazyExoticComponent<ComponentType<Record<string, never>>>;
+
+const WelcomeScreen = lazy(() => import("./screens/Welcome").then((module) => ({ default: module.Welcome })));
+const LoginScreen = lazy(() => import("./screens/auth/Login").then((module) => ({ default: module.Login })));
+const SignupScreen = lazy(() => import("./screens/auth/Signup").then((module) => ({ default: module.Signup })));
+const HomeScreen = lazy(() => import("./screens/Home").then((module) => ({ default: module.Home })));
+const SearchResultsScreen = lazy(() =>
   import("./screens/SearchResults").then((module) => ({ default: module.SearchResults })),
 );
-const JobDetail = lazy(() => import("./screens/JobDetail").then((module) => ({ default: module.JobDetail })));
-const PublishJob = lazy(() => import("./screens/PublishJob").then((module) => ({ default: module.PublishJob })));
-const MyJobs = lazy(() => import("./screens/MyJobs").then((module) => ({ default: module.MyJobs })));
-const Chat = lazy(() => import("./screens/Chat").then((module) => ({ default: module.Chat })));
-const Profile = lazy(() => import("./screens/Profile").then((module) => ({ default: module.Profile })));
-const Payments = lazy(() => import("./screens/Payments").then((module) => ({ default: module.Payments })));
-const ChatDetail = lazy(() => import("./screens/chat/ChatDetail").then((module) => ({ default: module.ChatDetail })));
-const EditProfile = lazy(() =>
+const JobDetailScreen = lazy(() =>
+  import("./screens/JobDetail").then((module) => ({ default: module.JobDetail })),
+);
+const PublishJobScreen = lazy(() =>
+  import("./screens/PublishJob").then((module) => ({ default: module.PublishJob })),
+);
+const PublishConfirmationScreen = lazy(() =>
+  import("./screens/publish/PublishConfirmation").then((module) => ({
+    default: module.PublishConfirmation,
+  })),
+);
+const MyJobsScreen = lazy(() => import("./screens/MyJobs").then((module) => ({ default: module.MyJobs })));
+const ChatScreen = lazy(() => import("./screens/Chat").then((module) => ({ default: module.Chat })));
+const ChatDetailScreen = lazy(() =>
+  import("./screens/chat/ChatDetail").then((module) => ({ default: module.ChatDetail })),
+);
+const ProfileScreen = lazy(() => import("./screens/Profile").then((module) => ({ default: module.Profile })));
+const EditProfileScreen = lazy(() =>
   import("./screens/profile/EditProfile").then((module) => ({ default: module.EditProfile })),
 );
-const PublishConfirmation = lazy(() =>
-  import("./screens/publish/PublishConfirmation").then((module) => ({ default: module.PublishConfirmation })),
+const PaymentsScreen = lazy(() =>
+  import("./screens/Payments").then((module) => ({ default: module.Payments })),
 );
-const NotFound = lazy(() => import("./screens/NotFound").then((module) => ({ default: module.NotFound })));
-const Login = lazy(() => import("./screens/auth/Login").then((module) => ({ default: module.Login })));
-const Signup = lazy(() => import("./screens/auth/Signup").then((module) => ({ default: module.Signup })));
-const Notifications = lazy(() =>
+const NotificationsScreen = lazy(() =>
   import("./screens/Notifications").then((module) => ({ default: module.Notifications })),
 );
 
-function RouteFallback() {
+function LoadingState({ message }: { message: string }) {
   return (
     <div className="app-screen bg-[#F8FAFC] px-6 pt-20 font-['Inter'] text-gray-500 lg:px-10">
       <div className="app-content-shell">
         <div className="rounded-3xl border border-gray-100 bg-white p-6 text-center">
           <BrandLogo className="flex justify-center" imageClassName="h-12 w-auto object-contain" />
-          <p className="mt-3">Cargando pantalla...</p>
+          <p className="mt-3">{message}</p>
         </div>
       </div>
     </div>
   );
 }
 
-function withSuspense(Component: ComponentType) {
+function RouteView({ Component }: { Component: RouteComponent }) {
   return (
-    <Suspense fallback={<RouteFallback />}>
+    <Suspense fallback={<LoadingState message="Cargando pantalla..." />}>
       <Component />
     </Suspense>
   );
@@ -55,16 +73,7 @@ function RequireAuth({ children }: { children: ReactElement }) {
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="app-screen bg-[#F8FAFC] px-6 pt-20 font-['Inter'] text-gray-500 lg:px-10">
-        <div className="app-content-shell">
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 text-center">
-            <BrandLogo className="flex justify-center" imageClassName="h-12 w-auto object-contain" />
-            <p className="mt-3">Cargando sesión...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Cargando sesión..." />;
   }
 
   if (!userId) {
@@ -79,22 +88,32 @@ function RequireAuth({ children }: { children: ReactElement }) {
   return children;
 }
 
+function ProtectedRoute({ Component }: { Component: RouteComponent }) {
+  return (
+    <RequireAuth>
+      <RouteView Component={Component} />
+    </RequireAuth>
+  );
+}
+
 export const router = createBrowserRouter([
-  { path: "/", element: withSuspense(Welcome) },
-  { path: "/login", element: withSuspense(Login) },
-  { path: "/signup", element: withSuspense(Signup) },
-  { path: "/register", element: <Navigate to="/signup" replace /> },
-  { path: "/home", element: withSuspense(Home) },
-  { path: "/search", element: withSuspense(SearchResults) },
-  { path: "/job/:id", element: withSuspense(JobDetail) },
-  { path: "/publish", element: <RequireAuth>{withSuspense(PublishJob)}</RequireAuth> },
-  { path: "/publish/confirm/:id", element: <RequireAuth>{withSuspense(PublishConfirmation)}</RequireAuth> },
-  { path: "/my-jobs", element: <RequireAuth>{withSuspense(MyJobs)}</RequireAuth> },
-  { path: "/chat", element: <RequireAuth>{withSuspense(Chat)}</RequireAuth> },
-  { path: "/chat/:id", element: <RequireAuth>{withSuspense(ChatDetail)}</RequireAuth> },
-  { path: "/profile", element: <RequireAuth>{withSuspense(Profile)}</RequireAuth> },
-  { path: "/profile/edit", element: <RequireAuth>{withSuspense(EditProfile)}</RequireAuth> },
-  { path: "/payments", element: <RequireAuth>{withSuspense(Payments)}</RequireAuth> },
-  { path: "/notifications", element: <RequireAuth>{withSuspense(Notifications)}</RequireAuth> },
-  { path: "*", element: withSuspense(NotFound) },
+  { path: "/", element: <RouteView Component={WelcomeScreen} /> },
+  { path: "/login", element: <RouteView Component={LoginScreen} /> },
+  { path: "/signup", element: <RouteView Component={SignupScreen} /> },
+  { path: "/home", element: <RouteView Component={HomeScreen} /> },
+  { path: "/search", element: <RouteView Component={SearchResultsScreen} /> },
+  { path: "/job/:id", element: <RouteView Component={JobDetailScreen} /> },
+  { path: "/publish", element: <ProtectedRoute Component={PublishJobScreen} /> },
+  {
+    path: "/publish/confirm/:id",
+    element: <ProtectedRoute Component={PublishConfirmationScreen} />,
+  },
+  { path: "/my-jobs", element: <ProtectedRoute Component={MyJobsScreen} /> },
+  { path: "/chat", element: <ProtectedRoute Component={ChatScreen} /> },
+  { path: "/chat/:id", element: <ProtectedRoute Component={ChatDetailScreen} /> },
+  { path: "/profile", element: <ProtectedRoute Component={ProfileScreen} /> },
+  { path: "/profile/edit", element: <ProtectedRoute Component={EditProfileScreen} /> },
+  { path: "/payments", element: <ProtectedRoute Component={PaymentsScreen} /> },
+  { path: "/notifications", element: <ProtectedRoute Component={NotificationsScreen} /> },
+  { path: "*", element: <NotFound /> },
 ]);

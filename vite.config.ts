@@ -1,10 +1,10 @@
-import { defineConfig } from "vitest/config";
 import path from "path";
-import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import type { Plugin } from "vite";
+import { defineConfig } from "vitest/config";
 
-
-function figmaAssetResolver() {
+function figmaAssetResolver(): Plugin {
   return {
     name: "figma-asset-resolver",
     resolveId(id: string) {
@@ -28,6 +28,33 @@ export default defineConfig({
     alias: {
       // Alias @ to the src directory
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes("node_modules")) return undefined;
+
+          if (id.includes("@supabase")) return "supabase-vendor";
+          if (id.includes("react-router")) return "router-vendor";
+          if (id.includes("react-dom") || id.includes("/react/")) return "react-vendor";
+          if (
+            id.includes("@mui") ||
+            id.includes("@radix-ui") ||
+            id.includes("lucide-react") ||
+            id.includes("recharts") ||
+            id.includes("react-day-picker") ||
+            id.includes("embla-carousel-react") ||
+            id.includes("vaul") ||
+            id.includes("sonner")
+          ) {
+            return "ui-vendor";
+          }
+
+          return "vendor";
+        },
+      },
     },
   },
 
