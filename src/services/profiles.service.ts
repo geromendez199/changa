@@ -42,6 +42,21 @@ const mapReviews = (rows: unknown): Review[] =>
     .map(mapReviewRow)
     .filter((review) => isNonEmptyString(review.id));
 
+const buildReviewSummary = (reviews: Review[]) => {
+  const totalReviews = reviews.length;
+  if (totalReviews === 0) {
+    return { rating: 0, totalReviews: 0 };
+  }
+
+  const averageRating =
+    reviews.reduce((sum, review) => sum + Math.max(0, Math.min(5, review.rating)), 0) / totalReviews;
+
+  return {
+    rating: Number(averageRating.toFixed(1)),
+    totalReviews,
+  };
+};
+
 const buildDefaultProfilePayload = (
   userId: string,
   fullName: string,
@@ -254,19 +269,25 @@ export async function getProfileBundle(userId: string): Promise<ServiceResult<Pr
   try {
     const [{ data: profileRow, error: profileError }, { data: reviewsRows, error: reviewsError }] = await Promise.all([
       supabase!.from("profiles").select("*").eq("id", userId).maybeSingle<ProfilesRow>(),
-      supabase!.from("reviews").select("*").eq("reviewed_user_id", userId).order("created_at", { ascending: false }).limit(5),
+      supabase!.from("reviews").select("*").eq("reviewed_user_id", userId).order("created_at", { ascending: false }),
     ]);
 
     if (profileError) throw profileError;
     if (reviewsError) throw reviewsError;
     if (!profileRow) return successResult(null);
 
-    const profile = mapProfileRow(profileRow);
+    const reviews = mapReviews(reviewsRows);
+    const reviewSummary = buildReviewSummary(reviews);
+    const profile = mapProfileRow({
+      ...profileRow,
+      rating: reviewSummary.rating,
+      total_reviews: reviewSummary.totalReviews,
+    });
     if (!profile.id) return successResult(null);
 
     return successResult({
       profile,
-      reviews: mapReviews(reviewsRows),
+      reviews,
     });
   } catch (error) {
     return failureResult(null, normalizeError(error, "No pudimos cargar tu perfil."));

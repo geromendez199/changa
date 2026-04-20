@@ -111,6 +111,8 @@ export const mapProfileRow = (row: Partial<ProfilesRow>): Profile => {
   const avatarLetter = isNonEmptyString(row.avatar_letter)
     ? row.avatar_letter
     : fullName.charAt(0).toUpperCase() || "U";
+  const totalReviews = Math.max(0, Math.round(toSafeNumber(row.total_reviews, 0)));
+  const rating = totalReviews > 0 ? Number(toSafeNumber(row.rating, 0).toFixed(1)) : 0;
 
   return {
     id: isNonEmptyString(row.id) ? row.id : "",
@@ -121,8 +123,8 @@ export const mapProfileRow = (row: Partial<ProfilesRow>): Profile => {
     location: isNonEmptyString(row.location) ? row.location : "Ubicación pendiente",
     memberSince: isNonEmptyString(row.member_since) ? row.member_since : "Reciente",
     verified: Boolean(row.verified),
-    rating: Number(toSafeNumber(row.rating, 0).toFixed(1)),
-    totalReviews: Math.max(0, Math.round(toSafeNumber(row.total_reviews, 0))),
+    rating,
+    totalReviews,
     completedJobs: Math.max(0, Math.round(toSafeNumber(row.completed_jobs, 0))),
     successRate: Math.min(100, Math.max(0, Math.round(toSafeNumber(row.success_rate, 0)))),
     bio: isNonEmptyString(row.bio) ? row.bio : undefined,

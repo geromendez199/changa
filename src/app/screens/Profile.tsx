@@ -29,6 +29,9 @@ export function Profile() {
 
   const profile = profiles.find((item) => item.id === currentUser.id) ?? currentUser;
   const myReviews = reviews.filter((review) => review.reviewedUserId === profile.id).slice(0, 2);
+  const hasReviews = profile.totalReviews > 0;
+  const ratingLabel = hasReviews ? profile.rating.toFixed(1) : "Sin reseñas";
+  const reviewCountLabel = profile.totalReviews === 1 ? "1 reseña" : `${profile.totalReviews} reseñas`;
 
   return (
     <div className="app-screen pb-28">
@@ -74,12 +77,12 @@ export function Profile() {
           <div className="grid grid-cols-3 gap-6">
             <div className="text-center">
               <div className="mb-2 flex items-center justify-center">
-                <div className="rounded-xl bg-yellow-50 p-2">
-                  <Star size={20} className="text-[#FBBF24]" />
+                <div className={`rounded-xl p-2 ${hasReviews ? "bg-yellow-50" : "bg-slate-100"}`}>
+                  <Star size={20} className={hasReviews ? "text-[#FBBF24]" : "text-slate-400"} />
                 </div>
               </div>
-              <p className="mb-0.5 text-2xl font-bold text-[var(--app-text)]">{profile.rating}</p>
-              <p className="text-xs font-medium text-[var(--app-text-muted)]">Rating</p>
+              <p className="mb-0.5 text-2xl font-bold text-[var(--app-text)]">{ratingLabel}</p>
+              <p className="text-xs font-medium text-[var(--app-text-muted)]">{reviewCountLabel}</p>
             </div>
             <div className="text-center border-x border-[var(--app-border)]">
               <div className="mb-2 flex items-center justify-center">

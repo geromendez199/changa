@@ -33,6 +33,23 @@ export const IS_DEVELOPMENT_FALLBACK = FALLBACK_MODE && import.meta.env.DEV;
 export const FALLBACK_PREVIEW_MESSAGE =
   "Estás viendo una vista previa local con datos de muestra. Conectá Supabase para usar cuentas e información reales.";
 
+function normalizeSupabaseMessage(message: string) {
+  const normalizedMessage = message.trim();
+  const lowerMessage = normalizedMessage.toLowerCase();
+
+  if (lowerMessage.includes("permission denied")) return "No tenés permisos para realizar esta acción.";
+  if (lowerMessage.includes("jwt")) return "Tu sesión expiró. Iniciá sesión nuevamente.";
+  if (
+    lowerMessage.includes("bucket not found") ||
+    lowerMessage.includes("bucket not fund") ||
+    (lowerMessage.includes("bucket") && lowerMessage.includes("not found"))
+  ) {
+    return "No está configurado el bucket de fotos de perfil en Supabase. Creá `profile-avatars` y sus políticas de Storage para poder subir avatares.";
+  }
+
+  return normalizedMessage;
+}
+
 export function normalizeError(error: unknown, fallbackMessage = "Error inesperado al consultar datos."): string {
   if (!error) return fallbackMessage;
   if (typeof error === "string") return error;
@@ -40,12 +57,10 @@ export function normalizeError(error: unknown, fallbackMessage = "Error inespera
 
   const pgError = error as PostgrestError;
   if (pgError?.message) {
-    if (pgError.message.includes("permission denied")) return "No tenés permisos para realizar esta acción.";
-    if (pgError.message.includes("JWT")) return "Tu sesión expiró. Iniciá sesión nuevamente.";
-    return pgError.message;
+    return normalizeSupabaseMessage(pgError.message);
   }
 
-  if (error instanceof Error) return error.message;
+  if (error instanceof Error) return normalizeSupabaseMessage(error.message);
   return fallbackMessage;
 }
 

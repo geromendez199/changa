@@ -35,7 +35,7 @@ create table if not exists profiles (
   location text not null,
   member_since text not null,
   verified boolean not null default false,
-  rating numeric(2,1) not null default 5.0,
+  rating numeric(2,1) not null default 0,
   total_reviews int not null default 0,
   completed_jobs int not null default 0,
   success_rate int not null default 0 check (success_rate between 0 and 100),
@@ -114,6 +114,59 @@ create table if not exists reviews (
   comment text not null,
   created_at timestamptz not null default now()
 );
+
+create or replace function sync_profile_review_stats(target_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  review_count int;
+  average_rating numeric(2,1);
+begin
+  select
+    count(*)::int,
+    coalesce(round(avg(rating)::numeric, 1), 0)
+  into review_count, average_rating
+  from reviews
+  where reviewed_user_id = target_user_id;
+
+  update profiles
+  set
+    rating = case when review_count > 0 then average_rating else 0 end,
+    total_reviews = review_count
+  where id = target_user_id;
+end;
+$$;
+
+create or replace function handle_review_stats_sync()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_op = 'DELETE' then
+    perform sync_profile_review_stats(old.reviewed_user_id);
+    return old;
+  end if;
+
+  perform sync_profile_review_stats(new.reviewed_user_id);
+
+  if tg_op = 'UPDATE' and old.reviewed_user_id is distinct from new.reviewed_user_id then
+    perform sync_profile_review_stats(old.reviewed_user_id);
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists reviews_sync_profile_stats on reviews;
+create trigger reviews_sync_profile_stats
+after insert or update or delete on reviews
+for each row
+execute function handle_review_stats_sync();
 
 create table if not exists notifications (
   id uuid primary key default gen_random_uuid(),
