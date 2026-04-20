@@ -233,6 +233,11 @@
     color: var(--app-text);
   }
 
+  body.app-standalone {
+    overscroll-behavior-y: none;
+    -webkit-touch-callout: none;
+  }
+
   /**
   * Default typography styles for HTML elements (h1-h4, p, label, button, input).
   * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
@@ -305,6 +310,10 @@
     @apply min-h-screen w-full;
     background: var(--app-bg);
     color: var(--app-text);
+  }
+
+  body.app-standalone .app-screen {
+    min-height: 100dvh;
   }
 
   .app-content-shell {

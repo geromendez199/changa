@@ -97,7 +97,9 @@
     "tailwindcss": "4.1.12",
     "typescript": "^5.8.2",
     "vite": "6.3.5",
-    "vitest": "^3.0.8"
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^3.0.8",
+    "workbox-window": "^7.4.0"
   },
   "peerDependencies": {
     "react": "18.3.1",
