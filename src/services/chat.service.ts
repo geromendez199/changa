@@ -7,7 +7,16 @@ import { supabase } from "../lib/supabase";
 import { chatMessageSchema, parseWithValidation } from "../lib/validation/schemas";
 import { Conversation, Message } from "../types/domain";
 import { ConversationsRow, MessagesRow, mapConversationRow, mapMessageRow } from "../types/supabase";
-import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldUseFallback, successResult, toSafeArray } from "./service.utils";
+import {
+  ensureAuthenticatedUser,
+  failureResult,
+  isNonEmptyString,
+  normalizeError,
+  ServiceResult,
+  shouldUseFallback,
+  successResult,
+  toSafeArray,
+} from "./service.utils";
 
 export async function getConversationList(currentUserId: string): Promise<ServiceResult<Conversation[]>> {
   if (!isNonEmptyString(currentUserId)) return successResult([], "fallback");
@@ -89,37 +98,18 @@ export async function getOrCreateConversation(input: {
 
   try {
     const [participant1Id, participant2Id] = participantIds;
+    await ensureAuthenticatedUser();
 
-    const { data: existingRows, error: existingError } = await supabase!
-      .from("conversations")
-      .select("*")
-      .eq("job_id", input.jobId)
-      .or(
-        `and(participant_1_id.eq.${participant1Id},participant_2_id.eq.${participant2Id}),and(participant_1_id.eq.${participant2Id},participant_2_id.eq.${participant1Id})`,
-      )
-      .limit(1);
-
-    if (existingError) throw existingError;
-
-    const existingConversation = toSafeArray<Partial<ConversationsRow>>(existingRows)
-      .map(mapConversationRow)
-      .find((conversation) => isNonEmptyString(conversation.id));
-
-    if (existingConversation) return successResult(existingConversation);
-
-    const { data, error } = await supabase!
-      .from("conversations")
-      .insert({
-        participant_1_id: participant1Id,
-        participant_2_id: participant2Id,
-        job_id: input.jobId,
-      })
-      .select("*")
-      .single<ConversationsRow>();
+    const { data, error } = await supabase!.rpc("create_or_get_conversation", {
+      p_participant_1_id: participant1Id,
+      p_participant_2_id: participant2Id,
+      p_job_id: input.jobId,
+    });
 
     if (error) throw error;
+    if (!data) return successResult(null);
 
-    return successResult(mapConversationRow(data));
+    return successResult(mapConversationRow(data as Partial<ConversationsRow>));
   } catch (error) {
     return failureResult(null, normalizeError(error, "No pudimos abrir el chat de esta changa."));
   }

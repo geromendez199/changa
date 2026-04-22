@@ -223,16 +223,6 @@ export function EditProfile() {
           />
         ) : null}
 
-        <SurfaceCard tone="soft" padding="md" className="text-sm leading-relaxed text-[var(--app-text-muted)] shadow-none">
-          Sumá una foto, tu ubicación y una breve presentación para que otras personas entiendan
-          rápido quién sos y por qué confiar en vos.
-        </SurfaceCard>
-
-        <SurfaceCard tone="soft" padding="sm" className="text-sm leading-relaxed text-[var(--app-text-muted)] shadow-none">
-          La foto se carga desde tu dispositivo, se sube a tu cuenta y después se ve igual en tu
-          compu, tu celular y cualquier otra sesión iniciada.
-        </SurfaceCard>
-
         <SurfaceCard padding="lg" className="space-y-4">
           <div className="flex items-center gap-4">
             <UserAvatar

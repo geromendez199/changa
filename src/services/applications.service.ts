@@ -7,7 +7,16 @@ import {
 } from "../lib/validation/schemas";
 import { Application } from "../types/domain";
 import { ApplicationsRow, mapApplicationRow } from "../types/supabase";
-import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldUseFallback, successResult, toSafeArray } from "./service.utils";
+import {
+  ensureAuthenticatedUser,
+  failureResult,
+  isNonEmptyString,
+  normalizeError,
+  ServiceResult,
+  shouldUseFallback,
+  successResult,
+  toSafeArray,
+} from "./service.utils";
 
 export async function getMyApplications(userId: string): Promise<ServiceResult<Application[]>> {
   if (!isNonEmptyString(userId)) return successResult([], "fallback");
@@ -69,22 +78,19 @@ export async function createApplication(input: {
   try {
     const validatedInput = parseWithValidation(applicationCreateSchema, input);
     if (shouldUseFallback()) return successResult(null, "fallback");
+    await ensureAuthenticatedUser(validatedInput.applicantUserId);
 
-    const { data, error } = await supabase!
-      .from("applications")
-      .insert({
-        job_id: validatedInput.jobId,
-        applicant_user_id: validatedInput.applicantUserId,
-        cover_message: validatedInput.coverMessage,
-        proposed_amount: Math.round(validatedInput.proposedAmount),
-        status: "enviada",
-      })
-      .select("*")
-      .single<ApplicationsRow>();
+    const { data, error } = await supabase!.rpc("create_application_for_job", {
+      p_job_id: validatedInput.jobId,
+      p_applicant_user_id: validatedInput.applicantUserId,
+      p_cover_message: validatedInput.coverMessage,
+      p_proposed_amount: Math.round(validatedInput.proposedAmount),
+    });
 
     if (error) throw error;
+    if (!data) return successResult(null);
 
-    return successResult(mapApplicationRow(data));
+    return successResult(mapApplicationRow(data as Partial<ApplicationsRow>));
   } catch (error) {
     return failureResult(null, normalizeError(error, "No pudimos enviar tu postulación."));
   }
@@ -100,21 +106,20 @@ export async function updateApplicationStatus(input: {
   try {
     const validatedInput = parseWithValidation(applicationStatusSchema, input);
     if (shouldUseFallback()) return successResult(null, "fallback");
+    await ensureAuthenticatedUser(validatedInput.ownerUserId);
 
-    const { data, error } = await supabase!
-      .from("applications")
-      .update({
-        status: validatedInput.status,
-      })
-      .eq("id", validatedInput.applicationId)
-      .eq("job_id", validatedInput.jobId)
-      .eq("applicant_user_id", validatedInput.applicantUserId)
-      .select("*")
-      .single<ApplicationsRow>();
+    const { data, error } = await supabase!.rpc("set_application_status", {
+      p_application_id: validatedInput.applicationId,
+      p_job_id: validatedInput.jobId,
+      p_owner_user_id: validatedInput.ownerUserId,
+      p_applicant_user_id: validatedInput.applicantUserId,
+      p_status: validatedInput.status,
+    });
 
     if (error) throw error;
+    if (!data) return successResult(null);
 
-    return successResult(mapApplicationRow(data));
+    return successResult(mapApplicationRow(data as Partial<ApplicationsRow>));
   } catch (error) {
     return failureResult(null, normalizeError(error, "No pudimos actualizar la postulación."));
   }

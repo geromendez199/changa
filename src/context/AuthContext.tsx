@@ -24,6 +24,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await ensureProfileForUser(nextSession.user);
   };
 
+  const syncSessionProfile = async (nextSession: Session | null) => {
+    setSession(nextSession);
+    await ensureProfile(nextSession);
+    return nextSession;
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -31,16 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const currentSession = await getCurrentSession();
       if (!mounted) return;
 
-      setSession(currentSession);
+      await syncSessionProfile(currentSession);
       setIsLoading(false);
-      void ensureProfile(currentSession);
     };
 
     void bootstrap();
 
     const subscription = onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
       void ensureProfile(nextSession);
+      setSession(nextSession);
     });
 
     return () => {
@@ -54,13 +59,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       userId: session?.user.id ?? null,
       isLoading,
-      signIn: signInWithEmail,
+      signIn: async (email: string, password: string) => {
+        const result = await signInWithEmail(email, password);
+        if (!result.ok) return result;
+
+        const nextSession = await getCurrentSession();
+        await syncSessionProfile(nextSession);
+        return result;
+      },
       signUp: async (email: string, password: string) => {
         const result = await signUpWithEmail(email, password);
         if (result.ok) {
           const nextSession = await getCurrentSession();
-          setSession(nextSession);
-          void ensureProfile(nextSession);
+          await syncSessionProfile(nextSession);
         }
         return result;
       },

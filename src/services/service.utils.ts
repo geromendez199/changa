@@ -37,8 +37,31 @@ function normalizeSupabaseMessage(message: string) {
   const normalizedMessage = message.trim();
   const lowerMessage = normalizedMessage.toLowerCase();
 
+  if (lowerMessage.includes("necesitás iniciar sesión")) return "Necesitás iniciar sesión para continuar.";
+  if (lowerMessage.includes("sólo podés usar tu propia sesión")) return "Tu sesión no coincide con esta operación. Volvé a iniciar sesión e intentá de nuevo.";
+  if (lowerMessage.includes("solo podés usar tu propia sesión")) return "Tu sesión no coincide con esta operación. Volvé a iniciar sesión e intentá de nuevo.";
+  if (lowerMessage.includes("ya te postulaste")) return "Ya te postulaste a esta changa.";
+  if (lowerMessage.includes("no podés postularte a tu propia changa")) return "No podés postularte a tu propia changa.";
+  if (lowerMessage.includes("no podés postularte a tu propia publicación")) return "No podés postularte a tu propia changa.";
+  if (lowerMessage.includes("esta changa ya no acepta postulaciones")) return "Esta changa ya no acepta postulaciones.";
+  if (lowerMessage.includes("no encontramos la changa")) return "No encontramos la changa para completar esta acción.";
+  if (lowerMessage.includes("ya existe una conversación")) return "Ese chat ya existe y acabamos de recuperarlo.";
+  if (lowerMessage.includes("solo las personas participantes")) return "No tenés permisos para entrar en esta conversación.";
+  if (lowerMessage.includes("sólo las personas participantes")) return "No tenés permisos para entrar en esta conversación.";
+  if (lowerMessage.includes("solo la persona dueña")) return "No tenés permisos para gestionar esta postulación.";
+  if (lowerMessage.includes("sólo la persona dueña")) return "No tenés permisos para gestionar esta postulación.";
   if (lowerMessage.includes("permission denied")) return "No tenés permisos para realizar esta acción.";
   if (lowerMessage.includes("jwt")) return "Tu sesión expiró. Iniciá sesión nuevamente.";
+  if (lowerMessage.includes("duplicate key value violates unique constraint")) {
+    if (lowerMessage.includes("applications")) return "Ya te postulaste a esta changa.";
+    if (lowerMessage.includes("conversations")) return "Ese chat ya existe y acabamos de recuperarlo.";
+  }
+  if (
+    lowerMessage.includes("violates foreign key constraint") &&
+    lowerMessage.includes("posted_by_user_id")
+  ) {
+    return "No pudimos preparar tu perfil para publicar. Cerrá sesión, volvé a entrar e intentá nuevamente.";
+  }
   if (
     lowerMessage.includes("bucket not found") ||
     lowerMessage.includes("bucket not fund") ||
@@ -66,6 +89,35 @@ export function normalizeError(error: unknown, fallbackMessage = "Error inespera
 
 export function shouldUseFallback() {
   return FALLBACK_MODE;
+}
+
+export async function getAuthenticatedUserId() {
+  if (shouldUseFallback()) return null;
+
+  const {
+    data: { user },
+    error,
+  } = await supabase!.auth.getUser();
+
+  if (error) {
+    throw error;
+  }
+
+  return user?.id ?? null;
+}
+
+export async function ensureAuthenticatedUser(expectedUserId?: string) {
+  const authenticatedUserId = await getAuthenticatedUserId();
+
+  if (!isNonEmptyString(authenticatedUserId)) {
+    throw new Error("Necesitás iniciar sesión para continuar.");
+  }
+
+  if (isNonEmptyString(expectedUserId) && authenticatedUserId !== expectedUserId) {
+    throw new Error("Sólo podés usar tu propia sesión para completar esta acción.");
+  }
+
+  return authenticatedUserId;
 }
 
 export function getFallbackPreviewMessage(scope = "esta sección") {

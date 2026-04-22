@@ -7,6 +7,7 @@ import { supabase } from "../lib/supabase";
 import { jobCreateSchema, jobSearchParamsSchema, parseWithValidation } from "../lib/validation/schemas";
 import { Job } from "../types/domain";
 import { JobsRow, mapJobRow } from "../types/supabase";
+import { ensureProfileForUser } from "./profiles.service";
 import {
   failureResult,
   getFallbackActionMessage,
@@ -50,6 +51,36 @@ const mapJobs = (rows: unknown): Job[] =>
   toSafeArray<Partial<JobsRow>>(rows)
     .map(mapJobRow)
     .filter((job) => isNonEmptyString(job.id));
+
+async function ensureAuthorProfileReady(postedByUserId: string) {
+  if (!isNonEmptyString(postedByUserId) || shouldUseFallback()) return;
+
+  const {
+    data: { user },
+  } = await supabase!.auth.getUser();
+
+  if (!user || user.id !== postedByUserId) return;
+
+  const profileResult = await ensureProfileForUser(user);
+  if (profileResult.error) {
+    throw new Error(profileResult.error);
+  }
+}
+
+function isMissingAuthorProfileError(error: unknown) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : "";
+  const normalizedMessage = message.toLowerCase();
+
+  return (
+    normalizedMessage.includes("violates foreign key constraint") &&
+    normalizedMessage.includes("posted_by_user_id")
+  );
+}
 
 export async function getFeaturedJobs(): Promise<ServiceResult<Job[]>> {
   return searchJobs({ sortBy: "distance" });
@@ -130,25 +161,40 @@ export async function createJob(input: CreateJobInput): Promise<ServiceResult<Jo
       return failureResult(null, getFallbackActionMessage("Publicar una changa"));
     }
 
-    const { data, error } = await supabase!
-      .from("jobs")
-      .insert({
-        posted_by_user_id: validatedInput.postedByUserId,
-        listing_type: validatedInput.listingType,
-        title: validatedInput.title,
-        description: validatedInput.description,
-        category: validatedInput.category,
-        location: validatedInput.location,
-        price_value: Math.round(validatedInput.priceValue),
-        availability: validatedInput.availability,
-        urgency: validatedInput.urgency,
-        image: validatedInput.image?.trim() || DEFAULT_JOB_IMAGE,
-        status: "publicado",
-      })
-      .select("*")
-      .single<JobsRow>();
+    await ensureAuthorProfileReady(validatedInput.postedByUserId);
+
+    const insertPayload = {
+      posted_by_user_id: validatedInput.postedByUserId,
+      listing_type: validatedInput.listingType,
+      title: validatedInput.title,
+      description: validatedInput.description,
+      category: validatedInput.category,
+      location: validatedInput.location,
+      price_value: Math.round(validatedInput.priceValue),
+      availability: validatedInput.availability,
+      urgency: validatedInput.urgency,
+      image: validatedInput.image?.trim() || DEFAULT_JOB_IMAGE,
+      status: "publicado" as const,
+    };
+
+    let data: JobsRow | null = null;
+    let error: unknown = null;
+
+    const initialInsertResult = await supabase!.from("jobs").insert(insertPayload).select("*").single<JobsRow>();
+    data = initialInsertResult.data;
+    error = initialInsertResult.error;
+
+    if (error && isMissingAuthorProfileError(error)) {
+      await ensureAuthorProfileReady(validatedInput.postedByUserId);
+      const retryInsertResult = await supabase!.from("jobs").insert(insertPayload).select("*").single<JobsRow>();
+      data = retryInsertResult.data;
+      error = retryInsertResult.error;
+    }
 
     if (error) throw error;
+    if (!data) {
+      return successResult(null);
+    }
 
     const createdJob = mapJobRow(data);
     return successResult(createdJob.id ? createdJob : null);
@@ -167,25 +213,52 @@ export async function updateJob(input: UpdateJobInput): Promise<ServiceResult<Jo
       return failureResult(null, getFallbackActionMessage("Editar una changa"));
     }
 
-    const { data, error } = await supabase!
+    await ensureAuthorProfileReady(validatedInput.postedByUserId);
+
+    const updatePayload = {
+      title: validatedInput.title,
+      description: validatedInput.description,
+      listing_type: validatedInput.listingType,
+      category: validatedInput.category,
+      location: validatedInput.location,
+      price_value: Math.round(validatedInput.priceValue),
+      availability: validatedInput.availability,
+      urgency: validatedInput.urgency,
+      image: validatedInput.image?.trim() || DEFAULT_JOB_IMAGE,
+    };
+
+    let data: JobsRow | null = null;
+    let error: unknown = null;
+
+    const initialUpdateResult = await supabase!
       .from("jobs")
-      .update({
-        title: validatedInput.title,
-        description: validatedInput.description,
-        listing_type: validatedInput.listingType,
-        category: validatedInput.category,
-        location: validatedInput.location,
-        price_value: Math.round(validatedInput.priceValue),
-        availability: validatedInput.availability,
-        urgency: validatedInput.urgency,
-        image: validatedInput.image?.trim() || DEFAULT_JOB_IMAGE,
-      })
+      .update(updatePayload)
       .eq("id", input.id)
       .eq("posted_by_user_id", input.postedByUserId)
       .select("*")
       .single<JobsRow>();
 
+    data = initialUpdateResult.data;
+    error = initialUpdateResult.error;
+
+    if (error && isMissingAuthorProfileError(error)) {
+      await ensureAuthorProfileReady(validatedInput.postedByUserId);
+      const retryUpdateResult = await supabase!
+        .from("jobs")
+        .update(updatePayload)
+        .eq("id", input.id)
+        .eq("posted_by_user_id", input.postedByUserId)
+        .select("*")
+        .single<JobsRow>();
+
+      data = retryUpdateResult.data;
+      error = retryUpdateResult.error;
+    }
+
     if (error) throw error;
+    if (!data) {
+      return successResult(null);
+    }
 
     const updatedJob = mapJobRow(data);
     return successResult(updatedJob.id ? updatedJob : null);
