@@ -63,6 +63,28 @@ function toIlikePattern(value: string) {
   return `%${safeTerm}%`;
 }
 
+function isMissingColumnError(error: unknown, columnName: string) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : (error as { message?: string } | null)?.message ?? "";
+
+  const normalizedMessage = message.toLowerCase();
+  return normalizedMessage.includes(columnName.toLowerCase()) && (
+    normalizedMessage.includes("could not find") ||
+    normalizedMessage.includes("does not exist") ||
+    normalizedMessage.includes("schema cache")
+  );
+}
+
+function withoutListingType<T extends { listing_type?: unknown }>(payload: T) {
+  const legacyPayload = { ...payload };
+  delete legacyPayload.listing_type;
+  return legacyPayload;
+}
+
 async function ensureAuthorProfileReady(postedByUserId: string) {
   if (!isNonEmptyString(postedByUserId) || shouldUseFallback()) return;
 
@@ -134,6 +156,9 @@ export async function searchJobs(params: SearchJobsParams): Promise<ServiceResul
         : query.order("distance_km", { ascending: true }).order("posted_at", { ascending: false });
 
     const { data, error } = await query.limit(30);
+    if (error && validatedParams.listingType && isMissingColumnError(error, "listing_type")) {
+      return searchJobs({ ...validatedParams, listingType: undefined });
+    }
     if (error) throw error;
 
     return successResult(mapJobs(data));
@@ -203,11 +228,31 @@ export async function createJob(input: CreateJobInput): Promise<ServiceResult<Jo
     data = initialInsertResult.data;
     error = initialInsertResult.error;
 
+    if (error && isMissingColumnError(error, "listing_type")) {
+      const legacyInsertResult = await supabase!
+        .from("jobs")
+        .insert(withoutListingType(insertPayload))
+        .select("*")
+        .single<JobsRow>();
+      data = legacyInsertResult.data;
+      error = legacyInsertResult.error;
+    }
+
     if (error && isMissingAuthorProfileError(error)) {
       await ensureAuthorProfileReady(validatedInput.postedByUserId);
       const retryInsertResult = await supabase!.from("jobs").insert(insertPayload).select("*").single<JobsRow>();
       data = retryInsertResult.data;
       error = retryInsertResult.error;
+
+      if (error && isMissingColumnError(error, "listing_type")) {
+        const legacyRetryInsertResult = await supabase!
+          .from("jobs")
+          .insert(withoutListingType(insertPayload))
+          .select("*")
+          .single<JobsRow>();
+        data = legacyRetryInsertResult.data;
+        error = legacyRetryInsertResult.error;
+      }
     }
 
     if (error) throw error;
@@ -264,6 +309,19 @@ export async function updateJob(input: UpdateJobInput): Promise<ServiceResult<Jo
     data = initialUpdateResult.data;
     error = initialUpdateResult.error;
 
+    if (error && isMissingColumnError(error, "listing_type")) {
+      const legacyUpdateResult = await supabase!
+        .from("jobs")
+        .update(withoutListingType(updatePayload))
+        .eq("id", input.id)
+        .eq("posted_by_user_id", input.postedByUserId)
+        .select("*")
+        .single<JobsRow>();
+
+      data = legacyUpdateResult.data;
+      error = legacyUpdateResult.error;
+    }
+
     if (error && isMissingAuthorProfileError(error)) {
       await ensureAuthorProfileReady(validatedInput.postedByUserId);
       const retryUpdateResult = await supabase!
@@ -276,6 +334,19 @@ export async function updateJob(input: UpdateJobInput): Promise<ServiceResult<Jo
 
       data = retryUpdateResult.data;
       error = retryUpdateResult.error;
+
+      if (error && isMissingColumnError(error, "listing_type")) {
+        const legacyRetryUpdateResult = await supabase!
+          .from("jobs")
+          .update(withoutListingType(updatePayload))
+          .eq("id", input.id)
+          .eq("posted_by_user_id", input.postedByUserId)
+          .select("*")
+          .single<JobsRow>();
+
+        data = legacyRetryUpdateResult.data;
+        error = legacyRetryUpdateResult.error;
+      }
     }
 
     if (error) throw error;

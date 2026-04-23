@@ -1,6 +1,11 @@
 -- Idempotent production repair for older Supabase databases.
--- The frontend no longer depends on this generated column, but keeping it aligned
--- preserves the indexed search path for future backend queries.
+-- The frontend tolerates older schemas, but production should still be aligned
+-- so search and dual listing types remain first-class database features.
+
+alter table public.jobs
+add column if not exists listing_type text
+not null default 'request'
+check (listing_type in ('request', 'service'));
 
 alter table public.jobs
 add column if not exists search_document tsvector
