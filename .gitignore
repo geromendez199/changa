@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .env
+.DS_Store
 auth/*.json
 playwright-report/
 test-results/
