@@ -89,7 +89,7 @@ export function Home() {
         </div>
       </div>
 
-      <div className="app-content-shell px-4 py-6 sm:px-6 lg:px-10">
+      <div className="app-page-section py-5 sm:py-6">
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {primaryCategoryFilters.map((cat, idx) => (
             <button
@@ -119,7 +119,7 @@ export function Home() {
         <SurfaceCard
           tone="soft"
           padding="sm"
-          className="app-content-shell mb-4 border-amber-100 bg-[#FFFDF7] text-sm text-[var(--app-text-muted)] shadow-none"
+          className="app-page-section mb-4 border-amber-100 bg-[#FFFDF7] text-sm text-[var(--app-text-muted)] shadow-none"
         >
           <p className="font-semibold text-[var(--app-text)]">No pudimos actualizar las changas.</p>
           <button onClick={() => void refreshJobs()} className="mt-2 font-semibold text-[var(--app-brand)]">
@@ -130,14 +130,14 @@ export function Home() {
 
       {(featuredJobs.length > 0 || shouldShowLoadingCards) && (
         <div className="mb-8">
-          <div className="app-content-shell mb-5 px-4 sm:px-6 lg:px-10">
+          <div className="app-page-section mb-5">
             <SectionHeader
               title="Destacadas"
               actionLabel="Ver marketplace"
               onAction={() => navigate("/search")}
             />
           </div>
-          <div className="app-content-shell px-4 sm:px-6 lg:px-10">
+          <div className="app-page-section">
             <div className="flex gap-4 overflow-x-auto scrollbar-hide lg:grid lg:grid-cols-3 lg:overflow-visible 2xl:grid-cols-4">
               {shouldShowLoadingCards
                 ? Array.from({ length: 4 }).map((_, index) => (
@@ -164,7 +164,7 @@ export function Home() {
         </div>
       )}
 
-      <div className="app-content-shell px-4 sm:px-6 lg:px-10">
+      <div className="app-page-section">
         <div className="mb-5">
           <SectionHeader
             title="Cerca tuyo"
@@ -179,13 +179,13 @@ export function Home() {
         </div>
 
         {shouldShowLoadingCards ? (
-          <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+          <div className="app-responsive-grid gap-3">
             {Array.from({ length: 6 }).map((_, index) => (
               <JobCardSkeleton key={`nearby-skeleton-${index}`} />
             ))}
           </div>
         ) : nearbyJobs.length > 0 ? (
-          <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+          <div className="app-responsive-grid gap-3">
             {nearbyJobs.map((job) => (
               <JobCard
                 key={job.id}
@@ -223,7 +223,7 @@ export function Home() {
               actionLabel="Ver pedidos"
               onAction={() => navigate("/search?listingType=request")}
             />
-            <div className="mt-4 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+            <div className="app-responsive-grid mt-4 gap-3">
               {requestHighlights.map((job) => (
                 <JobCard
                   key={job.id}
@@ -251,7 +251,7 @@ export function Home() {
               actionLabel="Ver servicios"
               onAction={() => navigate("/search?listingType=service")}
             />
-            <div className="mt-4 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+            <div className="app-responsive-grid mt-4 gap-3">
               {serviceHighlights.map((job) => (
                 <JobCard
                   key={job.id}

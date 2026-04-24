@@ -23,9 +23,9 @@ export function SectionHeader({
   className,
 }: SectionHeaderProps) {
   return (
-    <div className={cn("flex items-end justify-between gap-3", className)}>
+    <div className={cn("flex flex-col gap-2 min-[380px]:flex-row min-[380px]:items-end min-[380px]:justify-between min-[380px]:gap-3", className)}>
       <div className="min-w-0">
-        <h2 className="text-lg font-bold tracking-[-0.02em] text-[var(--app-text)]">{title}</h2>
+        <h2 className="text-lg font-bold tracking-normal text-[var(--app-text)]">{title}</h2>
         {subtitle ? (
           <p className="mt-1 text-sm leading-relaxed text-[var(--app-text-muted)]">{subtitle}</p>
         ) : null}

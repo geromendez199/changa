@@ -24,14 +24,14 @@ export function Payments() {
         onBack={() => navigate(-1)}
       />
 
-      <div className="px-6 py-6">
+      <div className="app-page-section py-6">
         <div className="bg-gradient-to-br from-[#0DAE79] via-[#0B9A6B] to-[#087A55] rounded-3xl p-6 text-white shadow-xl">
-          <div className="flex items-start gap-4 mb-4"><div className="bg-white/20 p-3 rounded-2xl"><Shield size={28} className="text-white" /></div><div><h2 className="font-bold text-xl mb-1">Protección total</h2><p className="text-white/90 text-sm">Tus pagos se gestionan con una experiencia clara, protegida y pensada para generar confianza.</p></div></div>
-          <div className="grid grid-cols-2 gap-3"><div className="bg-white/10 rounded-2xl p-3 border border-white/20"><CheckCircle size={18} className="mb-1" /><p className="text-sm font-semibold">SSL seguro</p></div><div className="bg-white/10 rounded-2xl p-3 border border-white/20"><CheckCircle size={18} className="mb-1" /><p className="text-sm font-semibold">Anti fraude</p></div></div>
+          <div className="mb-4 flex flex-col gap-4 min-[380px]:flex-row min-[380px]:items-start"><div className="w-fit rounded-2xl bg-white/20 p-3"><Shield size={28} className="text-white" /></div><div><h2 className="mb-1 text-xl font-bold">Protección total</h2><p className="text-sm text-white/90">Tus pagos se gestionan con una experiencia clara, protegida y pensada para generar confianza.</p></div></div>
+          <div className="app-dense-grid gap-3"><div className="rounded-2xl border border-white/20 bg-white/10 p-3"><CheckCircle size={18} className="mb-1" /><p className="text-sm font-semibold">SSL seguro</p></div><div className="rounded-2xl border border-white/20 bg-white/10 p-3"><CheckCircle size={18} className="mb-1" /><p className="text-sm font-semibold">Anti fraude</p></div></div>
         </div>
       </div>
 
-      <div className="px-6 mb-6">
+      <div className="app-page-section mb-6">
         <SectionHeader
           title="Tus métodos"
           subtitle="El alta de métodos todavía no está disponible desde la app."
@@ -86,7 +86,7 @@ export function Payments() {
         </div>
       </div>
 
-      <div className="px-6 mb-6">
+      <div className="app-page-section mb-6">
         <SurfaceCard padding="md" className="space-y-4">
           <div className="flex items-start gap-4">
             <div className="rounded-2xl bg-blue-50 p-3"><Lock size={24} className="text-blue-600" /></div>
@@ -103,7 +103,7 @@ export function Payments() {
         </SurfaceCard>
       </div>
 
-      <div className="px-6 space-y-3">
+      <div className="app-page-section space-y-3">
         <SectionHeader title="Movimientos" subtitle="Aparecerán cuando pagos esté habilitado y haya actividad real." className="mb-4" />
         {transactions.map((tx) => {
           const job = jobs.find((item) => item.id === tx.jobId);
@@ -116,8 +116,8 @@ export function Payments() {
           return (
             <SurfaceCard key={tx.id} padding="md">
               <div className="mb-3 flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="mb-1 text-base font-bold tracking-[-0.02em] text-[var(--app-text)]">
+                <div className="min-w-0 flex-1">
+                  <h3 className="mb-1 text-base font-bold tracking-normal text-[var(--app-text)]">
                     {job?.title ?? "Trabajo"}
                   </h3>
                   <p className="text-sm text-[var(--app-text-muted)]">

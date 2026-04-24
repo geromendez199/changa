@@ -27,7 +27,7 @@ export function ScreenHeader({
 }: ScreenHeaderProps) {
   return (
     <div className={cn("app-header-shell", sticky && "sticky top-0 z-10", className)}>
-      <div className="flex items-start gap-3">
+      <div className="app-content-shell flex items-start gap-3">
         {onBack ? (
           <button onClick={onBack} className="app-icon-button mt-0.5 shrink-0" aria-label="Volver">
             <ArrowLeft size={20} />
@@ -35,7 +35,7 @@ export function ScreenHeader({
         ) : null}
 
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-bold tracking-[-0.02em] text-[var(--app-text)]">{title}</h1>
+          <h1 className="text-xl font-bold tracking-normal text-[var(--app-text)] sm:text-2xl">{title}</h1>
           {subtitle ? (
             <p className="mt-1 text-sm leading-relaxed text-[var(--app-text-muted)]">{subtitle}</p>
           ) : null}

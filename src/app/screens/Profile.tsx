@@ -36,11 +36,11 @@ export function Profile() {
 
   return (
     <div className="app-screen pb-28">
-      <div className="relative overflow-hidden rounded-b-[36px] bg-[linear-gradient(135deg,#0DAE79_0%,#0B9A6B_55%,#087A55_100%)] px-6 pt-14 pb-12">
+      <div className="relative overflow-hidden rounded-b-[30px] bg-[linear-gradient(135deg,#0DAE79_0%,#0B9A6B_55%,#087A55_100%)] pt-12 pb-12 sm:rounded-b-[36px]">
         <div className="absolute right-10 top-10 h-32 w-32 rounded-full bg-white/10 blur-3xl"></div>
         <div className="absolute bottom-8 left-8 h-36 w-36 rounded-full bg-white/10 blur-3xl"></div>
 
-        <div className="relative z-10">
+        <div className="app-page-section relative z-10">
           <div className="mb-6 flex items-center justify-between">
             <button onClick={() => navigate("/profile/edit")} className="rounded-full bg-white/12 p-2.5 backdrop-blur-sm transition-colors hover:bg-white/20">
               <Pencil size={20} className="text-white" />
@@ -60,7 +60,7 @@ export function Profile() {
               tone="surface"
               className="mb-4"
             />
-            <h1 className="mb-1 text-2xl font-bold tracking-[-0.02em] text-white">{profile.name}</h1>
+            <h1 className="mb-1 text-2xl font-bold tracking-normal text-white">{profile.name}</h1>
             <p className="text-white/80 text-sm">Miembro desde {profile.memberSince}</p>
             <div className="mt-4">
               {profile.verified ? (
@@ -73,9 +73,9 @@ export function Profile() {
         </div>
       </div>
 
-      <div className="relative z-10 -mt-8 mb-6 px-6">
+      <div className="app-page-section relative z-10 -mt-8 mb-6">
         <SurfaceCard className="shadow-[var(--app-shadow-lg)]" padding="lg">
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-3 min-[360px]:gap-3 sm:gap-6">
             <div className="text-center">
               <div className="mb-2 flex items-center justify-center">
                 <div className={`rounded-xl p-2 ${hasReviews ? "bg-yellow-50" : "bg-slate-100"}`}>
@@ -85,7 +85,7 @@ export function Profile() {
               <p className="mb-0.5 text-2xl font-bold text-[var(--app-text)]">{ratingLabel}</p>
               <p className="text-xs font-medium text-[var(--app-text-muted)]">{reviewCountLabel}</p>
             </div>
-            <div className="text-center border-x border-[var(--app-border)]">
+            <div className="border-y border-[var(--app-border)] py-4 text-center min-[360px]:border-x min-[360px]:border-y-0 min-[360px]:py-0">
               <div className="mb-2 flex items-center justify-center">
                 <div className="rounded-xl bg-[var(--app-brand-soft)] p-2">
                   <Briefcase size={20} className="text-[var(--app-brand)]" />
@@ -108,7 +108,7 @@ export function Profile() {
       </div>
 
       {profile.trustIndicators.filter((indicator) => !indicator.toLowerCase().includes("email")).length > 0 ? (
-        <div className="px-6 mb-6">
+        <div className="app-page-section mb-6">
           <SurfaceCard padding="md">
             <div className="flex flex-wrap gap-2">
               {profile.trustIndicators
@@ -123,12 +123,12 @@ export function Profile() {
         </div>
       ) : null}
 
-      <div className="px-6 space-y-3 mb-6">
+      <div className="app-page-section mb-6 space-y-3">
         <button onClick={() => navigate("/payments")} className="app-surface flex w-full items-center gap-4 p-5 text-left transition-transform duration-200 hover:translate-y-[-2px]">
           <div className="rounded-2xl bg-[var(--app-brand-soft)] p-3">
             <CreditCard size={24} className="text-[var(--app-brand)]" />
           </div>
-          <div className="flex-1 text-left">
+          <div className="min-w-0 flex-1 text-left">
             <h3 className="text-base font-bold text-[var(--app-text)]">Pagos</h3>
             <p className="text-sm text-[var(--app-text-muted)]">Métodos y movimientos</p>
           </div>
@@ -138,7 +138,7 @@ export function Profile() {
           <div className="rounded-2xl bg-[var(--app-surface-muted)] p-3">
             <Settings size={24} className="text-[var(--app-text-muted)]" />
           </div>
-          <div className="flex-1 text-left">
+          <div className="min-w-0 flex-1 text-left">
             <h3 className="text-base font-bold text-[var(--app-text)]">Configuración</h3>
             <p className="text-sm text-[var(--app-text-muted)]">Datos personales y privacidad</p>
           </div>
@@ -146,7 +146,7 @@ export function Profile() {
         </button>
       </div>
 
-      <div className="px-6">
+      <div className="app-page-section">
         <SectionHeader
           title="Reseñas"
           className="mb-4"
@@ -191,7 +191,7 @@ export function Profile() {
         )}
       </div>
 
-      <div className="mb-4 mt-8 px-6">
+      <div className="app-page-section mb-4 mt-8">
         <button
           data-testid="profile-logout-button"
           onClick={async () => {

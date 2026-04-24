@@ -49,7 +49,7 @@ export function Chat() {
         subtitle={`${rows.filter((r) => r.unreadCount > 0).length} conversaciones con novedades`}
       />
 
-      <div className="space-y-3 px-6 py-4">
+      <div className="app-page-section space-y-3 py-4">
         {isLoading && rows.length === 0
           ? Array.from({ length: 4 }).map((_, index) => (
               <SurfaceCard key={`chat-skeleton-${index}`} padding="md">
@@ -72,11 +72,11 @@ export function Chat() {
           <button
             key={conv.id}
             onClick={() => navigate(`/chat/${conv.id}`)}
-            className={`app-surface w-full p-4 text-left transition-[transform,box-shadow] duration-200 hover:translate-y-[-2px] hover:shadow-[var(--app-shadow-md)] ${
+            className={`app-surface w-full p-3 text-left transition-[transform,box-shadow] duration-200 hover:translate-y-[-2px] hover:shadow-[var(--app-shadow-md)] min-[380px]:p-4 ${
               unreadCount > 0 ? "border-[rgba(13,174,121,0.28)]" : ""
             }`}
           >
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-3 min-[380px]:gap-4">
               <UserAvatar
                 name={otherUser?.name}
                 avatarUrl={otherUser?.avatarUrl}
@@ -86,8 +86,8 @@ export function Chat() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between mb-1">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-base font-bold tracking-[-0.02em] text-[var(--app-text)]">
+                    <div className="flex flex-wrap items-center gap-1.5 min-[380px]:gap-2">
+                      <h3 className="text-base font-bold tracking-normal text-[var(--app-text)]">
                         {otherUser?.name ?? "Usuario"}
                       </h3>
                       {otherRole ? (
@@ -132,7 +132,7 @@ export function Chat() {
       </div>
 
       {rows.length === 0 && !isLoading && (
-        <div className="px-6 py-8">
+        <div className="app-page-section py-8">
           <EmptyStateCard
             icon={<MessageCircle size={28} />}
             title="Todavía no tenés conversaciones"

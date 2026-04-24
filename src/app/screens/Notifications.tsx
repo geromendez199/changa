@@ -30,7 +30,7 @@ export function Notifications() {
         }
       />
 
-      <div className="space-y-3 px-6 py-6">
+      <div className="app-page-section space-y-3 py-6">
         {isPreview ? (
           <PreviewModeNotice
             description={`${getFallbackPreviewMessage("las notificaciones")} Este centro de actividad usa eventos de ejemplo para recorrer la experiencia.`}
@@ -40,7 +40,7 @@ export function Notifications() {
         {notifications.map((item) => (
           <SurfaceCard key={item.id} padding="md">
             <div className="mb-2 flex items-start justify-between gap-3">
-              <p className="font-semibold tracking-[-0.02em] text-[var(--app-text)]">{item.title}</p>
+              <p className="font-semibold tracking-normal text-[var(--app-text)]">{item.title}</p>
               <Badge
                 variant={
                   item.type === "mensaje" ? "accent" : item.type === "pago" ? "info" : "published"

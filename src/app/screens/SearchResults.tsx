@@ -101,10 +101,10 @@ export function SearchResults() {
           ))}
         </div>
 
-        <div className="mt-4 flex items-center gap-3">
-          <div className="flex flex-1 items-center gap-2 text-sm text-[var(--app-text-muted)]">
+        <div className="mt-4 flex flex-col gap-3 min-[380px]:flex-row min-[380px]:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-2 text-sm text-[var(--app-text-muted)]">
             <MapPin size={16} className="text-[var(--app-brand)]" />
-            <span className="font-semibold text-[var(--app-text)]">{selectedLocation}</span>
+            <span className="truncate font-semibold text-[var(--app-text)]">{selectedLocation}</span>
           </div>
           <Button
             variant="secondary"
@@ -143,7 +143,7 @@ export function SearchResults() {
 
             <div className="space-y-2">
               <p className="text-sm font-medium text-[var(--app-text)]">Todas las categorías</p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <div className="app-dense-grid gap-2">
                 {categoryFilters
                   .filter((item) => item !== "Todos")
                   .map((item) => (
@@ -164,7 +164,7 @@ export function SearchResults() {
           </SurfaceCard>
         ) : null}
 
-        <div className="mt-4 flex gap-2 overflow-x-auto scrollbar-hide -mx-6 px-6">
+        <div className="mt-4 flex gap-2 overflow-x-auto scrollbar-hide -mx-[var(--app-shell-padding)] px-[var(--app-shell-padding)]">
           {primaryCategoryFilters.map((cat) => (
             <button
               key={cat}
@@ -188,12 +188,12 @@ export function SearchResults() {
       </ScreenHeader>
 
       {isPreview ? (
-        <div className="px-6 pt-4">
+        <div className="app-page-section pt-4">
           <PreviewModeNotice description={getFallbackPreviewMessage("los resultados de búsqueda")} />
         </div>
       ) : null}
 
-      <div className="px-6 py-5">
+      <div className="app-page-section py-5">
         <SectionHeader
           title={isLoading ? "Buscando changas..." : `${jobs.length} resultados`}
           subtitle="Mostramos primero lo que tiene mejor cercanía y contexto."
@@ -201,12 +201,12 @@ export function SearchResults() {
       </div>
 
       {errorMessage ? (
-        <SurfaceCard className="mx-6 mb-4 text-sm text-[var(--app-text-muted)]" padding="sm">
+        <SurfaceCard className="app-page-section mb-4 text-sm text-[var(--app-text-muted)]" padding="sm">
           {errorMessage}
         </SurfaceCard>
       ) : null}
 
-      <div className="px-6 space-y-3 pb-4">
+      <div className="app-page-section space-y-3 pb-4">
         {shouldShowLoadingCards
           ? Array.from({ length: 4 }).map((_, index) => (
               <JobCardSkeleton key={`search-skeleton-${index}`} />
@@ -229,7 +229,7 @@ export function SearchResults() {
       </div>
 
       {jobs.length === 0 && !isLoading && (
-        <div className="mx-6">
+        <div className="app-page-section">
           <EmptyStateCard
             icon={<SearchX size={28} />}
             eyebrow="Sin coincidencias por ahora"

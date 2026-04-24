@@ -28,7 +28,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    "inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-[-0.01em] transition-[transform,background-color,border-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0DAE79]/12 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.99]";
+    "inline-flex min-w-0 items-center justify-center gap-2 rounded-full font-semibold tracking-normal transition-[transform,background-color,border-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0DAE79]/12 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.99]";
 
   const variants = {
     primary:
@@ -59,7 +59,7 @@ export function Button({
       {...props}
     >
       {icon && <span className="shrink-0">{icon}</span>}
-      {children}
+      <span className="min-w-0 truncate">{children}</span>
     </button>
   );
 }

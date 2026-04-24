@@ -40,7 +40,7 @@ export function MyJobs() {
         title="Mis publicaciones"
         subtitle="Gestioná tus pedidos, servicios, postulaciones y trabajos completados."
       >
-        <div className="flex gap-2 rounded-[22px] bg-[var(--app-surface-muted)] p-1">
+        <div className="grid grid-cols-3 gap-1 rounded-[22px] bg-[var(--app-surface-muted)] p-1">
           {([
             ["publicados", "Publicados", myJobs.length],
             ["postulados", "Postulados", appliedRows.length],
@@ -49,7 +49,7 @@ export function MyJobs() {
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`flex-1 rounded-[18px] py-2.5 text-sm font-semibold transition-all ${
+              className={`min-w-0 rounded-[18px] px-1 py-2.5 text-xs font-semibold transition-all min-[380px]:text-sm ${
                 activeTab === key
                   ? "bg-white text-[var(--app-brand)] shadow-[0_8px_20px_rgba(17,24,39,0.06)]"
                   : "text-[var(--app-text-muted)]"
@@ -70,13 +70,13 @@ export function MyJobs() {
         </div>
       </ScreenHeader>
 
-      <div className="px-6 py-6 space-y-3">
+      <div className="app-page-section space-y-3 py-6">
         {activeTab === "publicados" && myJobs.map((job) => (
           <SurfaceCard key={job.id} padding="none" className="overflow-hidden">
-            <div className="flex gap-4 p-4">
-              <img src={job.image} alt={job.title} className="h-20 w-20 rounded-[20px] object-cover" />
+            <div className="flex gap-3 p-3 min-[380px]:gap-4 min-[380px]:p-4">
+              <img src={job.image} alt={job.title} className="h-16 w-16 shrink-0 rounded-[16px] object-cover min-[380px]:h-20 min-[380px]:w-20 min-[380px]:rounded-[20px]" />
               <div className="min-w-0 flex-1">
-                <h3 className="mb-2 line-clamp-1 text-base font-bold tracking-[-0.02em] text-[var(--app-text)]">
+                <h3 className="mb-2 line-clamp-2 text-sm font-bold tracking-normal text-[var(--app-text)] min-[380px]:text-base">
                   {job.title}
                 </h3>
                 <Badge variant="published" icon={<AlertCircle size={12} />}>
@@ -87,7 +87,7 @@ export function MyJobs() {
                   <span>{job.location}</span>
                 </div>
               </div>
-              <p className="text-base font-bold text-[var(--app-brand)]">{job.priceLabel}</p>
+              <p className="shrink-0 text-sm font-bold text-[var(--app-brand)] min-[380px]:text-base">{job.priceLabel}</p>
             </div>
             <div className="flex flex-col gap-2 border-t border-[var(--app-border)] px-4 pb-4 pt-3 sm:flex-row">
               <button
@@ -139,9 +139,9 @@ export function MyJobs() {
 
         {activeTab === "postulados" && appliedRows.map(({ application, job }) => (
           <SurfaceCard key={application.id} padding="md">
-            <h3 className="mb-1 font-bold tracking-[-0.02em] text-[var(--app-text)]">{job!.title}</h3>
+            <h3 className="mb-1 font-bold tracking-normal text-[var(--app-text)]">{job!.title}</h3>
             <p className="mb-3 text-sm leading-relaxed text-[var(--app-text-muted)]">{application.coverMessage}</p>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <Badge
                 variant={
                   application.status === "aceptada"
@@ -164,7 +164,7 @@ export function MyJobs() {
                 Ver aviso
               </button>
             </div>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex flex-col gap-2 min-[380px]:flex-row">
               {application.status === "aceptada" ? (
                 <button
                   onClick={() => {
@@ -228,9 +228,9 @@ export function MyJobs() {
         ))}
 
         {activeTab === "completados" && completed.map((job) => (
-          <SurfaceCard key={job.id} padding="md" className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold tracking-[-0.02em] text-[var(--app-text)]">{job.title}</h3>
+          <SurfaceCard key={job.id} padding="md" className="flex flex-col gap-3 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between">
+            <div className="min-w-0">
+              <h3 className="font-bold tracking-normal text-[var(--app-text)]">{job.title}</h3>
               <div className="mt-2 flex items-center gap-2 text-xs text-[var(--app-text-muted)]">
                 <Clock size={12} />
                 <span>Trabajo finalizado</span>

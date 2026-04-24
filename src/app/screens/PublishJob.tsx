@@ -190,7 +190,7 @@ export function PublishJob() {
         </div>
       </ScreenHeader>
 
-      <div className="space-y-6 px-6 py-8">
+      <div className="app-page-section space-y-6 py-6 sm:py-8">
         {isPreview ? (
           <PreviewModeNotice
             description={`${getFallbackPreviewMessage("este formulario de publicación")} Podés recorrer los pasos, pero la publicación real está deshabilitada en esta vista previa.`}
@@ -199,13 +199,13 @@ export function PublishJob() {
 
         {step === 1 && (
           <SurfaceCard padding="lg">
-            <h2 className="mb-2 text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+            <h2 className="mb-2 text-xl font-bold tracking-normal text-[var(--app-text)] sm:text-2xl">
               ¿Qué querés publicar?
             </h2>
             <p className="mb-4 text-[var(--app-text-muted)]">
               Elegí si vas a pedir ayuda o si querés mostrar un servicio para que te contraten.
             </p>
-            <div className="mb-5 grid gap-3 sm:grid-cols-2">
+            <div className="app-dense-grid mb-5 gap-3">
               {([
                 ["request", "Necesito ayuda", "Publicá una necesidad concreta para recibir propuestas."],
                 ["service", "Ofrezco un servicio", "Mostrá lo que hacés para que puedan contratarte."],
@@ -214,7 +214,7 @@ export function PublishJob() {
                   key={value}
                   type="button"
                   onClick={() => setForm((prev) => ({ ...prev, listingType: value }))}
-                  className={`rounded-[24px] border p-5 text-left transition-all ${
+                  className={`rounded-[20px] border p-4 text-left transition-all sm:rounded-[24px] sm:p-5 ${
                     form.listingType === value
                       ? "border-[var(--app-brand)] bg-[var(--app-brand-soft)] shadow-[0_12px_28px_rgba(13,174,121,0.12)]"
                       : "border-[var(--app-border)] bg-[var(--app-surface-muted)]"
@@ -228,13 +228,13 @@ export function PublishJob() {
             <p className="mb-4 text-sm font-semibold text-[var(--app-brand)]">
               Tipo seleccionado: {getListingTypeLabel(form.listingType)}
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="app-dense-grid gap-3">
               {jobCategories.map((category) => (
                 <button
                   key={category}
                   onClick={() => setForm((prev) => ({ ...prev, category }))}
                   data-testid={`publish-category-${category.toLowerCase().replace(/\s+/g, "-")}`}
-                  className={`rounded-[24px] border p-5 text-left transition-all ${
+                  className={`rounded-[20px] border p-4 text-left transition-all sm:rounded-[24px] sm:p-5 ${
                     form.category === category
                       ? "border-[var(--app-brand)] bg-[var(--app-brand-soft)] shadow-[0_12px_28px_rgba(13,174,121,0.12)]"
                       : "border-[var(--app-border)] bg-[var(--app-surface-muted)]"
@@ -252,7 +252,7 @@ export function PublishJob() {
 
         {step === 2 && (
           <SurfaceCard padding="lg" className="space-y-4">
-            <h2 className="text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+            <h2 className="text-xl font-bold tracking-normal text-[var(--app-text)] sm:text-2xl">
               {form.listingType === "service" ? "Contanos qué ofrecés" : "Contanos qué necesitás"}
             </h2>
             <p className="text-[var(--app-text-muted)]">
@@ -286,7 +286,7 @@ export function PublishJob() {
 
         {step === 3 && (
           <SurfaceCard padding="lg" className="space-y-4">
-            <h2 className="text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+            <h2 className="text-xl font-bold tracking-normal text-[var(--app-text)] sm:text-2xl">
               {form.listingType === "service" ? "Zona, precio base y disponibilidad" : "Ubicación, presupuesto y tiempos"}
             </h2>
             <p className="text-[var(--app-text-muted)]">
@@ -322,7 +322,7 @@ export function PublishJob() {
             />
             <SurfaceCard tone="muted" padding="sm">
               <p className="mb-2 text-sm font-semibold text-[var(--app-text)]">Urgencia</p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {[
                   { label: "Normal", value: "normal" },
                   { label: "Urgente", value: "urgente" },
@@ -351,7 +351,7 @@ export function PublishJob() {
 
         {step === 4 && (
           <SurfaceCard padding="lg" className="space-y-4">
-            <h2 className="text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+            <h2 className="text-xl font-bold tracking-normal text-[var(--app-text)] sm:text-2xl">
               Confirmá tu publicación
             </h2>
             <p className="text-[var(--app-text-muted)]">
@@ -401,7 +401,7 @@ export function PublishJob() {
       </div>
 
       <div className="app-floating-bar fixed bottom-0 left-0 right-0">
-        <div className="app-content-shell px-6 py-5 lg:px-10">
+        <div className="app-page-section py-4 sm:py-5">
           <Button
             variant="primary"
             size="lg"
