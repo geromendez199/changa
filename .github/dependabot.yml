@@ -1,0 +1,43 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: "America/Argentina/Buenos_Aires"
+    groups:
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      types:
+        patterns:
+          - "@types/*"
+      eslint:
+        patterns:
+          - "eslint*"
+      sentry:
+        patterns:
+          - "@sentry/*"
+      vercel:
+        patterns:
+          - "@vercel/*"
+      tailwind:
+        patterns:
+          - "tailwind*"
+    allow:
+      - dependency-type: "all"
+    rebase-strategy: auto
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: "America/Argentina/Buenos_Aires"
+    rebase-strategy: auto
