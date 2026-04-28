@@ -1,9 +1,13 @@
 import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
+import { initObservability } from "./lib/observability";
 import App from "./app/App.tsx";
 import "./styles/index.css";
 
 createRoot(document.getElementById("root")!).render(<App />);
+
+// Initialize observability stacks (Sentry, PostHog, Vercel Analytics, Plausible)
+void initObservability();
 
 const scheduleServiceWorkerRegistration = () => {
   const registerServiceWorker = () => {
