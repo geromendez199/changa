@@ -1,0 +1,1 @@
+-- Placeholder - reviews table should already exist from initial schema

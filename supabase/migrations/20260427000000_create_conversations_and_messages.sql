@@ -1,0 +1,1 @@
+-- Placeholder - conversations and messages tables should already exist from initial schema
