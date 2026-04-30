@@ -36,3 +36,15 @@ sms_max_frequency = "3600s"
 
 [functions."verify-email"]
 verify_jwt = false
+
+[functions."payment-initiate"]
+verify_jwt = true
+
+[functions."validate-review"]
+verify_jwt = true
+
+[functions."send-notifications"]
+verify_jwt = true
+
+[functions."log-event"]
+verify_jwt = false
